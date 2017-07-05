@@ -47,7 +47,6 @@ module load python
 # Specify parameters
 
 nproc=$SLURM_NTASKS                          # number of processors
-nproc=6
 
 midlon=135.5                                 # central longitude of domain
 midlat=-34.5                                 # central latitude of domain
