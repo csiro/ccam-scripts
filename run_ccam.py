@@ -2,7 +2,6 @@ import os
 import argparse
 import sys
 import commands
-from netCDF4 import Dataset
 from calendar import monthrange
 
 def main(inargs):
@@ -152,15 +151,11 @@ def read_inv_schmidt():
     "Read inverse schmidt value from NetCDF topo file and calculate grid resolution"
 
     topofile = dict2str('{vegca}/topout{domain}')
-    check_file_exists(topofile)
-    d['topofile'] = topofile
-
-    fread = Dataset(topofile,'r')
-    d['inv_schmidt'] = fread.schmidt
-    d['lon0'] = fread.lon0
-    d['lat0'] = fread.lat0
-    d['gridsize'] = len(fread.variables['longitude'])
-    fread.close()
+    
+    d['inv_schmidt'] = float(commands.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+    d['gridsize'] = float(commands.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
+    d['lon0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+    d['lat0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
 
 def calc_res():
     "Calculate resolution for high resolution area"
@@ -652,19 +647,23 @@ def check_correct_landuse():
     fname = dict2str('{vegin}/{vegfile}')
 
     cable_data = (commands.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
-    if d['sib'] == 2 and cable_data == True:
-        raise ValueError('MODIS surface selected with sib=2, but CABLE data is in the input file')
+    if d['sib'] == 1 and cable_data == False:
+        raise ValueError('CABLE surface selected with sib=1, but CABLE data is not in the input file')
 
     modis_data = (commands.getoutput('ncdump -c '+fname+' | grep -o sibvegversion') == "sibvegversion")
-    if d['nsib'] == 1 and modis_data == True:
-        raise ValueError('CABLE surface selected with sib=1, but MODIS data is in the input file')
+    if d['sib'] == 2 and modis_data == False:
+        raise ValueError('MODIS surface selected with sib=2, but MODIS data is not in the input file')
+
+    cable_data = (commands.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
+    if d['sib'] == 3 and cable_data == False:
+        raise ValueError('CABLE+SLI surface selected with sib=3, but CABLE data is not in the input file')
 
 def run_model():
     "Execute the CCAM model"
 
     run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
     
-    xtest = (commands.getoutput('grep -o "globpea completed successfully" prnew.{kdates}.{name}') == "prnew.{kdates}.{name}")
+    xtest = (commands.getoutput('grep -o "globpea completed successfully" prnew.{kdates}.{name}') == "globpea completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
 	

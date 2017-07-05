@@ -55,6 +55,11 @@ gridsize=48                                  # cubic grid size
 
 name=ccam_${gridres}km                       # run name
 
+if [[ $gridres = "-999." ]]; then
+  gridtxt=$(echo "scale=1; 112.*90./$gridsize" | bc -l)
+  name=`echo $name | sed "s/$gridres/$gridtxt"/g`
+fi
+
 mlev=27                                      # number of model levels (27, 35, 54, 72, 108 or 144)
 iys=2005                                     # start year
 ims=01                                       # start month
@@ -73,7 +78,7 @@ plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa)
 
 dmode=0                                      # downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM) )
 nstrength=0                                  # nudging strength (0=normal, 1=strong)
-sib=1                                        # land surface (1=CABLE, 2=MODIS)
+sib=1                                        # land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)
 aero=1                                       # aerosols (0=off, 1=prognostic)
 conv=1                                       # convection (0=2014, 1=2015a, 2=2015b, 3=2017)
 cloud=2                                      # cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)
