@@ -663,7 +663,8 @@ def run_model():
 
     run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
     
-    xtest = (commands.getoutput('grep -o "globpea completed successfully" prnew.{kdates}.{name}') == "globpea completed successfully")
+    prfile = dict2str('prnew.{kdates}.{name}')
+    xtest = (commands.getoutput('grep -o "globpea completed successfully" '+prfile) == "globpea completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
 	
