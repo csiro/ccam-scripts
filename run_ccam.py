@@ -85,11 +85,11 @@ def check_surface_files():
     d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
 
     for fname in ['topout','bath','casa']:
-        if not(os.path.exists(dict2str('vegdata/'+fname+'{domain}'))):        
+        if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):        
             run_cable()
 
     for mon in xrange(1,13):
-        if not(os.path.exists(dict2str('vegdata/veg{domain}.'+mon_2digit(mon)))):
+        if not(os.path.exists(dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon)))):
             run_cable()
 
 def run_cable():
@@ -114,10 +114,10 @@ def run_cable():
     print "Processing CASA data"
     run_cmdline('ulimit -s unlimited && {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain}')
 
-    run_cmdline('mv -f topout{domain} vegdata')
-    run_cmdline('mv -f veg{domain}* vegdata')
-    run_cmdline('mv -f bath{domain} vegdata')
-    run_cmdline('mv -f casa{domain} vegdata')
+    run_cmdline('mv -f topout{domain} {hdir}/vegdata')
+    run_cmdline('mv -f veg{domain}* {hdir}/vegdata')
+    run_cmdline('mv -f bath{domain} {hdir}/vegdata')
+    run_cmdline('mv -f casa{domain} {hdir}/vegdata')
 
 def create_directories():
     "Create output directories and go to working directory"
@@ -150,7 +150,7 @@ def calc_dt_out():
 def read_inv_schmidt():
     "Read inverse schmidt value from NetCDF topo file and calculate grid resolution"
 
-    topofile = dict2str('vegdata/topout{domain}')
+    topofile = dict2str('{hdir}/vegdata/topout{domain}')
     
     d['inv_schmidt'] = float(commands.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
     d['gridsize'] = float(commands.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
@@ -463,7 +463,7 @@ def set_atmos():
         elif d['casa'] == 2:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1})
 
-    d.update({ 'vegin': 'vegdata',
+    d.update({ 'vegin': dict2str('{hdir}/vegdata'),
         'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
         'vegfile': dict2str('veg{domain}.{imth_2digit}'),
         'vegnext': dict2str('veg{domain}.{imthnxt_2digit}'),

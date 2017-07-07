@@ -100,7 +100,6 @@ sstdir=$insdir/gcmsst                                           # SST data (dmod
 
 excdir=$insdir/scripts/run_ccam       # python code directory
 stdat=$insdir/ccamdata                # eigen and radiation datafiles
-vegca=$hdir/vegdata                   # topographic datasets
 
 ###############################################################
 # Specify executables
@@ -122,7 +121,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --river $river --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf --bcdom $bcdom \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
-                   --bcdir $bcdir --sstdir $sstdir --stdat $stdat --vegca $vegca \
+                   --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
                    --ocnbath $ocnbath --casafield $casafield
 
