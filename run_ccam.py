@@ -59,7 +59,7 @@ def check_inargs():
                   'sib','aero','conv','cloud','bmix','river','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','bcdom','sstfile',
                   'sstinit','cmip','insdir','hdir','bcdir','sstdir','stdat',
-                  'vegca','aeroemiss','model','pcc2hist','terread','igbpveg','ocnbath','casafield']
+                  'aeroemiss','model','pcc2hist','terread','igbpveg','ocnbath','casafield']
 
     for i in args2check:
      if not( i in d.keys() ):
@@ -85,11 +85,11 @@ def check_surface_files():
     d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
 
     for fname in ['topout','bath','casa']:
-        if not(os.path.exists(dict2str('{vegca}/'+fname+'{domain}'))):        
+        if not(os.path.exists(dict2str('vegdata/'+fname+'{domain}'))):        
             run_cable()
 
     for mon in xrange(1,13):
-        if not(os.path.exists(dict2str('{vegca}/veg{domain}.'+mon_2digit(mon)))):
+        if not(os.path.exists(dict2str('vegdata/veg{domain}.'+mon_2digit(mon)))):
             run_cable()
 
 def run_cable():
@@ -114,10 +114,10 @@ def run_cable():
     print "Processing CASA data"
     run_cmdline('ulimit -s unlimited && {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain}')
 
-    run_cmdline('mv -f topout{domain} {vegca}')
-    run_cmdline('mv -f veg{domain}* {vegca}')
-    run_cmdline('mv -f bath{domain} {vegca}')
-    run_cmdline('mv -f casa{domain} {vegca}')
+    run_cmdline('mv -f topout{domain} vegdata')
+    run_cmdline('mv -f veg{domain}* vegdata')
+    run_cmdline('mv -f bath{domain} vegdata')
+    run_cmdline('mv -f casa{domain} vegdata')
 
 def create_directories():
     "Create output directories and go to working directory"
@@ -150,7 +150,7 @@ def calc_dt_out():
 def read_inv_schmidt():
     "Read inverse schmidt value from NetCDF topo file and calculate grid resolution"
 
-    topofile = dict2str('{vegca}/topout{domain}')
+    topofile = dict2str('vegdata/topout{domain}')
     
     d['inv_schmidt'] = float(commands.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
     d['gridsize'] = float(commands.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
@@ -463,7 +463,7 @@ def set_atmos():
         elif d['casa'] == 2:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1})
 
-    d.update({ 'vegin': d['vegca'],
+    d.update({ 'vegin': 'vegdata',
         'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
         'vegfile': dict2str('veg{domain}.{imth_2digit}'),
         'vegnext': dict2str('veg{domain}.{imthnxt_2digit}'),
@@ -1198,7 +1198,6 @@ if __name__ == '__main__':
     parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0 or dmode=2)")
     parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
-    parser.add_argument("--vegca", type=str, help=" topographic datasets")
     parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
     parser.add_argument("--model", type=str, help=" path of globpea executable")
     parser.add_argument("--pcc2hist", type=str, help=" path of pcc2hist executable")
