@@ -62,7 +62,9 @@ maxlat=-999.                                 # output max latitude (degrees) (-9
 minlon=-999.                                 # output min longitude (degrees) (-999.=automatic)
 maxlon=-999.                                 # output max longitude (degrees) (-999.=automatic)
 reqres=-999.                                 # required output resolution (degrees) (-999.=automatic)
-plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa)
+outlevmode=0                                 # output mode for levels (0=pressure, 1=meters)
+plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
+mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
 
 dmode=0                                      # downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM) )
 cmip=cmip5                                   # CMIP scenario (CMIP3 or CMIP5)
@@ -119,7 +121,8 @@ pcc2hist=$insdir/src/bin/pcc2hist
 python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --midlat " $midlat" --gridres " $gridres" \
                    --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --iye $iye --ime $ime --leap $leap \
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
-                   --maxlon " $maxlon" --reqres " $reqres" --plevs ${plevs// /} --dmode $dmode --nstrength $nstrength \
+                   --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
+		   --mlevs ${mlevs// /} --dmode $dmode --nstrength $nstrength \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --river $river --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf --bcdom $bcdom \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \

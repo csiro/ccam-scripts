@@ -55,8 +55,8 @@ def check_inargs():
 
     args2check = ['name','nproc','midlon','midlat','gridres','gridsize','mlev','iys',
                   'ims','iye','ime','leap','ncountmax','ktc','minlat','maxlat',
-                  'minlon','maxlon','reqres','plevs','dmode','nstrength',
-                  'sib','aero','conv','cloud','bmix','river','mlo','casa',
+                  'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dmode',
+                  'nstrength','sib','aero','conv','cloud','bmix','river','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','bcdom','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
@@ -75,10 +75,19 @@ def check_inargs():
         raise ValueError, "nstrength=1 is required for ctm output"
 
     d['plevs'] = d['plevs'].replace(',',', ')
-    
+    d['mlevs'] = d['mlevs'].replace(',',', ')  
+    if d['outlevmode'] == 0:
+        d['use_plevs'] = 'T'
+        d['use_mlevs'] = 'F'
+    elif d['outlevmode'] == 1:
+        d['use_plevs'] = 'F'
+        d['use_mlevs'] = 'T'
+    else:
+        raise ValueError, "Invaide choice for outlevmode"
+
     if d['gridres'] == -999.:
-      d['gridres'] = 112.*90./d['gridsize']
-      print(dict2str('Update gridres to {gridres}'))
+        d['gridres'] = 112.*90./d['gridsize']
+        print(dict2str('Update gridres to {gridres}'))
 
 def check_surface_files():
     "Ensure surface datasets exist"
@@ -693,7 +702,7 @@ def post_process_output():
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 2:
-        write2file('cc.nml',cc_template_2(),mode='w+')
+        write2file('cc.nml',cc_template_1(),mode='w+')
         run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
@@ -706,7 +715,7 @@ def post_process_output():
                 d['iend'] = iday*1440
                 d['istart'] = (iday*1440)-1440
                 d['outctmfile'] = dict2str('ctm_{iyr}{imth_2digit}{cday}.nc',d)
-                write2file('cc.nml',cc_template_3(),mode='w+')
+                write2file('cc.nml',cc_template_2(),mode='w+')
                 run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
                 xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
                 if xtest == False:
@@ -723,7 +732,7 @@ def post_process_output():
     d['ktc_sec'] = d['ktc_surf']*60
 
     if d['ncsurf'] == 1:
-        write2file('cc.nml',cc_template_4(),mode='w+')
+        write2file('cc.nml',cc_template_3(),mode='w+')
         run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
@@ -731,7 +740,7 @@ def post_process_output():
         #run_cmdline('rm surf.{ofile}.??????')
 
     if d['ncsurf'] == 2 and d['nctar'] == 1:
-        write2file('cc.nml',cc_template_4(),mode='w+')
+        write2file('cc.nml',cc_template_3(),mode='w+')
         run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
         #run_cmdline('rm surf.{ofile}.??????')
 
@@ -1103,8 +1112,10 @@ def cc_template_1():
      hres  = {res}
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
-     use_plevs = T
+     use_plevs = {use_plevs}
+     use_mlevs = {use_mlevs}     
      plevs = {plevs}
+     mlevs = {mlevs}
     &end
     &histnl
      htype="inst"
@@ -1113,24 +1124,6 @@ def cc_template_1():
 
 def cc_template_2():
     "Second part of template for 'cc.nml' namelist file"
-
-    return """\
-    &input
-     ifile = "{ofile}"
-     ofile = "{hdir}/daily/{ofile}.nc"
-     hres  = {res}
-     kta={ktc}   ktb=999999  ktc={ktc}
-     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
-     use_plevs = T
-     plevs = {plevs}
-    &end
-    &histnl
-     htype="inst"
-     hnames= "all"  hfreq = 1
-    &end"""
-
-def cc_template_3():
-    "Third part of template for 'cc.nml' namelist file"
 
     return """\
     &input
@@ -1151,8 +1144,8 @@ def cc_template_3():
      hfreq = 1
     &end"""
 
-def cc_template_4():
-    "Fourth part of template for 'cc.nml' namelist file"
+def cc_template_3():
+    "Third part of template for 'cc.nml' namelist file"
 
     return """\
     &input
@@ -1206,7 +1199,10 @@ if __name__ == '__main__':
     parser.add_argument("--minlon", type=float, help=" output min longitude (degrees)")
     parser.add_argument("--maxlon", type=float, help=" output max longitude (degrees)")
     parser.add_argument("--reqres", type=float, help=" required output resolution (degrees) (-1.=automatic)")
+
+    parser.add_argument("--outlevmode", type=int, choices=[0,1], help=" Output level mode (0=pressure, 1=meters)")    
     parser.add_argument("--plevs", type=str, help=" output pressure levels (hPa)")
+    parser.add_argument("--mlevs", type=str, help=" output height levels (m)")    
 
     parser.add_argument("--dmode", type=int, choices=[0,1,2], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM) )")
     parser.add_argument("--nstrength", type=int, choices=[0,1], help=" nudging strength (0=normal, 1=strong)")
