@@ -873,6 +873,7 @@ def sibveg_template():
      topofile="topout{domain}"
      newtopofile="topsib{domain}"
      landtypeout="veg{domain}"
+     datapath="{insdir}/vegin"
      fastsib=t
      ozlaipatch=f
      binlimit=2
