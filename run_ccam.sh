@@ -33,12 +33,13 @@ module load python
 
 insdir=$HOME/ccaminstall                     # install directory
 hdir=$insdir/scripts/run_ccam                # script directory
+wdir=$hdir/wdir                              # working directory
 
 nproc=$SLURM_NTASKS                          # number of processors
 
 midlon=0.                                    # central longitude of domain
 midlat=0.                                    # central latitude of domain
-gridres=-999.                                # required resolution (km) of domain (-999.=automatic)
+gridres=-999.                                # required resolution (km) of domain (-999.=global)
 gridsize=96                                  # cubic grid size 
 
 name=ccam_${gridres}km                       # run name
@@ -51,7 +52,7 @@ fi
 iys=2000                                     # start year
 ims=1                                        # start month
 iye=2000                                     # end year
-ime=1                                        # end month
+ime=12                                       # end month
 leap=1                                       # Use leap days (0=off, 1=on)
 ncountmax=12                                 # Number of months before resubmit
 
@@ -121,7 +122,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --river $river --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf --bcdom $bcdom \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
-                   --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
+                   --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
                    --ocnbath $ocnbath --casafield $casafield
 

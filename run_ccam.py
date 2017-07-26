@@ -58,7 +58,7 @@ def check_inargs():
                   'minlon','maxlon','reqres','plevs','dmode','nstrength',
                   'sib','aero','conv','cloud','bmix','river','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','bcdom','sstfile',
-                  'sstinit','cmip','insdir','hdir','bcdir','sstdir','stdat',
+                  'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','ocnbath','casafield']
 
     for i in args2check:
@@ -128,13 +128,17 @@ def create_directories():
 	
     os.chdir(dirname)
     
-    for dirname in ['daily','OUTPUT','RESTART','vegdata','wdir']:
+    for dirname in ['daily','OUTPUT','RESTART','vegdata']:
         if not(os.path.isdir(dirname)):
             os.mkdir(dirname)
    
     run_cmdline('rm -f {hdir}/restart.qm')
 
-    os.chdir('wdir')
+    dirname = dict2str('{wdir}')
+    if not(os.path.isdir(dirname)):
+        os.mkdir(dirname)
+
+    os.chdir(dirname)
 
 def calc_dt_out():
     "Calculate model output timestep"
@@ -332,7 +336,7 @@ def prep_iofiles():
 def set_mlev_params():
     "Set the parameters related to the number of model levels"
 
-    d_mlev_eigenv = {27:"eigenv27-10.300", 35:"eigenv.35b", 54:"eigenv.54b", 72:"eigenv.72b", 108:"eigenv.108b", 144:"eigenv.144b"}
+    d_mlev_eigenv = {27:"eigenv27-10.300.nc", 35:"eigenv.35b.nc", 54:"eigenv.54b.nc", 72:"eigenv.72b.nc", 108:"eigenv.108b.nc", 144:"eigenv.144b.nc"}
     d_mlev_modlolvl = {27:20, 35:30, 54:40, 72:60, 108:80, 144:100}
 
     d.update({'nmr': 1, 'acon': 0.00, 'bcon': 0.02, 'eigenv': d_mlev_eigenv[d['mlev']], 'mlolvl': d_mlev_modlolvl[d['mlev']]})
@@ -600,6 +604,9 @@ def prepare_ccam_infiles():
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
 
+        elif os.path.exists(fpath):
+	    run_cmdline('ln -s '+fpath+' .')
+
         else:
             check_file_exists(fpath+'.tar')
             run_cmdline('tar xvf '+fpath+'.tar')
@@ -676,10 +683,16 @@ def post_process_output():
     if d['ncout'] == 1:
         write2file('cc.nml',cc_template_1(),mode='w+')
         run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
+        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 2:
         write2file('cc.nml',cc_template_2(),mode='w+')
         run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 3:
         if d['sib'] == 2:
@@ -690,6 +703,9 @@ def post_process_output():
                 d['outctmfile'] = dict2str('ctm_{iyr}{imth_2digit}{cday}.nc',d)
                 write2file('cc.nml',cc_template_3(),mode='w+')
                 run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
+                if xtest == False:
+                    raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
 
             run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
             run_cmdline('rm ctm_{iyr}{imth_2digit}??.nc')
@@ -704,6 +720,9 @@ def post_process_output():
     if d['ncsurf'] == 1:
         write2file('cc.nml',cc_template_4(),mode='w+')
         run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
+        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running pcc2hist.  Check surf.pcc2hist.log for details"))
         #run_cmdline('rm surf.{ofile}.??????')
 
     if d['ncsurf'] == 2 and d['nctar'] == 1:
@@ -839,6 +858,7 @@ def ocnbath_template():
      topofile="topout{domain}"
      bathout="bath{domain}"
      bathdatafile="{insdir}/vegin/etopo1_ice_c.flt"
+     riverdatapath="{insdir}/vegin"
      fastocn=t
      bathfilt=t
      binlimit=4
@@ -1195,6 +1215,7 @@ if __name__ == '__main__':
     parser.add_argument("--rcp", type=str, choices=['historic','RCP26','RCP45','RCP85'], help=" RCP scenario")
     parser.add_argument("--insdir", type=str, help=" install directory")
     parser.add_argument("--hdir", type=str, help=" script directory")
+    parser.add_argument("--wdir", type=str, help=" working directory")
     parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0 or dmode=2)")
     parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
