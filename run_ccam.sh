@@ -107,6 +107,7 @@ stdat=$insdir/ccamdata                # eigen and radiation datafiles
 
 terread=$insdir/src/bin/terread
 igbpveg=$insdir/src/bin/igbpveg
+sibveg=$insdir/src/bin/sibveg
 ocnbath=$insdir/src/bin/ocnbath
 casafield=$insdir/src/bin/casafield
 aeroemiss=$insdir/src/bin/aeroemiss
@@ -124,7 +125,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
                    --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
-                   --ocnbath $ocnbath --casafield $casafield
+                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield
 
 if [ "`cat $hdir/restart.qm`" == "True" ]; then
   echo 'Restarting script'

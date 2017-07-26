@@ -59,7 +59,8 @@ def check_inargs():
                   'sib','aero','conv','cloud','bmix','river','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','bcdom','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
-                  'aeroemiss','model','pcc2hist','terread','igbpveg','ocnbath','casafield']
+                  'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
+		  'ocnbath','casafield']
 
     for i in args2check:
      if not( i in d.keys() ):
@@ -100,16 +101,20 @@ def run_cable():
     write2file('top.nml',top_template(),mode='w+')
     run_cmdline('ulimit -s unlimited && {terread} < top.nml')
 
-    print "Generating MODIS land-use data"
-    write2file('igbpveg.nml',igbpveg_template(),mode='w+')
-    run_cmdline('ulimit -s unlimited && {igbpveg} -s 1000 < igbpveg.nml')
-    run_cmdline('mv -f topsib{domain} topout{domain}')
+    if d['sib']==2:
+        print "Generating MODIS land-use data"
+        write2file('sibveg.nml',sibveg_template(),mode='w+')
+        run_cmdline('ulimit -s unlimited && {sibveg} -s 1000 < sibveg.nml')
+        run_cmdline('mv -f topsib{domain} topout{domain}')
+    else:
+        print "Generating CABLE land-use data"
+        write2file('igbpveg.nml',igbpveg_template(),mode='w+')
+        run_cmdline('ulimit -s unlimited && {igbpveg} -s 1000 < igbpveg.nml')
+        run_cmdline('mv -f topsib{domain} topout{domain}')
 
     print "Processing bathymetry data"
-    run_cmdline('ln -s {insdir}/vegin/*.bil .')
     write2file('ocnbath.nml',ocnbath_template(),mode='w+')
     run_cmdline('ulimit -s unlimited && {ocnbath} -s 1000 < ocnbath.nml')
-    run_cmdline('rm -f *.bil')
 
     print "Processing CASA data"
     run_cmdline('ulimit -s unlimited && {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain}')
@@ -850,6 +855,22 @@ def igbpveg_template():
      outputmode="cablepft"
     &end"""
 
+def sibveg_template():
+    "Template for writing sibveg.nml namelist file"
+
+    return """\
+    &vegnml
+     month=0
+     topofile="topout{domain}"
+     newtopofile="topsib{domain}"
+     landtypeout="veg{domain}"
+     fastsib=t
+     ozlaipatch=f
+     binlimit=2
+     zmin=20.
+     usedean=t
+    &end"""
+
 def ocnbath_template():
     "Template for writing ocnbath.nml namelist file"
 
@@ -1224,6 +1245,7 @@ if __name__ == '__main__':
     parser.add_argument("--pcc2hist", type=str, help=" path of pcc2hist executable")
     parser.add_argument("--terread", type=str, help=" path of terread executable")
     parser.add_argument("--igbpveg", type=str, help=" path of igbpveg executable")
+    parser.add_argument("--sibveg", type=str, help=" path of sibveg executable")    
     parser.add_argument("--ocnbath", type=str, help=" path of ocnbath executable")
     parser.add_argument("--casafield", type=str, help=" path of casafield executable")
 
