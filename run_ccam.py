@@ -78,10 +78,10 @@ def check_inargs():
     d['mlevs'] = d['mlevs'].replace(',',', ')  
     if d['outlevmode'] == 0:
         d['use_plevs'] = 'T'
-        d['use_mlevs'] = 'F'
+        d['use_meters'] = 'F'
     elif d['outlevmode'] == 1:
         d['use_plevs'] = 'F'
-        d['use_mlevs'] = 'T'
+        d['use_meters'] = 'T'
     else:
         raise ValueError, "Invaide choice for outlevmode"
 
@@ -1113,7 +1113,7 @@ def cc_template_1():
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = {use_plevs}
-     use_mlevs = {use_mlevs}     
+     use_meters = {use_meters}     
      plevs = {plevs}
      mlevs = {mlevs}
     &end
