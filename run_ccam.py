@@ -756,7 +756,7 @@ def post_process_output():
     d['imth'] = d['imth'] + 1
 
     if d['imth'] < 12:
-        run_cmdline('rm Rest{name}.{iyr}12.??????')
+        run_cmdline('rm Rest{name}.{iyrlst}12.??????')
 
     elif d['imth'] > 12:
         run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12*')
@@ -1178,15 +1178,16 @@ if __name__ == '__main__':
                                      epilog=extra_info,
                                      argument_default=argparse.SUPPRESS,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
+				     
     parser.add_argument("--name", type=str, help=" run name")
     parser.add_argument("--nproc", type=int, help=" number of processors")
+    
     parser.add_argument("--midlon", type=float, help=" central longitude of domain")
     parser.add_argument("--midlat", type=float, help=" central latitude of domain")
     parser.add_argument("--gridres", type=float, help=" required resolution (km) of domain")
     parser.add_argument("--gridsize", type=int, choices=[48,72,96,144,192,288,384,576,768,1152,1536], help="cubic grid size")
-    
-    parser.add_argument("--domain", type=str, help=" domain of topographic files")
     parser.add_argument("--mlev", type=int,choices=[27,35,54,72,108,144], help=" number of model levels (27, 35, 54, 72, 108 or 144)")
+    
     parser.add_argument("--iys", type=int, help=" start year [YYYY]")
     parser.add_argument("--ims", type=int, choices=[1,2,3,4,5,6,7,8,9,10,11,12], help=" start month [MM]")
     parser.add_argument("--iye", type=int, help=" end year [YYYY]")
@@ -1200,7 +1201,6 @@ if __name__ == '__main__':
     parser.add_argument("--minlon", type=float, help=" output min longitude (degrees)")
     parser.add_argument("--maxlon", type=float, help=" output max longitude (degrees)")
     parser.add_argument("--reqres", type=float, help=" required output resolution (degrees) (-1.=automatic)")
-
     parser.add_argument("--outlevmode", type=int, choices=[0,1], help=" Output level mode (0=pressure, 1=meters)")    
     parser.add_argument("--plevs", type=str, help=" output pressure levels (hPa)")
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")    
@@ -1237,14 +1237,15 @@ if __name__ == '__main__':
     parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0 or dmode=2)")
     parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
-    parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
-    parser.add_argument("--model", type=str, help=" path of globpea executable")
-    parser.add_argument("--pcc2hist", type=str, help=" path of pcc2hist executable")
+
     parser.add_argument("--terread", type=str, help=" path of terread executable")
     parser.add_argument("--igbpveg", type=str, help=" path of igbpveg executable")
     parser.add_argument("--sibveg", type=str, help=" path of sibveg executable")    
     parser.add_argument("--ocnbath", type=str, help=" path of ocnbath executable")
     parser.add_argument("--casafield", type=str, help=" path of casafield executable")
+    parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
+    parser.add_argument("--model", type=str, help=" path of globpea executable")
+    parser.add_argument("--pcc2hist", type=str, help=" path of pcc2hist executable")
 
     args = parser.parse_args()
 

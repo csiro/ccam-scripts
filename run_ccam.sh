@@ -132,7 +132,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
 
 if [ "`cat $hdir/restart.qm`" == "True" ]; then
   echo 'Restarting script'
-  sbatch $excdir/run_ccam.sh
+  sbatch $hdir/run_ccam.sh
 elif [ "`cat $hdir/restart.qm`" == "Complete" ]; then
   echo 'CCAM simulation completed normally'
 fi
