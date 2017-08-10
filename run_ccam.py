@@ -108,25 +108,40 @@ def run_cable():
     print "Generating topography file"
     d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
     write2file('top.nml',top_template(),mode='w+')
-    run_cmdline('ulimit -s unlimited && {terread} < top.nml')
+    run_cmdline('{terread} < top.nml > terread.log')
+    xtest = (commands.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
+    if xtest == False:
+        raise ValueError(dict2str("An error occured while running terread.  Check terread.log for details"))
 
     if d['sib']==2:
         print "Generating MODIS land-use data"
         write2file('sibveg.nml',sibveg_template(),mode='w+')
-        run_cmdline('ulimit -s unlimited && {sibveg} -s 1000 < sibveg.nml')
+        run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
+        xtest = (commands.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running sibveg.  Check sibveg.log for details"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
     else:
         print "Generating CABLE land-use data"
         write2file('igbpveg.nml',igbpveg_template(),mode='w+')
-        run_cmdline('ulimit -s unlimited && {igbpveg} -s 1000 < igbpveg.nml')
+        run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
+        xtest = (commands.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
 
     print "Processing bathymetry data"
     write2file('ocnbath.nml',ocnbath_template(),mode='w+')
-    run_cmdline('ulimit -s unlimited && {ocnbath} -s 1000 < ocnbath.nml')
+    run_cmdline('{ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
+    xtest = (commands.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
+    if xtest == False:
+        raise ValueError(dict2str("An error occured while running ocnbath.  Check ocnbath.log for details"))
 
     print "Processing CASA data"
-    run_cmdline('ulimit -s unlimited && {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain}')
+    run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
+    xtest = (commands.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
+    if xtest == False:
+        raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
 
     run_cmdline('mv -f topout{domain} {hdir}/vegdata')
     run_cmdline('mv -f veg{domain}* {hdir}/vegdata')
