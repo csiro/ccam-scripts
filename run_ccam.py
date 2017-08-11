@@ -365,7 +365,7 @@ def prep_iofiles():
 def set_mlev_params():
     "Set the parameters related to the number of model levels"
 
-    d_mlev_eigenv = {27:"eigenv27-10.300.nc", 35:"eigenv.35b.nc", 54:"eigenv.54b.nc", 72:"eigenv.72b.nc", 108:"eigenv.108b.nc", 144:"eigenv.144b.nc"}
+    d_mlev_eigenv = {27:"eigenv27-10.300", 35:"eigenv.35b", 54:"eigenv.54b", 72:"eigenv.72b", 108:"eigenv.108b", 144:"eigenv.144b"}
     d_mlev_modlolvl = {27:20, 35:30, 54:40, 72:60, 108:80, 144:100}
 
     d.update({'nmr': 1, 'acon': 0.00, 'bcon': 0.02, 'eigenv': d_mlev_eigenv[d['mlev']], 'mlolvl': d_mlev_modlolvl[d['mlev']]})
