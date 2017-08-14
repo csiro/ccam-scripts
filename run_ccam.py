@@ -58,7 +58,7 @@ def check_inargs():
                   'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dmode',
                   'nstrength','sib','aero','conv','cloud','bmix','river','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','bcdom','sstfile',
-                  'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
+                  'sstinit','cmip','insdir','hdir','wdir', 'rstore','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
 		  'ocnbath','casafield']
 
@@ -736,7 +736,12 @@ def post_process_output():
                 if xtest == False:
                     raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
 
-            run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
+            if d['rstore'] == "local":
+                run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
+            else:
+                run_cmdline('tar cvf ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
+		run_cmdline('scp ctm_{iyr}{imth_2digit}.tar {rstore}:{hdir}/daily')
+		rum_cmdline('rm ctm_{iyr}{imth_2digit}.tar')
             run_cmdline('rm ctm_{iyr}{imth_2digit}??.nc')
 
         else:
@@ -756,7 +761,12 @@ def post_process_output():
 
     if d['ncsurf'] == 2 and d['nctar'] == 1:
         write2file('cc.nml',cc_template_3(),mode='w+')
-        run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
+	if d['rstore'] == "local":
+            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
+	else:
+	    run_cmdline('tar cvf surf.{ofile}.tar surf.{ofile}.??????')
+	    run_cmdline('scp surf.{ofile}.tar {rstore}:{hdir}/OUTPUT')
+	    run_cmdline('rm surf.{ofile}.tar')
         #run_cmdline('rm surf.{ofile}.??????')
 
     # store output
@@ -764,7 +774,12 @@ def post_process_output():
         run_cmdline('mv {ofile}.?????? {hdir}/OUTPUT')
 
     elif d['nctar'] == 1:
-        run_cmdline('tar cvf {hdir}/OUTPUT/{ofile}.tar {ofile}.??????')
+        if d['rstore'] == "local":
+            run_cmdline('tar cvf {hdir}/OUTPUT/{ofile}.tar {ofile}.??????')
+	else:
+            run_cmdline('tar cvf {ofile}.tar {ofile}.??????')
+	    run_cmdline('scp {ofile}.tar {rstore}:{hdir}/OUTPUT')
+	    run_cmdline('rm {ofile}.tar') 
         run_cmdline('rm {ofile}.??????')
 
     # update counter for next simulation month and remove old files
@@ -774,7 +789,12 @@ def post_process_output():
         run_cmdline('rm Rest{name}.{iyrlst}12.??????')
 
     elif d['imth'] > 12:
-        run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12*')
+        if d['rstore'] == "local":
+            run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
+	else:
+	    run_cmdline('tar cvf Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
+	    run_cmdline('scp Rest{name}.{iyr}12.tar {rstore}:{hdir}/RESTART')
+	    run_cmdline('rm Rest{name}.{iyr}12.tar')
         run_cmdline('rm Rest{name}.{iyr}0?.?????? Rest{name}.{iyr}10.?????? Rest{name}.{iyr}11.??????')
         run_cmdline('rm prnew.{iyr}*')
         run_cmdline('rm {name}*{iyr}??')
@@ -945,8 +965,9 @@ def input_template_1():
      maxtilesize=96
 
      COMMENT='dynamical core'
-     epsp=0.1 epsu=0.1 precon=-10000 restol=2.e-7 nh=5 knh=9
-     nstagu=1 khor=0 epsh=1.
+     epsp=0.1 epsu=0.1 epsh=1.
+     precon=-10000 restol=2.e-7 nh=5 knh=9
+     nstagu=1 khor=0 nhorps=-1 nhorjlm=0
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
@@ -1249,6 +1270,7 @@ if __name__ == '__main__':
     parser.add_argument("--insdir", type=str, help=" install directory")
     parser.add_argument("--hdir", type=str, help=" script directory")
     parser.add_argument("--wdir", type=str, help=" working directory")
+    parser.add_argument("--rstore", type=str, help=" remote machine name")
     parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0 or dmode=2)")
     parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
