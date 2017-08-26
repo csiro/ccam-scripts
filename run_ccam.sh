@@ -67,7 +67,7 @@ outlevmode=0                                 # output mode for levels (0=pressur
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
 
-dmode=0                                      # downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM) )
+dmode=0                                      # downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr )
 cmip=cmip5                                   # CMIP scenario (CMIP3 or CMIP5)
 rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85)
 nstrength=0                                  # nudging strength (0=normal, 1=strong)
@@ -87,10 +87,10 @@ ncsurf=0                                     # High-freq output (0=none, 1=lat/l
 ktc_surf=10                                  # High-freq file output period (mins)
 
 ###############################################################
-# Host atmosphere for dmode=0 or dmode=2
+# Host atmosphere for dmode=0, dmode=2 or dmode=3
 
-bcdom=ccam_eraint_                           # host file prefix for dmode=0 or dmode=2
-bcdir=$insdir/erai                           # host atmospheric data (dmode=0 or dmode=2)
+bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
+bcdir=$insdir/erai                           # host atmospheric data (dmode=0, dmode=2 or dmode=3)
 
 ###############################################################
 # Sea Surface Temperature for dmode=1

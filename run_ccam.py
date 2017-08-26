@@ -379,7 +379,7 @@ def config_initconds():
 
         d['nrungcm'] = -1
 
-        if d['dmode'] in [0,2]:
+        if d['dmode'] in [0,2,3]:
             d.update({'ifile': d['mesonest']})
         else:
             d.update({'ifile': d['sstinit']})
@@ -405,13 +405,18 @@ def set_downscaling():
 
     elif d['dmode'] == 1:
         d.update({'dmode_meth': 1, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
-                'nud_uv': 0, 'mfix': 1, 'mfix_qg': 1, 'mfix_aero': 1,
+                'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0})
 
     elif d['dmode'] == 2:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
                 'nud_uv': 1, 'mfix': 0, 'mfix_qg': 0, 'mfix_aero': 0,
                 'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1})
+
+    elif d['dmode'] == 3:
+        d.update({'dmode_meth': 0, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
+                'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0})
 
 def set_cloud():
     "Cloud microphysics settings"
@@ -448,7 +453,7 @@ def set_ocean():
         if d['river'] != 1:
             raise ValueError, 'river=1 is a requirement for ocean mlo=1'
 
-        if d['dmode'] == 0 or d['dmode'] == 1:
+        if d['dmode'] == 0 or d['dmode'] == 1 or d['dmode'] == 3:
             # Downscaling mode - GCM or SST-only:
             d.update({'nmlo': -3, 'mbd_mlo': 20, 'nud_sst': 1,
                     'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
@@ -623,7 +628,7 @@ def create_input_file():
 def prepare_ccam_infiles():
     "Prepare and check CCAM input data"
 
-    if d['dmode'] == 0 or d['dmode'] == 2:
+    if d['dmode'] == 0 or d['dmode'] == 2 or d['dmode'] == 3:
         fpath = dict2str('{bcdir}/{mesonest}')
 
         if d['bcdom'] == "ccam_eraint_":
@@ -1241,7 +1246,7 @@ if __name__ == '__main__':
     parser.add_argument("--plevs", type=str, help=" output pressure levels (hPa)")
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")    
 
-    parser.add_argument("--dmode", type=int, choices=[0,1,2], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM) )")
+    parser.add_argument("--dmode", type=int, choices=[0,1,2,3], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr )")
     parser.add_argument("--nstrength", type=int, choices=[0,1], help=" nudging strength (0=normal, 1=strong)")
     parser.add_argument("--sib", type=int, choices=[1,2,3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0,1], help=" aerosols (0=off, 1=prognostic)")
@@ -1257,7 +1262,7 @@ if __name__ == '__main__':
     parser.add_argument("--ncsurf", type=int, choices=[0,1,2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 
-    parser.add_argument("--bcdom", type=str, help=" host file prefix for dmode=0 or dmode=2")
+    parser.add_argument("--bcdom", type=str, help=" host file prefix for dmode=0, dmode=2 or dmode=3")
 
     parser.add_argument("--sstfile", type=str, help=" sst file for dmode=1")
     parser.add_argument("--sstinit", type=str, help=" initial conditions file for dmode=1")
@@ -1271,7 +1276,7 @@ if __name__ == '__main__':
     parser.add_argument("--hdir", type=str, help=" script directory")
     parser.add_argument("--wdir", type=str, help=" working directory")
     parser.add_argument("--rstore", type=str, help=" remote machine name")
-    parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0 or dmode=2)")
+    parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0, dmode=2 or dmode=3)")
     parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
 
