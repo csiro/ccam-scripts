@@ -60,7 +60,7 @@ def check_inargs():
                   'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir', 'rstore','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
-		  'ocnbath','casafield']
+                  'ocnbath','casafield']
 
     for i in args2check:
      if not( i in d.keys() ):
