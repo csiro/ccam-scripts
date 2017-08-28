@@ -619,7 +619,10 @@ def create_sulffile_file():
     run_cmdline('rm -rf {sulffile}')
 
     # Create new sulffile:
-    run_cmdline('{aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+    if d['machinetype']==1:
+        run_cmdline('aprun {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+    else:
+        run_cmdline('{aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
 def create_input_file():
     "Write arguments to the CCAM 'input' namelist file"
