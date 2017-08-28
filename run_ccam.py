@@ -57,7 +57,7 @@ def check_inargs():
                   'ims','iye','ime','leap','ncountmax','ktc','minlat','maxlat',
                   'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dmode',
                   'nstrength','sib','aero','conv','cloud','bmix','river','mlo','casa',
-                  'ncout','nctar','ncsurf','ktc_surf','bcdom','sstfile',
+                  'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir', 'rstore','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
 		  'ocnbath','casafield']
@@ -108,7 +108,10 @@ def run_cable():
     print "Generating topography file"
     d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
     write2file('top.nml',top_template(),mode='w+')
-    run_cmdline('{terread} < top.nml > terread.log')
+    if d['machinetype']==1:
+        run_cmdline('aprun {terread} < top.nml > terread.log')
+    else:
+        run_cmdline('{terread} < top.nml > terread.log')
     xtest = (commands.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running terread.  Check terread.log for details"))
@@ -116,7 +119,10 @@ def run_cable():
     if d['sib']==2:
         print "Generating MODIS land-use data"
         write2file('sibveg.nml',sibveg_template(),mode='w+')
-        run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
+        if d['machinetype']==1:
+	    run_cmdline('aprun {sibveg} -s 1000 < sibveg.nml > sibveg.log')
+	else:
+            run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
         xtest = (commands.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running sibveg.  Check sibveg.log for details"))
@@ -124,7 +130,10 @@ def run_cable():
     else:
         print "Generating CABLE land-use data"
         write2file('igbpveg.nml',igbpveg_template(),mode='w+')
-        run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
+	if d['machinetype']==1:
+            run_cmdline('aprun {igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')	
+	else:
+            run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
         xtest = (commands.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
@@ -132,13 +141,19 @@ def run_cable():
 
     print "Processing bathymetry data"
     write2file('ocnbath.nml',ocnbath_template(),mode='w+')
-    run_cmdline('{ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
+    if d['machinetype']==1:
+        run_cmdline('aprun {ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
+    else:
+        run_cmdline('{ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
     xtest = (commands.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running ocnbath.  Check ocnbath.log for details"))
 
     print "Processing CASA data"
-    run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
+    if d['machinetype']==1:
+        run_cmdline('aprun {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
+    else:
+        run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
     xtest = (commands.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
@@ -702,7 +717,10 @@ def check_correct_landuse():
 def run_model():
     "Execute the CCAM model"
 
-    run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
+    if d['machinetype']==1:
+        run_cmdline('aprun -B {model} > prnew.{kdates}.{name} 2> err.{iyr}')    
+    else:
+        run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
     
     prfile = dict2str('prnew.{kdates}.{name}')
     xtest = (commands.getoutput('grep -o "globpea completed successfully" '+prfile) == "globpea completed successfully")
@@ -716,14 +734,20 @@ def post_process_output():
 
     if d['ncout'] == 1:
         write2file('cc.nml',cc_template_1(),mode='w+')
-        run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
+	if d['machinetype']==1:
+	    run_cmdline('aprun -B {pcc2hist} > pcc2hist.log')
+	else:
+            run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 2:
         write2file('cc.nml',cc_template_1(),mode='w+')
-        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+	if d['machinetype']==1:
+	    run_cmdline('aprun -B {pcc2hist} --cordex > pcc2hist.log')
+	else:
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
@@ -736,7 +760,10 @@ def post_process_output():
                 d['istart'] = (iday*1440)-1440
                 d['outctmfile'] = dict2str('ctm_{iyr}{imth_2digit}{cday}.nc',d)
                 write2file('cc.nml',cc_template_2(),mode='w+')
-                run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
+		if d['machinetype']==1:
+		    run_cmdline('aprun -B {pcc2hist} > pcc2hist_ctm.log')
+		else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
                 xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
                 if xtest == False:
                     raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
@@ -758,7 +785,10 @@ def post_process_output():
 
     if d['ncsurf'] == 1:
         write2file('cc.nml',cc_template_3(),mode='w+')
-        run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
+	if d['machinetype']==1:
+	    run_cmdline('aprun -B {pcc2hist} > surf.pcc2hist.log')
+	else:
+            run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check surf.pcc2hist.log for details"))
@@ -1262,13 +1292,15 @@ if __name__ == '__main__':
     parser.add_argument("--ncsurf", type=int, choices=[0,1,2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 
+    parser.add_argument("--machinetype", type=int, choices=[0,1], help=" Machine type (0=generic, 1=cray)")
+
+    ###############################################################
+    # Specify directories, datasets and executables
+
     parser.add_argument("--bcdom", type=str, help=" host file prefix for dmode=0, dmode=2 or dmode=3")
 
     parser.add_argument("--sstfile", type=str, help=" sst file for dmode=1")
     parser.add_argument("--sstinit", type=str, help=" initial conditions file for dmode=1")
-
-    ###############################################################
-    # Specify directories, datasets and executables
 
     parser.add_argument("--cmip", type=str, choices=['cmip5'], help=" CMIP scenario")
     parser.add_argument("--rcp", type=str, choices=['historic','RCP26','RCP45','RCP85'], help=" RCP scenario")

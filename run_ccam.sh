@@ -35,6 +35,7 @@ insdir=$HOME/ccaminstall                     # install directory
 hdir=$insdir/scripts/run_ccam                # script directory
 wdir=$hdir/wdir                              # working directory
 rstore=local                                 # remote machine name (local=no remote machine)
+machinetype=0                                # machine type (0=generic, 1=cray)
 
 nproc=$SLURM_NTASKS                          # number of processors
 
@@ -125,7 +126,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
 		   --mlevs ${mlevs// /} --dmode $dmode --nstrength $nstrength \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --river $river --mlo $mlo \
-                   --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf --bcdom $bcdom \
+                   --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf \
+                   --machinetype $machinetype --bcdom $bcdom \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
                    --wdir $wdir --rstore $rstore --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
