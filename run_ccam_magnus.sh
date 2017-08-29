@@ -1,25 +1,27 @@
-#!/bin/bash
-#PBS -P u93
-#PBS -l ncpus=1540
-#PBS -l walltime=5400
-#PBS -l mem=380gb
-#PBS -j oe
-#PBS -q normalbw
-#PBS -N ccamera50py
+#!/bin/bash --login
+#SBATCH --nodes=36
+#SBATCH --ntasks-per-node=24
+#SBATCH --ntasks-per-socket=10
+#SBATCH --time=24:00:00
+#SBATCH --mem=64gb
+#SBATCH --job-name=ccamera50py
+#SBATCH --account=director2045
+#SBATCH --export=NONE
 
 ###############################################################
-# RAIJIN MODULES
+# MAGNUS MODULES
 
-module load openmpi/1.10.2
-module load netcdf/4.3.3.1
-module load python/2.7.11
+#module load PrgEnv-cray
+#module load cray-mpich
+#module load cray-netcdf/4.3.3.1
+module load cray-netcdf/4.3.2
+module load python/2.7.10
 
 ###############################################################
 # This is the CCAM run script
 
-echo 'Job '$PBS_JOBID' started at '`date` | tee -a ~/job_monitoring.log
-set -xv
-cd $PBS_O_WORKDIR
+echo 'Job '$SLURM_JOB_ID' started at '`date` | tee -a ~/job_monitoring.log
+cd $SLURM_SUBMIT_DR
 
 # Example grid sizes and processor numbers
 # (NOTE: CCAM will automatically adjust the number of processors. Hence we
@@ -37,13 +39,14 @@ cd $PBS_O_WORKDIR
 ###############################################################
 # Specify parameters
 
-insdir=$HOME/ccaminstall                     # install directory
-hdir=$insdir/scripts/run_ccam                # script directory
+insdir=/group/director2045/ccam              # install directory
+#hdir=$insdir/scripts/scripts                 # script directory
+hdir=/group/director2045/ccamera50_py        # script directory
 wdir=$hdir/wdir                              # working directory
 rstore=local                                 # remote machine name (local=no remote machine)
-machinetype=0                                # machine type (0=generic, 1=cray)
+machinetype=1                                # machine type (0=generic, 1=cray)
 
-nproc=$PBS_NCPUS                             # number of processors
+nproc=$SLURM_NTASKS                          # number of processors
 
 midlon=0.                                    # central longitude of domain
 midlat=0.                                    # central latitude of domain
@@ -60,9 +63,9 @@ fi
 iys=2000                                     # start year
 ims=1                                        # start month
 iye=2000                                     # end year
-ime=12                                       # end month
+ime=6                                        # end month
 leap=1                                       # Use leap days (0=off, 1=on)
-ncountmax=4                                  # Number of months before resubmit
+ncountmax=1                                  # Number of months before resubmit
 
 ktc=360                                      # standard output period (mins)
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
@@ -74,7 +77,7 @@ outlevmode=0                                 # output mode for levels (0=pressur
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
 
-dmode=0                                      # downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM) )
+dmode=0                                      # downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM) 3=SST-6hr )
 cmip=cmip5                                   # CMIP scenario (CMIP3 or CMIP5)
 rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85)
 nstrength=0                                  # nudging strength (0=normal, 1=strong)
@@ -94,10 +97,10 @@ ncsurf=0                                     # High-freq output (0=none, 1=lat/l
 ktc_surf=10                                  # High-freq file output period (mins)
 
 ###############################################################
-# Host atmosphere for dmode=0 or dmode=2
+# Host atmosphere for dmode=0, dmode=2 or dmode=3
 
-bcdom=ccam_eraint_                           # host file prefix for dmode=0 or dmode=2
-bcdir=$insdir/erai                           # host atmospheric data (dmode=0 or dmode=2)
+bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
+bcdir=$insdir/ccamdata/eraint                # host atmospheric data (dmode=0, dmode=2 or dmode=3)
 
 ###############################################################
 # Sea Surface Temperature for dmode=1
@@ -109,7 +112,7 @@ sstdir=$insdir/gcmsst                                           # SST data (dmod
 ###############################################################
 # Specify directories
 
-excdir=$insdir/scripts/run_ccam       # python code directory
+excdir=$insdir/scripts/scripts        # python code directory
 stdat=$insdir/ccamdata                # eigen and radiation datafiles
 
 ###############################################################
@@ -121,7 +124,7 @@ sibveg=$insdir/src/bin/sibveg
 ocnbath=$insdir/src/bin/ocnbath
 casafield=$insdir/src/bin/casafield
 aeroemiss=$insdir/src/bin/aeroemiss
-model=$insdir/src/bin/globpea
+model=$insdir/src/bin/globpea.1707f
 pcc2hist=$insdir/src/bin/pcc2hist
 
 ###############################################################
@@ -143,7 +146,7 @@ if [ "`cat $hdir/restart.qm`" == "True" ]; then
   echo 'Completed job '$PBS_JOBID' at '`date` | tee -a ~/job_monitoring.log
   echo 'Restarting script '$PBS_JOBNAME' at month '`cat $hdir/year.qm`'. Submitted job:' | tee -a ~/job_monitoring.log
 # Need to print which realm it's submitting as well as job number. Realm is inferred from job name.
-  qsub $hdir/run_ccam_pbs.sh | tee -a ~/job_monitoring.log #Prints job ID of submitted job
+  sbatch $hdir/run_ccam_magnus.sh | tee -a ~/job_monitoring.log #Prints job ID of submitted job
 elif [ "`cat $hdir/restart.qm`" == "Complete" ]; then
   echo 'CCAM simulation completed normally at '`date` | tee -a ~/job_monitoring.log
 fi
