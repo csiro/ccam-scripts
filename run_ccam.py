@@ -48,7 +48,8 @@ def main(inargs):
         post_process_output()
 	print("Update simulation date and time")
         update_yearqm()
-        restart_flag()
+
+    restart_flag()
 
 def check_inargs():
     "Check all inargs are specified and are internally consistent"
