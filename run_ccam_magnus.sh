@@ -143,8 +143,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield
 
 if [ "`cat $hdir/restart.qm`" == "True" ]; then
-  echo 'Completed job '$PBS_JOBID' at '`date` | tee -a ~/job_monitoring.log
-  echo 'Restarting script '$PBS_JOBNAME' at month '`cat $hdir/year.qm`'. Submitted job:' | tee -a ~/job_monitoring.log
+  echo 'Completed job '$SBATCH_JOBID' at '`date` | tee -a ~/job_monitoring.log
+  echo 'Restarting script '$SBATCH_JOB_NAME' at month '`cat $hdir/year.qm`'. Submitted job:' | tee -a ~/job_monitoring.log
 # Need to print which realm it's submitting as well as job number. Realm is inferred from job name.
   sbatch $hdir/run_ccam_magnus.sh | tee -a ~/job_monitoring.log #Prints job ID of submitted job
 elif [ "`cat $hdir/restart.qm`" == "Complete" ]; then
