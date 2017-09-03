@@ -762,7 +762,7 @@ def post_process_output():
                 d['cday'] = mon_2digit(iday)
                 d['iend'] = iday*1440
                 d['istart'] = (iday*1440)-1440
-                d['outctmfile'] = dict2str('ctm_{iyr}{imth_2digit}{cday}.nc',d)
+                d['outctmfile'] = dict2str('ccam_{iyr}{imth_2digit}{cday}.nc',d)
                 write2file('cc.nml',cc_template_2(),mode='w+')
 		if d['machinetype']==1:
 		    run_cmdline('aprun -B {pcc2hist} > pcc2hist_ctm.log')

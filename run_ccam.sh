@@ -6,11 +6,11 @@
 #SBATCH --time=24:00:00
 
 ###############################################################
-# PEARCEY MODULES
+# MODULES
 
-module load mpt
-module load netcdf/4.3.3.1
-module load python
+module load mpt            # MPI
+module load netcdf/4.3.3.1 # NetCDF
+module load python         # Python
 
 ###############################################################
 # This is the CCAM run script
