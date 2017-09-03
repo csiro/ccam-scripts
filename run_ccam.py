@@ -68,13 +68,6 @@ def check_inargs():
          print 'Missing input argument --'+i
          sys.exit(1)
 
-    if d['ncout'] == 3 and d['sib'] != 2:
-        raise ValueError, "sib=2 is required for ctm output"
-        # I could simply hard-wire this here
-
-    if d['ncout'] == 3 and d['nstrength'] != 1:
-        raise ValueError, "nstrength=1 is required for ctm output"
-
     d['plevs'] = d['plevs'].replace(',',', ')
     d['mlevs'] = d['mlevs'].replace(',',', ')  
     if d['outlevmode'] == 0:
