@@ -942,6 +942,7 @@ def sibveg_template():
      landtypeout="veg{domain}"
      datapath="{insdir}/vegin"
      fastsib=t
+     siblsmask=t
      ozlaipatch=f
      binlimit=2
      zmin=20.
