@@ -1193,7 +1193,7 @@ def cc_template_1():
      ofile = "{hdir}/daily/{ofile}.nc" """
 
     template3 = """\
-     ofile = "{$ofile}.nc" """
+     ofile = "{ofile}.nc" """
 
     template4 = """\
      hres  = {res}
