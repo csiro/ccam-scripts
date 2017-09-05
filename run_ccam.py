@@ -738,6 +738,9 @@ def post_process_output():
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+        if d['rstore'] != "local":
+            run_cmdline('scp {ofile}.nc {rstore}:{hdir}/daily')
+            run_cmdline('rm {ofile}.nc')
 
     if d['ncout'] == 2:
         write2file('cc.nml',cc_template_1(),mode='w+')
@@ -748,33 +751,32 @@ def post_process_output():
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+        if d['rstore'] != "local":
+            run_cmdline('scp {ofile}.nc {rstore}:{hdir}/daily')
+            run_cmdline('rm {ofile}.nc')
 
     if d['ncout'] == 3:
-        if d['sib'] == 2:
-            for iday in xrange(1,d['ndays']+1):
-                d['cday'] = mon_2digit(iday)
-                d['iend'] = iday*1440
-                d['istart'] = (iday*1440)-1440
-                d['outctmfile'] = dict2str('ccam_{iyr}{imth_2digit}{cday}.nc',d)
-                write2file('cc.nml',cc_template_2(),mode='w+')
-		if d['machinetype']==1:
-		    run_cmdline('aprun -B {pcc2hist} > pcc2hist_ctm.log')
-		else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
-                xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
-                if xtest == False:
-                    raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
+        for iday in xrange(1,d['ndays']+1):
+            d['cday'] = mon_2digit(iday)
+            d['iend'] = iday*1440
+            d['istart'] = (iday*1440)-1440
+            d['outctmfile'] = dict2str('ccam_{iyr}{imth_2digit}{cday}.nc',d)
+            write2file('cc.nml',cc_template_2(),mode='w+')
+	    if d['machinetype']==1:
+                run_cmdline('aprun -B {pcc2hist} > pcc2hist_ctm.log')
+	    else:
+                run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
+            xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
+            if xtest == False:
+                raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
 
-            if d['rstore'] == "local":
-                run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
-            else:
-                run_cmdline('tar cvf ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
-		run_cmdline('scp ctm_{iyr}{imth_2digit}.tar {rstore}:{hdir}/daily')
-		rum_cmdline('rm ctm_{iyr}{imth_2digit}.tar')
-            run_cmdline('rm ctm_{iyr}{imth_2digit}??.nc')
-
+        if d['rstore'] == "local":
+            run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
         else:
-            raise ValueError(dict2str("Invalid land-use option for CTM sib={sib}. Please use sib=2 for CTM output",d))
+            run_cmdline('tar cvf ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
+            run_cmdline('scp ctm_{iyr}{imth_2digit}.tar {rstore}:{hdir}/daily')
+	    rum_cmdline('rm ctm_{iyr}{imth_2digit}.tar')
+        run_cmdline('rm ctm_{iyr}{imth_2digit}??.nc')
 
     # surface files
 
@@ -789,23 +791,31 @@ def post_process_output():
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check surf.pcc2hist.log for details"))
-        #run_cmdline('rm surf.{ofile}.??????')
+        if d['rstore'] != "local":
+            run_cmdline('scp surf.{ofile}.nc {rstore}:{hdir}/daily')
+            run_cmdline('rm surf.{ofile}.nc')
 
-    if d['ncsurf'] == 2 and d['nctar'] == 1:
-        write2file('cc.nml',cc_template_3(),mode='w+')
-	if d['rstore'] == "local":
-            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
-	else:
-	    run_cmdline('tar cvf surf.{ofile}.tar surf.{ofile}.??????')
-	    run_cmdline('scp surf.{ofile}.tar {rstore}:{hdir}/OUTPUT')
-	    run_cmdline('rm surf.{ofile}.tar')
-        #run_cmdline('rm surf.{ofile}.??????')
+    if d['ncsurf'] == 2:
+        if d['nctar'] == 1:
+            if d['rstore'] == "local":
+                run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
+            else:
+                run_cmdline('tar cvf surf.{ofile}.tar surf.{ofile}.??????')
+                run_cmdline('scp surf.{ofile}.tar {rstore}:{hdir}/OUTPUT')
+                run_cmdline('rm surf.{ofile}.tar')
+
+        else:
+            if d['rstore'] == "local":
+                run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
+            else:
+                run_cmdline('scp surf.{ofile}.?????? {rstore}:{hdir}/OUTPUT')
+                run_cmdline('rm surf.{ofile}.??????')
 
     # store output
     if d['nctar'] == 0:
         run_cmdline('mv {ofile}.?????? {hdir}/OUTPUT')
 
-    elif d['nctar'] == 1:
+    if d['nctar'] == 1:
         if d['rstore'] == "local":
             run_cmdline('tar cvf {hdir}/OUTPUT/{ofile}.tar {ofile}.??????')
 	else:
@@ -1175,10 +1185,17 @@ def input_template_6():
 def cc_template_1():
     "First part of template for 'cc.nml' namelist file"
 
-    return """\
+    template1 = """\
     &input
-     ifile = "{ofile}"
-     ofile = "{hdir}/daily/{ofile}.nc"
+     ifile = "{ofile}" """
+
+    template2 = """\
+     ofile = "{hdir}/daily/{ofile}.nc" """
+
+    template3 = """\
+     ofile = "{$ofile}.nc" """
+
+    template4 = """\
      hres  = {res}
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
@@ -1191,6 +1208,13 @@ def cc_template_1():
      htype="inst"
      hnames= "all"  hfreq = 1
     &end"""
+
+    if d['rstore'] == "local":
+        template = template1 + template2 + template4
+    else:
+        template = template1 + template3 + template4
+
+    return template
 
 def cc_template_2():
     "Second part of template for 'cc.nml' namelist file"
@@ -1217,10 +1241,17 @@ def cc_template_2():
 def cc_template_3():
     "Third part of template for 'cc.nml' namelist file"
 
-    return """\
+    template1 = """\
     &input
-     ifile = "surf.{ofile}"
-     ofile = "{hdir}/daily/surf.{ofile}.nc"
+     ifile = "surf.{ofile}" """
+
+    template2 = """\
+     ofile = "{hdir}/daily/surf.{ofile}.nc" """
+
+    template3 = """\
+     ofile = "surf.{ofile}.nc" """
+
+    template4 = """\
      hres  = {res}
      kta={ktc_sec}   ktb=2999999  ktc={ktc_sec}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
@@ -1230,6 +1261,13 @@ def cc_template_3():
      hnames= "uas","vas","tscrn","rhscrn","psl","rnd","sno","grpl","d10","u10"
      hfreq = 1
     &end"""
+
+    if d['rstore'] == "local":
+        template = template1 + template2 + template4
+    else:
+        template = template1 + template3 + template4
+
+    return template
 
 if __name__ == '__main__':
 
