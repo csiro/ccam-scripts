@@ -771,9 +771,9 @@ def post_process_output():
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
 
         if d['rstore'] == "local":
-            run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
+            run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth_2digit}??.nc')
         else:
-            run_cmdline('tar cvf ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth}_2digit??.nc')
+            run_cmdline('tar cvf ctm_{iyr}{imth_2digit}.tar ctm_{iyr}{imth_2digit}??.nc')
             run_cmdline('scp ctm_{iyr}{imth_2digit}.tar {rstore}:{hdir}/daily')
 	    run_cmdline('rm ctm_{iyr}{imth_2digit}.tar')
         run_cmdline('rm ctm_{iyr}{imth_2digit}??.nc')
