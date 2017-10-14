@@ -777,6 +777,19 @@ def post_process_output():
             run_cmdline('scp ctm_{iyr}{imth_2digit}.tar {rstore}:{hdir}/daily')
         run_cmdline('rm ccam_{iyr}{imth_2digit}??.nc')
 
+    if d['ncout'] == 4:
+        write2file('cc.nml',cc_template_1(),mode='w+')
+	if d['machinetype']==1:
+	    run_cmdline('aprun -B {pcc2hist} --interp=nearest > pcc2hist.log')
+	else:
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+        if d['rstore'] != "local":
+            run_cmdline('scp {ofile}.nc {rstore}:{hdir}/daily')
+            run_cmdline('rm {ofile}.nc')
+
     # surface files
 
     d['ktc_sec'] = d['ktc_surf']*60
@@ -795,6 +808,13 @@ def post_process_output():
             run_cmdline('rm surf.{ofile}.nc')
 
     if d['ncsurf'] == 2:
+        if d['nctar'] == 0:
+            if d['rstore'] == "local":
+                run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
+            else:
+                run_cmdline('scp surf.{ofile}.?????? {rstore}:{hdir}/OUTPUT')
+                run_cmdline('rm surf.{ofile}.??????')
+
         if d['nctar'] == 1:
             if d['rstore'] == "local":
                 run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
@@ -803,12 +823,8 @@ def post_process_output():
                 run_cmdline('scp surf.{ofile}.tar {rstore}:{hdir}/OUTPUT')
                 run_cmdline('rm surf.{ofile}.tar')
 
-        else:
-            if d['rstore'] == "local":
-                run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
-            else:
-                run_cmdline('scp surf.{ofile}.?????? {rstore}:{hdir}/OUTPUT')
-                run_cmdline('rm surf.{ofile}.??????')
+        if d['nctar'] == 2:
+            run_cmdline('rm surf.{ofile}.??????')
 
     # store output
     if d['nctar'] == 0:
@@ -821,6 +837,9 @@ def post_process_output():
             run_cmdline('tar cvf {ofile}.tar {ofile}.??????')
 	    run_cmdline('scp {ofile}.tar {rstore}:{hdir}/OUTPUT')
 	    run_cmdline('rm {ofile}.tar') 
+        run_cmdline('rm {ofile}.??????')
+
+    if d['nctar'] == 2:
         run_cmdline('rm {ofile}.??????')
 
     # update counter for next simulation month and remove old files
@@ -1322,8 +1341,8 @@ if __name__ == '__main__':
     parser.add_argument("--mlo", type=int, choices=[0,1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0,1,2], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP)")
 
-    parser.add_argument("--ncout", type=int, choices=[0,1,2,3], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM)")
-    parser.add_argument("--nctar", type=int, choices=[0,1], help=" TAR output files in OUTPUT directory (0=off, 1=on)")
+    parser.add_argument("--ncout", type=int, choices=[0,1,2,3,4], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM, 4=Nearest)")
+    parser.add_argument("--nctar", type=int, choices=[0,1,2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
     parser.add_argument("--ncsurf", type=int, choices=[0,1,2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 

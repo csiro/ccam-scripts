@@ -82,8 +82,8 @@ river=0                                      # river (0=off, 1=on)
 mlo=0                                        # ocean (0=Interpolated SSTs, 1=Dynamical ocean)
 casa=0                                       # CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP)
 
-ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM)
-nctar=1                                      # TAR output files in OUTPUT directory (0=off, 1=on)
+ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM, 4=Nearest)
+nctar=1                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
 ncsurf=0                                     # High-freq output (0=none, 1=lat/lon, 2=raw)
 ktc_surf=10                                  # High-freq file output period (mins)
 
