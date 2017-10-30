@@ -41,7 +41,6 @@ def main(inargs):
         create_input_file()
         prepare_ccam_infiles()
         check_correct_host()
-        check_correct_landuse()
 	print("Run CCAM")
         run_model()
 	print("Post-process CCAM output")
@@ -89,11 +88,14 @@ def check_surface_files():
     d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
 
     for fname in ['topout','bath','casa']:
-        if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):        
+        if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):
             run_cable()
 
     for mon in xrange(1,13):
-        if not(os.path.exists(dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon)))):
+        fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
+        if not(os.path.exists(fname)):
+            run_cable()
+        if check_correct_landuse(fname) == True:
             run_cable()
 
 def run_cable():
@@ -694,22 +696,24 @@ def check_correct_host():
         elif ccam_host == False and d['dmode'] == 2:
             raise ValueError('CCAM is not the host model. Use dmode = 0')
 
-def check_correct_landuse():
+def check_correct_landuse(fname):
     "Check that land-use data matches what the user wants"
 
-    fname = dict2str('{vegin}/{vegfile}')
+    testfail = False
 
     cable_data = (commands.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
     if d['sib'] == 1 and cable_data == False:
-        raise ValueError('CABLE surface selected with sib=1, but CABLE data is not in the input file')
+        testfail = True
 
     modis_data = (commands.getoutput('ncdump -c '+fname+' | grep -o sibvegversion') == "sibvegversion")
     if d['sib'] == 2 and modis_data == False:
-        raise ValueError('MODIS surface selected with sib=2, but MODIS data is not in the input file')
+        testfail = True
 
     cable_data = (commands.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
     if d['sib'] == 3 and cable_data == False:
-        raise ValueError('CABLE+SLI surface selected with sib=3, but CABLE data is not in the input file')
+        testfail = True
+
+    return testfail
 
 def run_model():
     "Execute the CCAM model"
@@ -1237,7 +1241,7 @@ def cc_template_1():
 def cc_template_2():
     "Second part of template for 'cc.nml' namelist file"
 
-    return """\
+    template1 = """\
     &input
      ifile = "{ofile}"
      ofile = "{outctmfile}"
@@ -1248,13 +1252,34 @@ def cc_template_2():
      use_plevs = F
     &end
     &histnl
-     htype="inst"
-     hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
+     htype="inst" """
+
+    template2 = """\
+    hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
 "temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
 "taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
 "tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rsmin","cbas_ave","ctop_ave"
      hfreq = 1
     &end"""
+
+    template3 = """\
+    hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
+"temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
+"taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
+"tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rs","cbas_ave","ctop_ave"
+     hfreq = 1
+    &end"""
+
+    if d['sib']==1:
+        template = template1 + template3
+
+    if d['sib']==2:
+        template = template1 + template2
+
+    if d['sib']==3:
+        template = template1 + template3
+
+    return template
 
 def cc_template_3():
     "Third part of template for 'cc.nml' namelist file"
