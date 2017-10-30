@@ -1258,7 +1258,8 @@ def cc_template_2():
     hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
 "temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
 "taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
-"tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rsmin","cbas_ave","ctop_ave"
+"wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rsmin",\
+"cbas_ave","ctop_ave"
      hfreq = 1
     &end"""
 
@@ -1266,7 +1267,8 @@ def cc_template_2():
     hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
 "temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
 "taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
-"tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rs","cbas_ave","ctop_ave"
+"wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rs",\
+"cbas_ave","ctop_ave"
      hfreq = 1
     &end"""
 
