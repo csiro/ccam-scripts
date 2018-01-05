@@ -412,22 +412,26 @@ def set_downscaling():
     if d['dmode'] == 0:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
                 'nud_uv': 1, 'mfix': 0, 'mfix_qg': 1, 'mfix_aero': 1,
-                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0})
+                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
+                'mh_bs':4})
 
     elif d['dmode'] == 1:
         d.update({'dmode_meth': 1, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                 'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
-                'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0})
+                'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
+                'mh_bs':4})
 
     elif d['dmode'] == 2:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
                 'nud_uv': 1, 'mfix': 0, 'mfix_qg': 0, 'mfix_aero': 0,
-                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1})
+                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1,
+                'mh_bs':3})
 
     elif d['dmode'] == 3:
         d.update({'dmode_meth': 0, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                 'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
-                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0})
+                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
+                'mh_bs':4})
 
 def set_cloud():
     "Cloud microphysics settings"
@@ -482,17 +486,26 @@ def set_atmos():
         d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 0})
 
         if d['casa'] == 0:
-            d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0})
+            d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
+	            'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
 
         elif d['casa'] == 1:
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0})
+            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
+                    'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
 
         elif d['casa'] == 2:
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1})
+            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
+                    'gs_switch': 1, 'cable_litter': 0, 'cable_climate': 0})
+
+        elif d['casa'] == 3:
+            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
+                    'gs_switch': 1, 'cable_litter': 0, 'cable_climate': 1})
+
 
     elif d['sib'] == 2:
         d.update({'nsib': 5, 'ccycle': 0, 'proglai': -1, 'progvcmax': 0,
-            'soil_struc': 0, 'fwsoil_switch': 0, 'cable_pop': 0})
+            'soil_struc': 0, 'fwsoil_switch': 0, 'cable_pop': 0,
+	    'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
 
         if d['casa'] == 1:
             raise ValueError, "casa=1 requires sib=1 or sib=3"
@@ -500,17 +513,27 @@ def set_atmos():
         elif d['casa'] == 2:
             raise ValueError, "casa=2 requires sib=1 or sib=3"
 
+        elif d['casa'] == 3:
+            raise ValueError, "casa=3 requires sib=1 or sib=3"
+
     elif d['sib'] == 3:
         d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3})
 
         if d['casa'] == 0:
-            d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0})
+            d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
+	            'gs_switch': 0, 'cable_litter': 1, 'cable_climate': 0})
 
         elif d['casa'] == 1:
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0})
+            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
+	            'gs_switch': 0, 'cable_litter': 1, 'cable_climate': 0})
 
         elif d['casa'] == 2:
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1})
+            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
+	            'gs_switch': 1, 'cable_litter': 1, 'cable_climate': 0})
+
+        elif d['casa'] == 3:
+            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
+	            'gs_switch': 1, 'cable_litter': 1, 'cable_climate': 1})
 
     d.update({ 'vegin': dict2str('{hdir}/vegdata'),
         'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
@@ -1033,6 +1056,7 @@ def input_template_1():
      epsp=0.1 epsu=0.1 epsh=1.
      precon=-10000 restol=2.e-7 nh=5 knh=9
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0
+     mh_bs={mh_bs}
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
@@ -1195,7 +1219,8 @@ def input_template_6():
     &landnml
      proglai={proglai} progvcmax={progvcmax} ccycle={ccycle}
      soil_struc={soil_struc} fwsoil_switch={fwsoil_switch}
-     cable_pop={cable_pop}
+     cable_pop={cable_pop} gs_switch={gs_switch}
+     cable_litter={cable_litter} cable_climate={cable_climate}
     &end
     &mlonml
      mlodiff=1 mlomfix=2 otaumode=1
@@ -1366,8 +1391,7 @@ if __name__ == '__main__':
     parser.add_argument("--bmix", type=int, choices=[0,1,2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--river", type=int, choices=[0,1], help=" river (0=off, 1=on)")
     parser.add_argument("--mlo", type=int, choices=[0,1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
-    parser.add_argument("--casa", type=int, choices=[0,1,2], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP)")
-
+    parser.add_argument("--casa", type=int, choices=[0,1,2,3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
     parser.add_argument("--ncout", type=int, choices=[0,1,2,3,4], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM, 4=Nearest)")
     parser.add_argument("--nctar", type=int, choices=[0,1,2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
     parser.add_argument("--ncsurf", type=int, choices=[0,1,2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
