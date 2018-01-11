@@ -802,6 +802,7 @@ def post_process_output():
         else:
             run_cmdline('tar cvf ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
             run_cmdline('scp ctm_{iyr}{imth_2digit}.tar {rstore}:{hdir}/daily')
+            run_cmdline('rm ctm_{iyr}{imth_2digit}.tar')
         run_cmdline('rm ccam_{iyr}{imth_2digit}??.nc')
 
     if d['ncout'] == 4:
