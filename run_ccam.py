@@ -105,7 +105,7 @@ def run_cable():
     d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
     write2file('top.nml',top_template(),mode='w+')
     if d['machinetype']==1:
-        run_cmdline('aprun {terread} < top.nml > terread.log')
+        run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
     else:
         run_cmdline('{terread} < top.nml > terread.log')
     xtest = (commands.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
@@ -116,7 +116,7 @@ def run_cable():
         print "Generating MODIS land-use data"
         write2file('sibveg.nml',sibveg_template(),mode='w+')
         if d['machinetype']==1:
-	    run_cmdline('aprun {sibveg} -s 1000 < sibveg.nml > sibveg.log')
+	    run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
 	else:
             run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
         xtest = (commands.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
@@ -127,7 +127,7 @@ def run_cable():
         print "Generating CABLE land-use data"
         write2file('igbpveg.nml',igbpveg_template(),mode='w+')
 	if d['machinetype']==1:
-            run_cmdline('aprun {igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')	
+            run_cmdline('srun -n {igbpveg} -s 500 < igbpveg.nml > igbpveg.log')	
 	else:
             run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
         xtest = (commands.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
@@ -138,7 +138,7 @@ def run_cable():
     print "Processing bathymetry data"
     write2file('ocnbath.nml',ocnbath_template(),mode='w+')
     if d['machinetype']==1:
-        run_cmdline('aprun {ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
+        run_cmdline('srun -n 1 {ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
     else:
         run_cmdline('{ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
     xtest = (commands.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
@@ -147,7 +147,7 @@ def run_cable():
 
     print "Processing CASA data"
     if d['machinetype']==1:
-        run_cmdline('aprun {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
+        run_cmdline('srun -n 1 {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
     else:
         run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
     xtest = (commands.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
@@ -639,7 +639,7 @@ def create_sulffile_file():
 
     # Create new sulffile:
     if d['machinetype']==1:
-        run_cmdline('aprun {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+        run_cmdline('srun -n 1 {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
     else:
         run_cmdline('{aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
@@ -742,7 +742,7 @@ def run_model():
     "Execute the CCAM model"
 
     if d['machinetype']==1:
-        run_cmdline('aprun -B {model} > prnew.{kdates}.{name} 2> err.{iyr}')    
+        run_cmdline('srun -n {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')    
     else:
         run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
     
@@ -759,7 +759,7 @@ def post_process_output():
     if d['ncout'] == 1:
         write2file('cc.nml',cc_template_1(),mode='w+')
 	if d['machinetype']==1:
-	    run_cmdline('aprun -B {pcc2hist} > pcc2hist.log')
+	    run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
 	else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
@@ -772,7 +772,7 @@ def post_process_output():
     if d['ncout'] == 2:
         write2file('cc.nml',cc_template_1(),mode='w+')
 	if d['machinetype']==1:
-	    run_cmdline('aprun -B {pcc2hist} --cordex > pcc2hist.log')
+	    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
 	else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
@@ -790,7 +790,7 @@ def post_process_output():
             d['outctmfile'] = dict2str("ccam_{iyr}{imth_2digit}{cday}.nc")
             write2file('cc.nml',cc_template_2(),mode='w+')
 	    if d['machinetype']==1:
-                run_cmdline('aprun -B {pcc2hist} > pcc2hist_ctm.log')
+                run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
 	    else:
                 run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
             xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
@@ -808,7 +808,7 @@ def post_process_output():
     if d['ncout'] == 4:
         write2file('cc.nml',cc_template_1(),mode='w+')
 	if d['machinetype']==1:
-	    run_cmdline('aprun -B {pcc2hist} --interp=nearest > pcc2hist.log')
+	    run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
 	else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
@@ -825,7 +825,7 @@ def post_process_output():
     if d['ncsurf'] == 1:
         write2file('cc.nml',cc_template_3(),mode='w+')
 	if d['machinetype']==1:
-	    run_cmdline('aprun -B {pcc2hist} > surf.pcc2hist.log')
+	    run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
 	else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
@@ -1285,7 +1285,7 @@ def cc_template_2():
 "temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
 "taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
 "wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rsmin",\
-"cbas_ave","ctop_ave"
+"cbas_ave","ctop_ave","u10"
      hfreq = 1
     &end"""
 
@@ -1294,7 +1294,7 @@ def cc_template_2():
 "temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
 "taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
 "wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rs",\
-"cbas_ave","ctop_ave"
+"cbas_ave","ctop_ave","u10"
      hfreq = 1
     &end"""
 
