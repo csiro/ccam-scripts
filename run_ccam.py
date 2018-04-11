@@ -81,7 +81,16 @@ def check_inargs():
     if d['gridres'] == -999.:
         d['gridres'] = 112.*90./d['gridsize']
         print(dict2str('Update gridres to {gridres}'))
-
+	if d['minlat'] == -999.:
+	    d['minlat'] = -90.
+	if d['maxlat'] == -999.:
+	    d['maxlat'] = 90.
+	if d['minlon'] == -999.:
+	    d['minlon'] = 0.
+	if d['maxlon'] == -999.:
+	    d['maxlon'] = 360.
+	    
+	    
 def check_surface_files():
     "Ensure surface datasets exist"
     
@@ -127,7 +136,7 @@ def run_cable():
         print "Generating CABLE land-use data"
         write2file('igbpveg.nml',igbpveg_template(),mode='w+')
 	if d['machinetype']==1:
-            run_cmdline('srun -n {igbpveg} -s 500 < igbpveg.nml > igbpveg.log')	
+            run_cmdline('srun -n 1 {igbpveg} -s 500 < igbpveg.nml > igbpveg.log')	
 	else:
             run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
         xtest = (commands.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
@@ -207,10 +216,7 @@ def calc_res():
     gridres_m = d['gridres']*1000. # GRIDRES IN UNITS OF METERS
 
     res=d['reqres']
-    if res == -1.:
-        res = gridres_m/112000.
-
-    elif res == -999.:
+    if res == -999.:
         res = gridres_m/112000.
 
     if d['minlat'] == -999.:
@@ -963,7 +969,8 @@ def top_template():
      filepath1km="{insdir}/vegin"
      filepath250m="{insdir}/vegin"
      filepathsrtm="{insdir}/vegin"
-    &end"""
+    &end
+    """
 
 def igbpveg_template():
     "Template for writing igbpveg.nml namelist file"
@@ -985,7 +992,8 @@ def igbpveg_template():
      binlimit=2
      tile=t
      outputmode="cablepft"
-    &end"""
+    &end
+    """
 
 def sibveg_template():
     "Template for writing sibveg.nml namelist file"
@@ -1003,7 +1011,8 @@ def sibveg_template():
      binlimit=2
      zmin=20.
      usedean=t
-    &end"""
+    &end
+    """
 
 def ocnbath_template():
     "Template for writing ocnbath.nml namelist file"
@@ -1017,7 +1026,8 @@ def ocnbath_template():
      fastocn=t
      bathfilt=t
      binlimit=4
-    &end"""
+    &end
+    """
 
 def aeroemiss_template():
     "Template for writing aeroemiss.nml namelist file"
@@ -1038,7 +1048,8 @@ def aeroemiss_template():
      volcano= '{stdat}/contineous_volc.nc'
      dmsfile= '{stdat}/dmsemiss.nc'
      dustfile='{stdat}/ginoux.nc'
-    &end"""
+    &end
+    """
 
 def input_template_1():
     "First part of template for 'input' namelist file"
@@ -1116,13 +1127,16 @@ def input_template_1():
      restfile=   'Rest{name}.{iyr}{imth_2digit}'
      sstfile=    '{sstdir}/{sstfile}'
      casafile=   '{vegin}/casa{domain}'
-     phenfile=   '{stdat}/modis_phenology_csiro.txt'"""
+     phenfile=   '{stdat}/modis_phenology_csiro.txt'
+     """
      
     template2 = """  
-     surfile=    'surf.{ofile}'"""
+     surfile=    'surf.{ofile}'
+     """
 
     template3 = """
-    &end"""
+    &end
+    """
     
     if d['ncsurf'] == 0:
         template = template1 + template3
@@ -1150,7 +1164,8 @@ def input_template_2():
      rhcv=0.1 rhmois=0. tied_over=-26.
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-    &end"""
+    &end
+    """
 
 def input_template_3():
     "Third part of template for 'input' namelist file"
@@ -1173,7 +1188,8 @@ def input_template_3():
      nclddia=12
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-    &end"""
+    &end
+    """
 
 def input_template_4():
     "Fourth part of template for 'input' namelist file"
@@ -1189,7 +1205,8 @@ def input_template_4():
      ldr=1 nclddia=12 nstab_cld=0 nrhcrit=10 sigcll=0.95
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-    &end"""
+    &end
+    """
     
 def input_template_5():
     "Fifth part of template for 'input' namelist file"
@@ -1206,7 +1223,8 @@ def input_template_5():
      dsig2=0.1 kscmom=0 sig_ct=1. sigkscb=0.95 sigksct=0.8 tied_rh=0.
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-    &end"""
+    &end
+    """
 
 def input_template_6():
     "Sixth part of template for 'input' namelist file"
@@ -1214,6 +1232,7 @@ def input_template_6():
     return """
     &turbnml
      buoymeth=1 mineps=1.e-11 qcmf=1.e-4 amxlsq={amxlsq} ezmin=10.
+     ent0=0.5 ent1=0. ent_min=0.001
      ngwd={ngwd} helim={helim} fc2={fc2}
      sigbot_gwd={sigbot_gwd} alphaj={alphaj}
     &end
@@ -1228,20 +1247,24 @@ def input_template_6():
      rivermd=1
     &end
     &tin &end
-    &soilin &end"""
+    &soilin &end
+    """
 
 def cc_template_1():
     "First part of template for 'cc.nml' namelist file"
 
     template1 = """\
     &input
-     ifile = "{ofile}" """
+     ifile = "{ofile}"
+    """
 
     template2 = """\
-     ofile = "{hdir}/daily/{ofile}.nc" """
+     ofile = "{hdir}/daily/{ofile}.nc"
+    """
 
     template3 = """\
-     ofile = "{ofile}.nc" """
+     ofile = "{ofile}.nc"
+     """
 
     template4 = """\
      hres  = {res}
@@ -1255,7 +1278,8 @@ def cc_template_1():
     &histnl
      htype="inst"
      hnames= "all"  hfreq = 1
-    &end"""
+    &end
+    """
 
     if d['rstore'] == "local":
         template = template1 + template2 + template4
@@ -1278,7 +1302,8 @@ def cc_template_2():
      use_plevs = F
     &end
     &histnl
-     htype="inst" """
+     htype="inst"
+    """
 
     template2 = """\
     hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
@@ -1287,7 +1312,8 @@ def cc_template_2():
 "wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rsmin",\
 "cbas_ave","ctop_ave","u10"
      hfreq = 1
-    &end"""
+    &end
+    """
 
     template3 = """\
     hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
@@ -1296,7 +1322,8 @@ def cc_template_2():
 "wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rs",\
 "cbas_ave","ctop_ave","u10"
      hfreq = 1
-    &end"""
+    &end
+    """
 
     if d['sib']==1:
         template = template1 + template3
@@ -1314,13 +1341,16 @@ def cc_template_3():
 
     template1 = """\
     &input
-     ifile = "surf.{ofile}" """
+     ifile = "surf.{ofile}"
+    """
 
     template2 = """\
-     ofile = "{hdir}/daily/surf.{ofile}.nc" """
+     ofile = "{hdir}/daily/surf.{ofile}.nc"
+    """
 
     template3 = """\
-     ofile = "surf.{ofile}.nc" """
+     ofile = "surf.{ofile}.nc"
+    """
 
     template4 = """\
      hres  = {res}
@@ -1331,7 +1361,8 @@ def cc_template_3():
      htype="inst"
      hnames= "uas","vas","tscrn","rhscrn","psl","rnd","sno","grpl","d10","u10"
      hfreq = 1
-    &end"""
+    &end
+    """
 
     if d['rstore'] == "local":
         template = template1 + template2 + template4
@@ -1363,7 +1394,7 @@ if __name__ == '__main__':
     parser.add_argument("--midlon", type=float, help=" central longitude of domain")
     parser.add_argument("--midlat", type=float, help=" central latitude of domain")
     parser.add_argument("--gridres", type=float, help=" required resolution (km) of domain")
-    parser.add_argument("--gridsize", type=int, choices=[48,72,96,144,192,288,384,576,768,1152,1536], help="cubic grid size")
+    parser.add_argument("--gridsize", type=int, help="cubic grid size")
     parser.add_argument("--mlev", type=int,choices=[27,35,54,72,108,144], help=" number of model levels (27, 35, 54, 72, 108 or 144)")
     
     parser.add_argument("--iys", type=int, help=" start year [YYYY]")

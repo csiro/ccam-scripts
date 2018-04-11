@@ -6,6 +6,9 @@
 #SBATCH --time=24:00:00
 
 ###############################################################
+# This is the CCAM run script
+
+###############################################################
 # MODULES
 
 module load mpt            # MPI
@@ -13,26 +16,9 @@ module load netcdf/4.3.3.1 # NetCDF
 module load python         # Python
 
 ###############################################################
-# This is the CCAM run script
-
-# Example grid sizes and processor numbers
-# (NOTE: CCAM will automatically adjust the number of processors. Hence we
-#  recommend setting nproc to the total number of avaliable CPUs)
-# C48  nproc = 1, 2, 3, 6, 12, 24, 48, 72, 96, 144, 192, 216
-# C72  nproc = 6, 12, 24, 48, 72, 96, 144, 192, 216, 288, 384
-# C96  nproc = 48, 72, 96, 144, 192, 216, 288, 384, 432, 768, 864
-# C144 nproc = 96, 144, 192, 216, 288, 384, 432, 768, 864, 1536, 1728
-# C192 nproc = 192, 216, 288, 384, 432. 768, 864, 1536, 1728, 3072, 3456
-# C288 nproc = 384, 432. 768, 864, 1536, 1728, 3072, 3456, 6144, 6912
-# C384 nproc = 768, 864, 1536, 1728, 3072, 3456, 6144, 6912, 12288, 13824
-# C576 nproc = 1536, 1728, 3072, 3456, 6144, 6912, 12288, 13824, 24576, 27648
-# C768 nproc = 3072, 3456, 6144, 6912, 12288, 13824, 24576, 27648, 49152, 55296
-
-###############################################################
 # Specify parameters
 
-insdir=$HOME/ccaminstall                     # install directory
-hdir=$insdir/scripts/run_ccam                # script directory
+hdir=$HOME/ccaminstall/scripts/run_ccam      # script directory
 wdir=$hdir/wdir                              # working directory
 rstore=local                                 # remote machine name (local=no remote machine)
 machinetype=0                                # machine type (0=generic, 1=cray)
@@ -42,7 +28,7 @@ nproc=$SLURM_NTASKS                          # number of processors
 midlon=0.                                    # central longitude of domain
 midlat=0.                                    # central latitude of domain
 gridres=-999.                                # required resolution (km) of domain (-999.=global)
-gridsize=96                                  # cubic grid size 
+gridsize=96                                  # cubic grid size (e.g., 48, 72, 96, 144, 192, 288, 384, 576, 768, etc)
 
 name=ccam_${gridres}km                       # run name
 
@@ -91,24 +77,21 @@ ktc_surf=10                                  # High-freq file output period (min
 # Host atmosphere for dmode=0, dmode=2 or dmode=3
 
 bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
-bcdir=$insdir/erai                           # host atmospheric data (dmode=0, dmode=2 or dmode=3)
+bcdir=$HOME/ccaminstall/erai                 # host atmospheric data (dmode=0, dmode=2 or dmode=3)
 
 ###############################################################
 # Sea Surface Temperature for dmode=1
 
 sstfile=ACCESS1-0_RCP45_bcvc_osc_ots_santop96_18_0.0_0.0_1.0.nc # sst file for dmode=1
 sstinit=$bcdir/$bcdom$iys$ims.nc                                # initial conditions file for dmode=1
-sstdir=$insdir/gcmsst                                           # SST data (dmode=1)
+sstdir=$HOME/ccaminstall/gcmsst                                 # SST data (dmode=1)
 
 ###############################################################
-# Specify directories
+# Specify directories and executables
 
-excdir=$insdir/scripts/run_ccam       # python code directory
-stdat=$insdir/ccamdata                # eigen and radiation datafiles
-
-###############################################################
-# Specify executables
-
+insdir=$HOME/ccaminstall                     # install directory
+excdir=$insdir/scripts/run_ccam              # python code directory
+stdat=$insdir/ccamdata                       # eigen and radiation datafiles
 terread=$insdir/src/bin/terread
 igbpveg=$insdir/src/bin/igbpveg
 sibveg=$insdir/src/bin/sibveg
