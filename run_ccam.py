@@ -1233,6 +1233,7 @@ def input_template_6():
     &turbnml
      buoymeth=1 mineps=1.e-11 qcmf=1.e-4 amxlsq={amxlsq} ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
+     be=1. b1=1. b2=2.
      ngwd={ngwd} helim={helim} fc2={fc2}
      sigbot_gwd={sigbot_gwd} alphaj={alphaj}
     &end
