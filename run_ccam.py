@@ -1127,7 +1127,7 @@ def input_template_1():
      restfile=   'Rest{name}.{iyr}{imth_2digit}'
      sstfile=    '{sstdir}/{sstfile}'
      casafile=   '{vegin}/casa{domain}'
-     phenfile=   '{stdat}/modis_phenology_csiro.txt'
+     phenfile=   '{stdat}/modis_phenology_csiro.nc'
      """
      
     template2 = """  
