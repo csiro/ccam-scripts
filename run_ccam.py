@@ -489,23 +489,24 @@ def set_ocean():
 def set_atmos():
     "Atmospheric physics settings"
     if d['sib'] == 1:
-        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 0, 'cable_litter': 0})
+        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 0, 'cable_litter': 0,
+                'gs_switch': 0})
 
         if d['casa'] == 0:
             d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
-	            'gs_switch': 0, 'cable_climate': 0})
+	            'cable_climate': 0})
 
         elif d['casa'] == 1:
             d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                    'gs_switch': 0, 'cable_climate': 0})
+                    'cable_climate': 0})
 
         elif d['casa'] == 2:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                    'gs_switch': 1, 'cable_climate': 0})
+                    'cable_climate': 0})
 
         elif d['casa'] == 3:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                    'gs_switch': 1, 'cable_climate': 1})
+                    'cable_climate': 1})
 
 
     elif d['sib'] == 2:
@@ -523,23 +524,24 @@ def set_atmos():
             raise ValueError, "casa=3 requires sib=1 or sib=3"
 
     elif d['sib'] == 3:
-        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1})
+        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1,
+                'gs_switch': 1})
 
         if d['casa'] == 0:
             d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
-	            'gs_switch': 0, 'cable_climate': 0})
+	            'cable_climate': 0})
 
         elif d['casa'] == 1:
             d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-	            'gs_switch': 0, 'cable_climate': 0})
+	            'cable_climate': 0})
 
         elif d['casa'] == 2:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-	            'gs_switch': 1, 'cable_climate': 0})
+	            'cable_climate': 0})
 
         elif d['casa'] == 3:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-	            'gs_switch': 1, 'cable_climate': 1})
+	            'cable_climate': 1})
 
     d.update({ 'vegin': dict2str('{hdir}/vegdata'),
         'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
