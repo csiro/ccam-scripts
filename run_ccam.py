@@ -40,6 +40,7 @@ def main(inargs):
 	print("Create CCAM namelist and perform checks")
         create_input_file()
         prepare_ccam_infiles()
+	prepare_ccam_soil()
         check_correct_host()
 	print("Run CCAM")
         run_model()
@@ -57,10 +58,10 @@ def check_inargs():
                   'ims','iye','ime','leap','ncountmax','ktc','minlat','maxlat',
                   'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dmode',
                   'nstrength','sib','aero','conv','cloud','bmix','river','mlo','casa',
-                  'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','sstfile',
+                  'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','bcsoil','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir', 'rstore','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
-                  'ocnbath','casafield']
+                  'ocnbath','casafield','smclim']
 
     for i in args2check:
      if not( i in d.keys() ):
@@ -678,13 +679,15 @@ def prepare_ccam_infiles():
 
         if d['bcdom'] == "ccam_eraint_":
             check_file_exists(fpath)
-            run_cmdline('ln -s '+fpath+' .')
+	    # may need to append soil data
+            run_cmdline('cp '+fpath+' .')
 
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
 
         elif os.path.exists(fpath):
-	    run_cmdline('ln -s '+fpath+' .')
+	    # may need to append soil data
+            run_cmdline('cp '+fpath+' .')
 
         else:
             check_file_exists(fpath+'.tar')
@@ -713,6 +716,21 @@ def prepare_ccam_infiles():
 
     if d['dmode'] == 1 and not(os.path.exists(dict2str('{sstdir}/{sstfile}'))):
         raise ValueError(dict2str('Cannot locate {sstdir}/{sstfile}'))
+
+def prepare_ccam_soil():
+    "Prepare soil data if required"
+
+    if d['bcsoil'] == 1 and os.path.exists(d['ifile']):
+        if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
+	    print "Appending soil climatology to initial conditions"
+            d['nrungcm'] = 0
+            if d['machinetype']==1:
+                run_cmdline('srun -n 1 {smclim} -t {vegin}/topout{domain} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')	
+            else:
+                run_cmdline('{smclim} -t {vegin}/topout{domain} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')
+            xtest = (commands.getoutput('grep -o "smclim completed successfully" smclim.log') == "smclim completed successfully")
+            if xtest == False:
+                raise ValueError(dict2str("An error occured while running smclim.  Check smclim.log for details"))
 
 def check_correct_host():
     "Check if host is CCAM"
@@ -1246,7 +1264,7 @@ def input_template_6():
      cable_litter={cable_litter} cable_climate={cable_climate}
     &end
     &mlonml
-     mlodiff=0 mlomfix=2 otaumode=1
+     mlodiff=0 mlomfix=2 otaumode=1 mlojacobi=2
      rivermd=1
     &end
     &tin &end
@@ -1433,6 +1451,7 @@ if __name__ == '__main__':
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 
     parser.add_argument("--machinetype", type=int, choices=[0,1], help=" Machine type (0=generic, 1=cray)")
+    parser.add_argument("--bcsoil", type=int, choices=[0,1], help=" Initial soil moisture (0=constant, 1=climatology)")
 
     ###############################################################
     # Specify directories, datasets and executables
@@ -1458,6 +1477,7 @@ if __name__ == '__main__':
     parser.add_argument("--ocnbath", type=str, help=" path of ocnbath executable")
     parser.add_argument("--casafield", type=str, help=" path of casafield executable")
     parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
+    parser.add_argument("--smclim", type=str, help=" path of smclim executable")
     parser.add_argument("--model", type=str, help=" path of globpea executable")
     parser.add_argument("--pcc2hist", type=str, help=" path of pcc2hist executable")
 

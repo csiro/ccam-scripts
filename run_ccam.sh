@@ -78,6 +78,7 @@ ktc_surf=10                                  # High-freq file output period (min
 
 bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
 bcdir=$HOME/ccaminstall/erai                 # host atmospheric data (dmode=0, dmode=2 or dmode=3)
+bcsoil=0                                     # use climatology for initial soil moisture (0=constant, 1=climatology)
 
 ###############################################################
 # Sea Surface Temperature for dmode=1
@@ -98,6 +99,7 @@ sibveg=$insdir/src/bin/sibveg
 ocnbath=$insdir/src/bin/ocnbath
 casafield=$insdir/src/bin/casafield
 aeroemiss=$insdir/src/bin/aeroemiss
+smclim=$insdir/src/bin/smclim
 model=$insdir/src/bin/globpea
 pcc2hist=$insdir/src/bin/pcc2hist
 
@@ -110,17 +112,19 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
 		   --mlevs ${mlevs// /} --dmode $dmode --nstrength $nstrength \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --river $river --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf \
-                   --machinetype $machinetype --bcdom $bcdom \
+                   --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
                    --wdir $wdir --rstore $rstore --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
-                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield
+                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield --smclim $smclim
 
 if [ "`cat $hdir/restart.qm`" == "True" ]; then
   echo 'Restarting script'
+  rm $hdir/restart.qm
   sbatch $hdir/run_ccam.sh
 elif [ "`cat $hdir/restart.qm`" == "Complete" ]; then
   echo 'CCAM simulation completed normally'
+  rm $hdir/restart.qm
 fi
 
 exit
