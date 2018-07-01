@@ -725,9 +725,9 @@ def prepare_ccam_soil():
 	    print "Appending soil climatology to initial conditions"
             d['nrungcm'] = 0
             if d['machinetype']==1:
-                run_cmdline('srun -n 1 {smclim} -t {vegin}/topout{domain} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')	
+                run_cmdline('srun -n 1 {smclim} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')	
             else:
-                run_cmdline('{smclim} -t {vegin}/topout{domain} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')
+                run_cmdline('{smclim} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')
             xtest = (commands.getoutput('grep -o "smclim completed successfully" smclim.log') == "smclim completed successfully")
             if xtest == False:
                 raise ValueError(dict2str("An error occured while running smclim.  Check smclim.log for details"))
