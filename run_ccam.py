@@ -395,12 +395,14 @@ def config_initconds():
 
     if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
 
-        d['nrungcm'] = -1
+        if d['bcsoil'] == 0:
+            d['nrungcm'] = -1
 
         if d['dmode'] in [0,2,3]:
             d.update({'ifile': d['mesonest']})
         else:
             d.update({'ifile': d['sstinit']})
+
 
 def set_nudging():
     "Set nudging strength parameters"
@@ -723,7 +725,6 @@ def prepare_ccam_soil():
     if d['bcsoil'] == 1 and os.path.exists(d['ifile']):
         if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
 	    print "Appending soil climatology to initial conditions"
-            d['nrungcm'] = 0
             if d['machinetype']==1:
                 run_cmdline('srun -n 1 {smclim} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')	
             else:
