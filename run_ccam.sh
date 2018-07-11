@@ -8,6 +8,7 @@
 ###############################################################
 # This is the CCAM run script
 
+
 ###############################################################
 # MODULES
 
@@ -21,7 +22,6 @@ module load python         # Python
 hdir=$HOME/ccaminstall/scripts/run_ccam      # script directory
 wdir=$hdir/wdir                              # working directory
 machinetype=0                                # machine type (0=mpirun, 1=srun)
-
 nproc=$SLURM_NTASKS                          # number of processors
 
 midlon=0.                                    # central longitude of domain
@@ -32,8 +32,8 @@ iys=2000                                     # start year
 ims=1                                        # start month
 iye=2000                                     # end year
 ime=12                                       # end month
-leap=1                                       # Use leap days (0=off, 1=on)
-ncountmax=12                                 # Number of months before resubmit
+leap=1                                       # use leap days (0=off, 1=on)
+ncountmax=12                                 # number of months before resubmit
 
 name=ccam_${gridres}km                       # run name
 if [[ $gridres = "-999." ]]; then
@@ -52,13 +52,12 @@ reqres=-999.                                 # required output resolution (degre
 outlevmode=0                                 # output mode for levels (0=pressure, 1=meters)
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
-ncsurf=0                                     # High-freq output (0=none, 1=lat/lon, 2=raw)
-ktc_surf=10                                  # High-freq file output period (mins)
+ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw)
+ktc_surf=10                                  # high-freq file output period (mins)
 
-dmode=0                                      # downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr )
+dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr )
 cmip=cmip5                                   # CMIP scenario (CMIP3 or CMIP5)
 rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85)
-nstrength=0                                  # nudging strength (0=normal, 1=strong)
 mlev=35                                      # number of model levels (27, 35, 54, 72, 108 or 144)
 sib=1                                        # land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)
 aero=1                                       # aerosols (0=off, 1=prognostic)
@@ -88,7 +87,7 @@ sstdir=$HOME/ccaminstall/gcmsst                                 # SST data (dmod
 # Specify directories and executables
 
 insdir=$HOME/ccaminstall                     # install directory
-excdir=$insdir/scripts/run_ccam              # python code directory
+excdir=$insdir/scripts/run_ccam              # location of run_ccam.py
 stdat=$insdir/ccamdata                       # eigen and radiation datafiles
 terread=$insdir/src/bin/terread
 igbpveg=$insdir/src/bin/igbpveg
@@ -106,7 +105,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --iye $iye --ime $ime --leap $leap \
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
-		   --mlevs ${mlevs// /} --dmode $dmode --nstrength $nstrength \
+		   --mlevs ${mlevs// /} --dmode $dmode \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --river $river --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf \
                    --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \

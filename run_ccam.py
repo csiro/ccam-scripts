@@ -57,7 +57,7 @@ def check_inargs():
     args2check = ['name','nproc','midlon','midlat','gridres','gridsize','mlev','iys',
                   'ims','iye','ime','leap','ncountmax','ktc','minlat','maxlat',
                   'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dmode',
-                  'nstrength','sib','aero','conv','cloud','bmix','river','mlo','casa',
+                  'sib','aero','conv','cloud','bmix','river','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','bcsoil','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
@@ -407,13 +407,9 @@ def config_initconds():
 def set_nudging():
     "Set nudging strength parameters"
 
-    if d['nstrength'] == 0:
-        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -900, 'sigramplow': 0.05})
+    d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+            'kbotdav': -900, 'sigramplow': 0.05})
 
-    elif d['nstrength'] == 1:
-        d.update({'mbd_base': 20, 'mbd_maxgrid': 24, 'mbd_maxscale': 500,
-                'kbotdav': 1, 'sigramplow': 0.00})
 
 def set_downscaling():
     "Set downscaling parameters"
@@ -1387,7 +1383,6 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")    
 
     parser.add_argument("--dmode", type=int, choices=[0,1,2,3], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr )")
-    parser.add_argument("--nstrength", type=int, choices=[0,1], help=" nudging strength (0=normal, 1=strong)")
     parser.add_argument("--sib", type=int, choices=[1,2,3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0,1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0,1,2,3], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017)")
