@@ -59,7 +59,7 @@ def check_inargs():
                   'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dmode',
                   'nstrength','sib','aero','conv','cloud','bmix','river','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','bcsoil','sstfile',
-                  'sstinit','cmip','insdir','hdir','wdir', 'rstore','bcdir','sstdir','stdat',
+                  'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
                   'ocnbath','casafield','smclim']
 
@@ -792,22 +792,16 @@ def post_process_output():
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-        if d['rstore'] != "local":
-            run_cmdline('scp {ofile}.nc {rstore}:{hdir}/daily')
-            run_cmdline('rm {ofile}.nc')
 
     if d['ncout'] == 2:
         write2file('cc.nml',cc_template_1(),mode='w+')
 	if d['machinetype']==1:
-	    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+	    run_cmdline('srun -n {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
 	else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-        if d['rstore'] != "local":
-            run_cmdline('scp {ofile}.nc {rstore}:{hdir}/daily')
-            run_cmdline('rm {ofile}.nc')
 
     if d['ncout'] == 3:
         for iday in xrange(1,d['ndays']+1):
@@ -824,12 +818,7 @@ def post_process_output():
             if xtest == False:
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
 
-        if d['rstore'] == "local":
-            run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
-        else:
-            run_cmdline('tar cvf ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
-            run_cmdline('scp ctm_{iyr}{imth_2digit}.tar {rstore}:{hdir}/daily')
-            run_cmdline('rm ctm_{iyr}{imth_2digit}.tar')
+        run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
         run_cmdline('rm ccam_{iyr}{imth_2digit}??.nc')
 
     if d['ncout'] == 4:
@@ -841,9 +830,6 @@ def post_process_output():
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-        if d['rstore'] != "local":
-            run_cmdline('scp {ofile}.nc {rstore}:{hdir}/daily')
-            run_cmdline('rm {ofile}.nc')
 
     # surface files
 
@@ -858,25 +844,13 @@ def post_process_output():
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check surf.pcc2hist.log for details"))
-        if d['rstore'] != "local":
-            run_cmdline('scp surf.{ofile}.nc {rstore}:{hdir}/daily')
-            run_cmdline('rm surf.{ofile}.nc')
 
     if d['ncsurf'] == 2:
         if d['nctar'] == 0:
-            if d['rstore'] == "local":
-                run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
-            else:
-                run_cmdline('scp surf.{ofile}.?????? {rstore}:{hdir}/OUTPUT')
-                run_cmdline('rm surf.{ofile}.??????')
+            run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
 
         if d['nctar'] == 1:
-            if d['rstore'] == "local":
-                run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
-            else:
-                run_cmdline('tar cvf surf.{ofile}.tar surf.{ofile}.??????')
-                run_cmdline('scp surf.{ofile}.tar {rstore}:{hdir}/OUTPUT')
-                run_cmdline('rm surf.{ofile}.tar')
+            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
 
         if d['nctar'] == 2:
             run_cmdline('rm surf.{ofile}.??????')
@@ -886,12 +860,7 @@ def post_process_output():
         run_cmdline('mv {ofile}.?????? {hdir}/OUTPUT')
 
     if d['nctar'] == 1:
-        if d['rstore'] == "local":
-            run_cmdline('tar cvf {hdir}/OUTPUT/{ofile}.tar {ofile}.??????')
-	else:
-            run_cmdline('tar cvf {ofile}.tar {ofile}.??????')
-	    run_cmdline('scp {ofile}.tar {rstore}:{hdir}/OUTPUT')
-	    run_cmdline('rm {ofile}.tar') 
+        run_cmdline('tar cvf {hdir}/OUTPUT/{ofile}.tar {ofile}.??????')
         run_cmdline('rm {ofile}.??????')
 
     if d['nctar'] == 2:
@@ -904,12 +873,7 @@ def post_process_output():
         run_cmdline('rm Rest{name}.{iyrlst}12.??????')
 
     elif d['imth'] > 12:
-        if d['rstore'] == "local":
-            run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
-	else:
-	    run_cmdline('tar cvf Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
-	    run_cmdline('scp Rest{name}.{iyr}12.tar {rstore}:{hdir}/RESTART')
-	    run_cmdline('rm Rest{name}.{iyr}12.tar')
+        run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
         run_cmdline('rm Rest{name}.{iyr}0?.?????? Rest{name}.{iyr}10.?????? Rest{name}.{iyr}11.??????')
         run_cmdline('rm prnew.{iyr}*')
         run_cmdline('rm {name}*{iyr}??')
@@ -1285,10 +1249,6 @@ def cc_template_1():
     """
 
     template3 = """\
-     ofile = "{ofile}.nc"
-     """
-
-    template4 = """\
      hres  = {res}
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
@@ -1303,10 +1263,7 @@ def cc_template_1():
     &end
     """
 
-    if d['rstore'] == "local":
-        template = template1 + template2 + template4
-    else:
-        template = template1 + template3 + template4
+    template = template1 + template2 + template3
 
     return template
 
@@ -1371,10 +1328,6 @@ def cc_template_3():
     """
 
     template3 = """\
-     ofile = "surf.{ofile}.nc"
-    """
-
-    template4 = """\
      hres  = {res}
      kta={ktc_sec}   ktb=2999999  ktc={ktc_sec}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
@@ -1386,10 +1339,7 @@ def cc_template_3():
     &end
     """
 
-    if d['rstore'] == "local":
-        template = template1 + template2 + template4
-    else:
-        template = template1 + template3 + template4
+    template = template1 + template2 + template3
 
     return template
 
@@ -1467,7 +1417,6 @@ if __name__ == '__main__':
     parser.add_argument("--insdir", type=str, help=" install directory")
     parser.add_argument("--hdir", type=str, help=" script directory")
     parser.add_argument("--wdir", type=str, help=" working directory")
-    parser.add_argument("--rstore", type=str, help=" remote machine name")
     parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0, dmode=2 or dmode=3)")
     parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
