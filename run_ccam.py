@@ -360,10 +360,10 @@ def prep_iofiles():
     d['ofile'] = dict2str('{name}.{iyr}{imth_2digit}')
 
     # Define host model fields:
-    d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
-
-    if d['bcdom'] == 'ccam_eraint_':
-        d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}.nc')
+    d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}.nc')
+    fpath = dict2str('{bcdir}/{mesonest}')
+    if not (os.path.exists(fpath)):
+        d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
 
     # Define restart file:
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
@@ -475,13 +475,13 @@ def set_ocean():
 
         if d['dmode'] == 0 or d['dmode'] == 1 or d['dmode'] == 3:
             # Downscaling mode - GCM or SST-only:
-            d.update({'nmlo': -3, 'mbd_mlo': 20, 'nud_sst': 1,
+            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                     'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                    'kbotmlo': -100})
+                    'kbotmlo': -1000})
 
         elif d['dmode'] == 2:
             # Downscaling CCAM:
-            d.update({'nmlo': -3, 'mbd_mlo': 20, 'nud_sst': 1,
+            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                     'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
                     'kbotmlo': -1000})
 
@@ -675,17 +675,12 @@ def prepare_ccam_infiles():
     if d['dmode'] == 0 or d['dmode'] == 2 or d['dmode'] == 3:
         fpath = dict2str('{bcdir}/{mesonest}')
 
-        if d['bcdom'] == "ccam_eraint_":
-            check_file_exists(fpath)
+        if os.path.exists(fpath):
 	    # may need to append soil data
             run_cmdline('cp '+fpath+' .')
 
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
-
-        elif os.path.exists(fpath):
-	    # may need to append soil data
-            run_cmdline('cp '+fpath+' .')
 
         else:
             check_file_exists(fpath+'.tar')
