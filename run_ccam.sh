@@ -41,7 +41,7 @@ if [[ $gridres = "-999." ]]; then
   name=`echo $name | sed "s/$gridres/$gridtxt"/g`
 fi
 
-ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM, 4=Nearest)
+ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw))
 nctar=1                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
 ktc=360                                      # standard output period (mins)
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)

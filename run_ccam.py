@@ -794,7 +794,7 @@ def post_process_output():
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
-    if d['ncout'] == 3:
+    if d['ncout'] == 3 or d['ncout'] == 5:
         for iday in xrange(1,d['ndays']+1):
             d['cday'] = mon_2digit(iday)
             d['iend'] = iday*1440
@@ -809,8 +809,12 @@ def post_process_output():
             if xtest == False:
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
 
-        run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
-        run_cmdline('rm ccam_{iyr}{imth_2digit}??.nc')
+        if d['ncout'] == 3:
+            run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
+            run_cmdline('rm ccam_{iyr}{imth_2digit}??.nc')
+
+        if d['ncout'] == 5:
+            run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
 
     if d['ncout'] == 4:
         write2file('cc.nml',cc_template_1(),mode='w+')
