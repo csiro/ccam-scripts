@@ -1390,7 +1390,7 @@ if __name__ == '__main__':
     parser.add_argument("--river", type=int, choices=[0,1], help=" river (0=off, 1=on)")
     parser.add_argument("--mlo", type=int, choices=[0,1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0,1,2,3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
-    parser.add_argument("--ncout", type=int, choices=[0,1,2,3,4], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM, 4=Nearest)")
+    parser.add_argument("--ncout", type=int, choices=[0,1,2,3,4,5], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw))")
     parser.add_argument("--nctar", type=int, choices=[0,1,2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
     parser.add_argument("--ncsurf", type=int, choices=[0,1,2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
