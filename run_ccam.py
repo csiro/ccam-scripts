@@ -1224,7 +1224,7 @@ def input_template_6():
      cable_litter={cable_litter} cable_climate={cable_climate}
     &end
     &mlonml
-     mlodiff=0 mlomfix=2 otaumode=1 mlojacobi=2
+     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=2
      rivermd=1
     &end
     &tin &end
