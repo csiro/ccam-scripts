@@ -1006,6 +1006,7 @@ def ocnbath_template():
      fastocn=t
      bathfilt=t
      binlimit=4
+     rtest=0.2
     &end
     """
 
@@ -1224,7 +1225,8 @@ def input_template_6():
      cable_litter={cable_litter} cable_climate={cable_climate}
     &end
     &mlonml
-     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=2
+     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=4
+     usetide=0 mlosigma=1
      rivermd=1
     &end
     &tin &end
