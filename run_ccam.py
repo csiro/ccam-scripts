@@ -1223,6 +1223,7 @@ def input_template_6():
      soil_struc={soil_struc} fwsoil_switch={fwsoil_switch}
      cable_pop={cable_pop} gs_switch={gs_switch}
      cable_litter={cable_litter} cable_climate={cable_climate}
+     ateb_intairmeth=1 ateb_intmassmeth=2
     &end
     &mlonml
      mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=4
