@@ -1,0 +1,29 @@
+! This file defines the mapping from IGBP to CSIRO PFTs
+17  ! Number of vegetation classes.  veg=0 is assumed to be ocean
+! Input                     Water Ice Frac1 PFT1                    Frac2 PFT2                    Frac3 PFT3                    Frac4 PFT4                    Frac5 PFT5
+1  Evergreen_needleleaf     F     F   1.    evergreen_needleleaf
+2  Evergreen_broadleaf      F     F   1.    evergreen_broadleaf
+3  Deciduous_needleaf       F     F   1.    deciduous_needleleaf
+4  Deciduous_broadleaf      F     F   1.    deciduous_broadleaf
+5  Mixed_forest             F     F   1.    (Mixed)
+6  Closed_shurblands        F     F   0.8   shrub                   0.2   (Grass)
+7  Open_shrublands          F     F   0.2   shrub                   0.8   (Grass)
+8  Woody_savannas           F     F   0.6   (Grass)                 0.4   (ENB_savanna)
+9  Savannas                 F     F   0.9   (Grass)                 0.1   (ENB_savanna)
+10 Grasslands               F     F   1.    (Grass)
+11 Permanent_wetlands       F     F   1.    wetland
+12 Croplands                F     F   1.    (Crop)
+13 Urban                    F     F   1.    (Urban-generic)
+14 Cropland_Mosaic          F     F   1.    (Crop)
+15 Snow_ice                 F     T   1.    ice
+16 Barren                   F     F   1.    barren
+17 Water_bodies             T     F   1.    lakes
+
+! (Grass) is hardcoded to CSIRO PFTs 6, 7 & 8 for C3_grass, C4_grass and Tundra
+! (Crop) is hardcoded to CSIRO PFTs 9 & 10 for C3_crop and C4_crop
+! (Mixed) is hardcoded to CSIRO PFTs 1 & 4 for Evergreen_needleaf and Deciduous_broadleaf
+! (ENB) is hardcoded to CSIRO PFTs 1 & 2 for Evergreen_needleaf and Evergreen_broadleaf
+! (ENB_savanna) is hardcorded to CSIRO PFTs 1 & 18 for Evergreen_needleaf and Evergreen_broadleaf_sava
+
+! Available urban types are (Urban-generic), (Urban-low), (Urban-medium), (Urban-high), (Urban-cbd),
+! (Industrial-low), (Industrial-medium), (Industrial-high)

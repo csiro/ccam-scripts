@@ -29,7 +29,6 @@ def main(inargs):
         set_nudging()
         set_downscaling()
         set_cloud()
-        set_river()
         set_ocean()
         set_atmos()
         set_surfc()
@@ -56,12 +55,13 @@ def check_inargs():
 
     args2check = ['name','nproc','midlon','midlat','gridres','gridsize','mlev','iys',
                   'ims','iye','ime','leap','ncountmax','ktc','minlat','maxlat',
-                  'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dmode',
-                  'sib','aero','conv','cloud','bmix','river','mlo','casa',
+                  'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dlevs','dmode',
+                  'sib','aero','conv','cloud','bmix','mlo','casa',
                   'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','bcsoil','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
-                  'ocnbath','casafield','smclim']
+                  'ocnbath','casafield','smclim','uclemparm','cableparm','vegindex',
+		  'uservegfile','userlaifile']
 
     for i in args2check:
      if not( i in d.keys() ):
@@ -70,6 +70,7 @@ def check_inargs():
 
     d['plevs'] = d['plevs'].replace(',',', ')
     d['mlevs'] = d['mlevs'].replace(',',', ')  
+    d['dlevs'] = d['dlevs'].replace(',',', ')
     if d['outlevmode'] == 0:
         d['use_plevs'] = 'T'
         d['use_meters'] = 'F'
@@ -90,6 +91,17 @@ def check_inargs():
 	    d['minlon'] = 0.
 	if d['maxlon'] == -999.:
 	    d['maxlon'] = 360.
+	    
+    if d['uclemparm'] == 'default':
+        d['uclemparm'] = ''
+    if d['cableparm'] == 'default':
+        d['cableparm'] = ''
+    if d['vegindex'] == 'default':
+        d['vegindex'] = ''
+    if d['uservegfile'] == 'none':
+        d['uservegfile'] = ''
+    if d['userlaifile'] == 'none':
+        d['userlaifile'] = ''	
 	    
 	    
 def check_surface_files():
@@ -450,15 +462,6 @@ def set_cloud():
     elif d['cloud'] == 2:
         d.update({'ncloud': 3})
 
-def set_river():
-    "River physics settings"
-
-    if d['river'] == 0:
-        d.update({'nriver': 0})
-
-    elif d['river'] == 1:
-        d.update({'nriver': -1})
-
 def set_ocean():
     "Ocean physics settings"
 
@@ -470,9 +473,6 @@ def set_ocean():
 
     else:
         #Dynanical Ocean
-        if d['river'] != 1:
-            raise ValueError, 'river=1 is a requirement for ocean mlo=1'
-
         if d['dmode'] == 0 or d['dmode'] == 1 or d['dmode'] == 3:
             # Downscaling mode - GCM or SST-only:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
@@ -737,6 +737,22 @@ def check_correct_host():
         elif ccam_host == False and d['dmode'] == 2:
             raise ValueError('CCAM is not the host model. Use dmode = 0')
 
+    if d['dmode'] == 0:
+        if d['inv_schmidt'] < 0.2:
+	    raise ValueError('CCAM grid stretching is too high for dmode=0.  Try reducing grid resolution or increasing grid size')
+
+    if d['dmode'] == 2:
+        fname = d['mesonest']+'.000000'
+        if os.path.exists(fname):    
+            host_inv_schmidt = float(commands.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+            host_gridsize = float(commands.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | sed "s/\;//g"'))
+            host_grid_res = host_inv_schmidt * 112. * 90. / host_gridsize
+            nest_grid_width = float(d['gridsize']) * float(d['gridres'])
+            host_grid_dx = 3. * host_grid_res
+            if nest_grid_width < host_grid_dx:
+                raise ValueError('Too large a jump beteen nest and host grid.  Try reducing grid resolution or increasing grid size')
+    
+
 def check_correct_landuse(fname):
     "Check that land-use data matches what the user wants"
 
@@ -822,6 +838,16 @@ def post_process_output():
 	    run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
 	else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+
+    if d['ncout'] == 6:
+        write2file('cc.nml',cc_template_4(),mode='w+')
+        if d['machinetype']==1:
+            run_cmdline('srun -n {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
+        else:
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
@@ -972,6 +998,11 @@ def igbpveg_template():
      binlimit=2
      tile=t
      outputmode="cablepft"
+     mapconfig="{vegindex}"
+     pftconfig="{cableparm}"
+     atebconfig="{uclemparm}"
+     user_veginput="{uservegfile}"
+     user_laiinput="{userlaifile}"
     &end
     """
 
@@ -1065,7 +1096,7 @@ def input_template_1():
      ktopmlo=1 kbotmlo={kbotmlo} mloalpha=0
 
      COMMENT='ocean, lakes and rivers'
-     nmlo={nmlo} ol={mlolvl} tss_sh=0.3 nriver={nriver}
+     nmlo={nmlo} ol={mlolvl} tss_sh=0.3 nriver=-1
 
      COMMENT='land, urban and carbon'
      nsib={nsib} nurban=1 vmodmin=0.1 nsigmf=0 jalbfix=0
@@ -1226,7 +1257,7 @@ def input_template_6():
      ateb_intairtmeth=1 ateb_intmassmeth=2
     &end
     &mlonml
-     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=4
+     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=2
      usetide=0 mlosigma=1
      rivermd=1
     &end
@@ -1252,8 +1283,10 @@ def cc_template_1():
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = {use_plevs}
      use_meters = {use_meters}     
+     use_depth = T
      plevs = {plevs}
      mlevs = {mlevs}
+     dlevs = {dlevs}
     &end
     &histnl
      htype="inst"
@@ -1277,6 +1310,8 @@ def cc_template_2():
      minlat = {minlat}, maxlat = {maxlat}
      minlon = {minlon}, maxlon = {maxlon}
      use_plevs = F
+     use_mlevs = F
+     use_dlevs = F
     &end
     &histnl
      htype="inst"
@@ -1341,6 +1376,37 @@ def cc_template_3():
 
     return template
 
+def cc_template_4():
+    "First part of template for 'cc.nml' namelist file"
+
+    template1 = """\
+    &input
+     ifile = "{ofile}"
+    """
+
+    template2 = """\
+     ofile = "{hdir}/daily/{ofile}.nc"
+    """
+
+    template3 = """\
+     hres  = {res}
+     kta={ktc}   ktb=999999  ktc={ktc}
+     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
+     use_plevs = F
+     use_meters = F
+     use_depth = F
+    &end
+    &histnl
+     htype="inst"
+     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","fwet","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","fbeam_ave","sdischarge","urbantas_ave","evspsblpot","sfcWindmax","thetavstar","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
+     hfreq = 1
+    &end
+    """
+
+    template = template1 + template2 + template3
+
+    return template
+
 if __name__ == '__main__':
 
     extra_info="""
@@ -1382,7 +1448,8 @@ if __name__ == '__main__':
     parser.add_argument("--reqres", type=float, help=" required output resolution (degrees) (-1.=automatic)")
     parser.add_argument("--outlevmode", type=int, choices=[0,1], help=" Output level mode (0=pressure, 1=meters)")    
     parser.add_argument("--plevs", type=str, help=" output pressure levels (hPa)")
-    parser.add_argument("--mlevs", type=str, help=" output height levels (m)")    
+    parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
+    parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")    
 
     parser.add_argument("--dmode", type=int, choices=[0,1,2,3], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr )")
     parser.add_argument("--sib", type=int, choices=[1,2,3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
@@ -1390,13 +1457,18 @@ if __name__ == '__main__':
     parser.add_argument("--conv", type=int, choices=[0,1,2,3], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017)")
     parser.add_argument("--cloud", type=int, choices=[0,1,2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
     parser.add_argument("--bmix", type=int, choices=[0,1,2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
-    parser.add_argument("--river", type=int, choices=[0,1], help=" river (0=off, 1=on)")
     parser.add_argument("--mlo", type=int, choices=[0,1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0,1,2,3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
-    parser.add_argument("--ncout", type=int, choices=[0,1,2,3,4,5], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw))")
+    parser.add_argument("--ncout", type=int, choices=[0,1,2,3,4,5,6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw), 6=CORDEX-surface)")
     parser.add_argument("--nctar", type=int, choices=[0,1,2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
     parser.add_argument("--ncsurf", type=int, choices=[0,1,2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
+
+    parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
+    parser.add_argument("--cableparm", type=str, help=" User defined CABLE vegetation parameter file (default for standard values)")
+    parser.add_argument("--vegindex", type=str, help=" User defined vegetation indices for user vegetation (default for standard values)")
+    parser.add_argument("--uservegfile", type=str, help=" User defined vegetation map (none for no file)")
+    parser.add_argument("--userlaifile", type=str, help=" User defined LAI map (none for no file)")
 
     parser.add_argument("--machinetype", type=int, choices=[0,1], help=" Machine type (0=generic, 1=cray)")
     parser.add_argument("--bcsoil", type=int, choices=[0,1], help=" Initial soil moisture (0=constant, 1=climatology)")

@@ -41,7 +41,7 @@ if [[ $gridres = "-999." ]]; then
   name=`echo $name | sed "s/$gridres/$gridtxt"/g`
 fi
 
-ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM-tar, 4=Nearest, 5=CTM-raw)
+ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM-tar, 4=Nearest, 5=CTM-raw, 6=CORDEX-surface)
 nctar=1                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
 ktc=360                                      # standard output period (mins)
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
@@ -52,6 +52,7 @@ reqres=-999.                                 # required output resolution (degre
 outlevmode=0                                 # output mode for levels (0=pressure, 1=meters)
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
+dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw)
 ktc_surf=10                                  # high-freq file output period (mins)
 
@@ -64,10 +65,15 @@ aero=1                                       # aerosols (0=off, 1=prognostic)
 conv=1                                       # convection (0=2014, 1=2015a, 2=2015b, 3=2017)
 cloud=2                                      # cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)
 bmix=1                                       # boundary layer (0=Ri, 1=TKE-eps)
-river=1                                      # river (0=off, 1=on)
 mlo=0                                        # ocean (0=Interpolated SSTs, 1=Dynamical ocean)
 casa=0                                       # CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)
 
+# User defined parameters.  Delete $hdir/vegdata to update.
+uclemparm=default                            # urban parameter file (default for standard values)
+cableparm=default                            # CABLE vegetation parameter file (default for standard values)
+vegindex=default                             # Define vegetation indices for user vegetation (default for standard values)
+uservegfile=none                             # User specified vegetation map (none for no user file)
+userlaifile=none                             # User specified LAI map (none for no user file)
 
 ###############################################################
 # Host atmosphere for dmode=0, dmode=2 or dmode=3
@@ -105,14 +111,16 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --iye $iye --ime $ime --leap $leap \
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
-		   --mlevs ${mlevs// /} --dmode $dmode \
-                   --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --river $river --mlo $mlo \
+		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
+                   --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf \
                    --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
                    --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
-                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield --smclim $smclim
+                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield --smclim $smclim \
+		   --uclemparm $uclemparm --cableparm $cableparm --vegindex $vegindex \
+		   --uservegfile $uservegfile --userlaifile $userlaifile
 
 if [ "`cat $hdir/restart.qm`" == "True" ]; then
   echo 'Restarting script'
