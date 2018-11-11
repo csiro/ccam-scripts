@@ -407,13 +407,19 @@ def config_initconds():
 
     if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
 
-        if d['bcsoil'] == 0:
-            d['nrungcm'] = -1
-
         if d['dmode'] in [0,2,3]:
             d.update({'ifile': d['mesonest']})
+            fpath = dict2str('{bcdir}/{mesonest}')
         else:
             d.update({'ifile': d['sstinit']})
+            fpath = dict2str('{sstinit}')
+
+        if d['bcsoil'] == 0:
+            d['nrungcm'] = -1
+        else:
+            if os.path.exists(fpath):
+                run_cmdline('cp -f '+fpath+' {wdir}/ifile.nc')
+                d['ifile'] = dict2str('{wdir}/ifile.nc')
 
 
 def set_nudging():
@@ -649,6 +655,10 @@ def create_sulffile_file():
         run_cmdline('srun -n 1 {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
     else:
         run_cmdline('{aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+
+    xtest = (commands.getoutput('grep -o "aeroemiss completed successfully" aero.log') == "aeroemiss completed successfully")
+    if xtest == False:
+        raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
 
 def create_input_file():
     "Write arguments to the CCAM 'input' namelist file"
@@ -1093,7 +1103,7 @@ def input_template_1():
      kbotdav={kbotdav} ktopdav=-10 sigramplow={sigramplow}
      mbd_maxscale_mlo=500 mbd_mlo={mbd_mlo}
      nud_sst={nud_sst} nud_sss={nud_sss} nud_ouv={nud_ouv} nud_sfh={nud_sfh}
-     ktopmlo=1 kbotmlo={kbotmlo} mloalpha=0
+     ktopmlo=1 kbotmlo={kbotmlo} mloalpha=12
 
      COMMENT='ocean, lakes and rivers'
      nmlo={nmlo} ol={mlolvl} tss_sh=0.3 nriver=-1
@@ -1245,7 +1255,7 @@ def input_template_6():
     &turbnml
      buoymeth=1 mineps=1.e-11 qcmf=1.e-4 amxlsq={amxlsq} ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
-     be=1. b1=1. b2=2.
+     be=1. b1=1. b2=2. tkecduv=1
      ngwd={ngwd} helim={helim} fc2={fc2}
      sigbot_gwd={sigbot_gwd} alphaj={alphaj}
     &end

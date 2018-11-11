@@ -4,7 +4,7 @@ aTEB urban type parameters
 6.     0.4    0.38   0.45                 ! bldheight(m), hwratio, vegfrac, bldfrac
 0.     1.5                                ! industral(W/m2), traffic(W/m2)
 0.2    0.3    0.1    0.2                  ! albedo roof, albedo wall, albedo road, albedo veg
-0.1    0.5                                ! roughness veg
+0.1                                       ! roughness veg
 0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
 2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
 1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
@@ -17,7 +17,7 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.5    0.5                                ! heatprop(W/m3), coolprop(W/m3)
 2   urban-low                             ! urban number and name
 4.     0.2    0.45   0.4                  ! bldheight(m), hwratio, vegfrac, bldfrac
@@ -36,7 +36,7 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.5    0.5                                ! heatprop(W/m3), coolprop(W/m3)
 3   urban-medium                          ! urban number and name
 6.     0.4    0.38   0.45                 ! bldheight(m), hwratio, vegfrac, bldfrac
@@ -55,7 +55,7 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.5    0.5                                ! heatprop(W/m3), coolprop(W/m3)
 4   urban-high                            ! urban number and name
 8.     0.6    0.34   0.46                 ! bldheight(m), hwratio, vegfrac, bldfrac
@@ -74,7 +74,7 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.5    0.5                                ! heatprop(W/m3), coolprop(W/m3)
 5   urban-cbd                             ! urban number and name
 18.    2.     0.05   0.65                 ! bldheight(m), hwratio, vegfrac, bldfrac
@@ -93,7 +93,7 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
 6   industrial-low                        ! urban number and name
 4.     0.5    0.4    0.4                  ! bldheight(m), hwratio, vegfrac, bldfrac
@@ -112,7 +112,7 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.     0.                                 ! heatprop(W/m3), coolprop(W/m3)
 7   industrial-medium                     ! urban number and name
 8.     1.     0.3    0.45                 ! bldheight(m), hwratio, vegfrac, bldfrac
@@ -131,7 +131,7 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.     0.                                 ! heatprop(W/m3), coolprop(W/m3)
 8   industrial-high                       ! urban number and name
 12.    1.5    0.2   0.5                   ! bldheight(m), hwratio, vegfrac, bldfrac
@@ -150,5 +150,5 @@ aTEB urban type parameters
 0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
 1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
-0.5    50     291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.     0.                                 ! heatprop(W/m3), coolprop(W/m3)
