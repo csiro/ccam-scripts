@@ -1153,6 +1153,7 @@ def input_template_1():
      sstfile=    '{sstdir}/{sstfile}'
      casafile=   '{vegin}/casa{domain}'
      phenfile=   '{stdat}/modis_phenology_csiro.nc'
+     casapftfile='{stdat}/pftlookup.csv'
      """
      
     template2 = """  
