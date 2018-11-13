@@ -60,7 +60,7 @@ def check_inargs():
                   'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','bcsoil','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
-                  'ocnbath','casafield','smclim','uclemparm','cableparm','vegindex',
+                  'ocnbath','casafield','smclim','uclemparm','cableparm','vegindex','soilparm',
 		  'uservegfile','userlaifile']
 
     for i in args2check:
@@ -96,6 +96,8 @@ def check_inargs():
         d['uclemparm'] = ''
     if d['cableparm'] == 'default':
         d['cableparm'] = ''
+    if d['soilparm'] == 'default':
+        d['soilparm'] = ''
     if d['vegindex'] == 'default':
         d['vegindex'] = ''
     if d['uservegfile'] == 'none':
@@ -1011,6 +1013,7 @@ def igbpveg_template():
      mapconfig="{vegindex}"
      pftconfig="{cableparm}"
      atebconfig="{uclemparm}"
+     soilconfig="{soilparm}"
      user_veginput="{uservegfile}"
      user_laiinput="{userlaifile}"
     &end
@@ -1150,6 +1153,7 @@ def input_template_1():
      sstfile=    '{sstdir}/{sstfile}'
      casafile=   '{vegin}/casa{domain}'
      phenfile=   '{stdat}/modis_phenology_csiro.nc'
+     casapftfile='{stdat}/pftlookup.csv'
      """
      
     template2 = """  
@@ -1476,6 +1480,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
     parser.add_argument("--cableparm", type=str, help=" User defined CABLE vegetation parameter file (default for standard values)")
+    parser.add_argument("--soilparm", type=str, help=" User defined soil parameter file (default for standard values)")
     parser.add_argument("--vegindex", type=str, help=" User defined vegetation indices for user vegetation (default for standard values)")
     parser.add_argument("--uservegfile", type=str, help=" User defined vegetation map (none for no file)")
     parser.add_argument("--userlaifile", type=str, help=" User defined LAI map (none for no file)")

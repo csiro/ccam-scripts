@@ -71,6 +71,7 @@ casa=0                                       # CASA-CNP carbon cycle with progno
 # User defined parameters.  Delete $hdir/vegdata to update.
 uclemparm=default                            # urban parameter file (default for standard values)
 cableparm=default                            # CABLE vegetation parameter file (default for standard values)
+soilparm=default                             # soil parameter file (default for standard values)
 vegindex=default                             # Define vegetation indices for user vegetation (default for standard values)
 uservegfile=none                             # User specified vegetation map (none for no user file)
 userlaifile=none                             # User specified LAI map (none for no user file)
@@ -119,7 +120,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
                    --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield --smclim $smclim \
-		   --uclemparm $uclemparm --cableparm $cableparm --vegindex $vegindex \
+		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
 		   --uservegfile $uservegfile --userlaifile $userlaifile
 
 if [ "`cat $hdir/restart.qm`" == "True" ]; then
