@@ -592,7 +592,7 @@ def set_aeros():
 
     if d['aero'] == 1:
         # Prognostic aerosols
-        d.update({'iaero': -2, 'sulffile': 'aero.nc'})
+        d.update({'iaero': 2, 'sulffile': 'aero.nc'})
 
         fpath_cmip =dict2str('{stdat}/{cmip}/{rcp}')
 
