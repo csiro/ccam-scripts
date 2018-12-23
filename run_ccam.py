@@ -427,8 +427,21 @@ def config_initconds():
 def set_nudging():
     "Set nudging strength parameters"
 
-    d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-            'kbotdav': -900, 'sigramplow': 0.05})
+    if d['dmode'] == 0:
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+                'kbotdav': -900, 'ktopdav': -10, 'sigramplow': 0.05})
+
+    elif d['dmode'] == 1:
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+                'kbotdav': -900, 'ktopdav': -10, 'sigramplow': 0.05})
+
+    elif d['dmode'] == 2:
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+                'kbotdav': -900, 'ktopdav': 0, 'sigramplow': 0.05})
+
+    elif d['dmode'] == 3:
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+                'kbotdav': -900, 'ktopdav': -10, 'sigramplow': 0.05})
 
 
 def set_downscaling():
@@ -1103,7 +1116,7 @@ def input_template_1():
      nud_p={nud_p} nud_q={nud_q} nud_t={nud_t} nud_uv={nud_uv}
      nud_aero={nud_aero} nud_hrs=1
      nud_period=60
-     kbotdav={kbotdav} ktopdav=-10 sigramplow={sigramplow}
+     kbotdav={kbotdav} ktopdav={ktopdav} sigramplow={sigramplow}
      mbd_maxscale_mlo=500 mbd_mlo={mbd_mlo}
      nud_sst={nud_sst} nud_sss={nud_sss} nud_ouv={nud_ouv} nud_sfh={nud_sfh}
      ktopmlo=1 kbotmlo={kbotmlo} mloalpha=12
