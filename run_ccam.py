@@ -1063,7 +1063,6 @@ def ocnbath_template():
      fastocn=t
      bathfilt=t
      binlimit=4
-     rtest=0.2
     &end
     """
 
@@ -1284,8 +1283,8 @@ def input_template_6():
      ateb_intairtmeth=1 ateb_intmassmeth=2
     &end
     &mlonml
-     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=2
-     usetide=0 mlosigma=1
+     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=7
+     usetide=0 mlosigma=5
      rivermd=1
     &end
     &tin &end
