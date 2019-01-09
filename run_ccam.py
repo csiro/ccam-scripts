@@ -1063,6 +1063,7 @@ def ocnbath_template():
      fastocn=t
      bathfilt=t
      binlimit=4
+     rtest=0.2
     &end
     """
 
