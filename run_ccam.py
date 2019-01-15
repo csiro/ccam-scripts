@@ -1285,7 +1285,7 @@ def input_template_6():
     &end
     &mlonml
      mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=7
-     usetide=0 mlosigma=5
+     usetide=0 mlosigma=5 ocneps=0.8
      rivermd=1
     &end
     &tin &end
