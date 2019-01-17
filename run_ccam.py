@@ -1104,7 +1104,7 @@ def input_template_1():
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
-     precon=-10000 restol=2.e-7 nh=5 knh=9
+     precon=-10000 restol=2.e-7 nh=8 knh=-9
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0
      mh_bs={mh_bs}
 
@@ -1284,8 +1284,8 @@ def input_template_6():
      ateb_intairtmeth=1 ateb_intmassmeth=2
     &end
     &mlonml
-     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=7
-     usetide=0 mlosigma=5 ocneps=0.8
+     mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=2
+     usetide=0 mlosigma=2
      rivermd=1
     &end
     &tin &end
