@@ -429,19 +429,19 @@ def set_nudging():
 
     if d['dmode'] == 0:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -900, 'ktopdav': -10, 'sigramplow': 0.05})
+                'kbotdav': 1, 'ktopdav': -10, 'sigramplow': 0.05})
 
     elif d['dmode'] == 1:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -900, 'ktopdav': -10, 'sigramplow': 0.05})
+                'kbotdav': 1, 'ktopdav': -10, 'sigramplow': 0.05})
 
     elif d['dmode'] == 2:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -900, 'ktopdav': 0, 'sigramplow': 0.05})
+                'kbotdav': 1, 'ktopdav': 0, 'sigramplow': 0.05})
 
     elif d['dmode'] == 3:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -900, 'ktopdav': -10, 'sigramplow': 0.05})
+                'kbotdav': 1, 'ktopdav': -10, 'sigramplow': 0.05})
 
 
 def set_downscaling():
@@ -1104,7 +1104,7 @@ def input_template_1():
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
-     precon=-10000 restol=2.e-7 nh=8 knh=-9
+     precon=-10000 restol=2.e-7 nh=5 knh=9
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0
      mh_bs={mh_bs}
 
