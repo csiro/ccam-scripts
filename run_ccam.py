@@ -703,6 +703,10 @@ def prepare_ccam_infiles():
         if os.path.exists(fpath):
 	    # may need to append soil data
             run_cmdline('cp '+fpath+' .')
+	    
+        elif os.path.exists(fpath+'.nc'):
+            # may need to append soil data
+            run_cmdline('cp '+fpath+'.nc .')
 
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
