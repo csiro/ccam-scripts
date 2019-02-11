@@ -376,8 +376,18 @@ def prep_iofiles():
     # Define host model fields:
     d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}.nc')
     fpath = dict2str('{bcdir}/{mesonest}')
+
+    if not (os.path.exists(fpath)):
+        d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}.nc')
+        fpath = dict2str('{bcdir}/{mesonest}')
+
+    if not (os.path.exists(fpath)):
+        d['mesonest'] = dict2str('{bcdom}_{iyr}{imth_2digit}.nc')
+        fpath = dict2str('{bcdir}/{mesonest}')
+
     if not (os.path.exists(fpath)):
         d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
+        fpath = dict2str('{bcdir}/{mesonest}')
 
     # Define restart file:
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
@@ -703,10 +713,6 @@ def prepare_ccam_infiles():
         if os.path.exists(fpath):
 	    # may need to append soil data
             run_cmdline('cp '+fpath+' .')
-	    
-        elif os.path.exists(fpath+'.nc'):
-            # may need to append soil data
-            run_cmdline('cp '+fpath+'.nc .')
 
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
