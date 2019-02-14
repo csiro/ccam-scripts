@@ -78,7 +78,15 @@ def check_inargs():
         d['use_plevs'] = 'F'
         d['use_meters'] = 'T'
     else:
-        raise ValueError, "Invaide choice for outlevmode"
+        raise ValueError, "Invalid choice for outlevmode"
+
+    if d['mlo'] == 0:
+        d['use_depth'] = 'F'
+    elif d['mlo'] == 1:
+        d['use_depth'] = 'T'
+    else:
+        raise ValueError, "Invalid choice for mlo"
+
 
     if d['gridres'] == -999.:
         d['gridres'] = 112.*90./d['gridsize']
@@ -256,7 +264,7 @@ def calc_res():
 def set_ktc_surf():
     "Set tstep for high-frequency output"
 
-    if d['ncsurf'] == 0. :
+    if d['ncsurf'] == 0:
         d['ktc_surf'] = d['dtout']
 
 def calc_dt_mod():
@@ -265,10 +273,14 @@ def calc_dt_mod():
 
     # define dictionary of pre-defined dx (mtrs) : dt (sec) relationships
     d_dxdt = {60000:1200, 45000:900, 36000:720,
-              30000:600, 18000:360, 15000:300,
-              12000:240, 9000:180, 6000:120, 4500:90,
-              4000:80, 3000:60, 2000:40, 1000:20,
-              500:10, 200:4, 100:2, 50:1}
+              30000:600, 22500:450, 20000:400, 18000:360,
+              15000:300, 12000:240, 11250:225, 10000:200, 9000:180,
+              7500:150, 7200:144, 6000:120, 5000:100, 4500:90, 4000:80,
+              3750:75, 3600:72, 3000:60, 2500:50, 2400:48, 2250:45,
+              2000:40, 1800:36, 1500:30, 1250:25, 1200:24,
+              1000:20, 900:18, 800:16, 750:15, 600:12,
+              500:10, 450:9, 400:8, 300:6,
+              250:5, 200:4, 150:3, 100:2, 50:1}
 
     # determine dt based on dx, dtout and ktc_surf
     for dx in sorted(d_dxdt):
@@ -1305,22 +1317,16 @@ def input_template_6():
 def cc_template_1():
     "First part of template for 'cc.nml' namelist file"
 
-    template1 = """\
+    template = """\
     &input
      ifile = "{ofile}"
-    """
-
-    template2 = """\
      ofile = "{hdir}/daily/{ofile}.nc"
-    """
-
-    template3 = """\
      hres  = {res}
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = {use_plevs}
      use_meters = {use_meters}     
-     use_depth = T
+     use_depth = {use_depth}
      plevs = {plevs}
      mlevs = {mlevs}
      dlevs = {dlevs}
@@ -1330,8 +1336,6 @@ def cc_template_1():
      hnames= "all"  hfreq = 1
     &end
     """
-
-    template = template1 + template2 + template3
 
     return template
 
