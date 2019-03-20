@@ -850,9 +850,9 @@ def post_process_output():
     if d['ncout'] == 2:
         write2file('cc.nml',cc_template_1(),mode='w+')
 	if d['machinetype']==1:
-	    run_cmdline('srun -n {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
+	    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
 	else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
@@ -892,9 +892,9 @@ def post_process_output():
     if d['ncout'] == 6:
         write2file('cc.nml',cc_template_4(),mode='w+')
         if d['machinetype']==1:
-            run_cmdline('srun -n {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
+            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
         else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --nounderscore --cordex > pcc2hist.log')
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
@@ -1304,6 +1304,7 @@ def input_template_6():
      cable_pop={cable_pop} gs_switch={gs_switch}
      cable_litter={cable_litter} cable_climate={cable_climate}
      ateb_intairtmeth=1 ateb_intmassmeth=2
+     ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
      mlodiff=1 mlomfix=2 otaumode=1 mlojacobi=2
