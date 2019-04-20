@@ -1122,7 +1122,6 @@ def input_template_1():
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
      namip={namip} rescrn=1
-     maxtilesize=96
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
@@ -1294,7 +1293,7 @@ def input_template_6():
     &turbnml
      buoymeth=1 mineps=1.e-11 qcmf=1.e-4 amxlsq={amxlsq} ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
-     be=1. b1=1. b2=2. m0=0.2
+     be=1. b1=1. b2=2. m0=0.1
      ngwd={ngwd} helim={helim} fc2={fc2}
      sigbot_gwd={sigbot_gwd} alphaj={alphaj}
     &end
