@@ -451,11 +451,11 @@ def set_nudging():
 
     if d['dmode'] == 0:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': 1, 'ktopdav': -10, 'sigramplow': 0.05})
+                'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
     elif d['dmode'] == 1:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': 1, 'ktopdav': -10, 'sigramplow': 0.05})
+                'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
     elif d['dmode'] == 2:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
@@ -463,7 +463,7 @@ def set_nudging():
 
     elif d['dmode'] == 3:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': 1, 'ktopdav': -10, 'sigramplow': 0.05})
+                'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
 
 def set_downscaling():
