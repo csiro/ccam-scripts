@@ -473,13 +473,13 @@ def set_downscaling():
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
                 'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
-                'mh_bs':4})
+                'mh_bs':3})
 
     elif d['dmode'] == 1:
         d.update({'dmode_meth': 1, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                 'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
-                'mh_bs':4})
+                'mh_bs':3})
 
     elif d['dmode'] == 2:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
@@ -491,7 +491,7 @@ def set_downscaling():
         d.update({'dmode_meth': 0, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                 'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
-                'mh_bs':4})
+                'mh_bs':3})
 
 def set_cloud():
     "Cloud microphysics settings"
@@ -1135,7 +1135,7 @@ def input_template_1():
      COMMENT='nudging'
      nbd={nbd} mbd={mbd} mbd_maxscale={mbd_maxscale} mbd_maxgrid={mbd_maxgrid}
      nud_p={nud_p} nud_q={nud_q} nud_t={nud_t} nud_uv={nud_uv}
-     nud_aero={nud_aero} nud_hrs=1
+     nud_aero={nud_aero} nud_hrs=
      nud_period=60
      kbotdav={kbotdav} ktopdav={ktopdav} sigramplow={sigramplow}
      mbd_maxscale_mlo=500 mbd_mlo={mbd_mlo}
