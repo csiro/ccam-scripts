@@ -81,7 +81,8 @@ userlaifile=none                             # User specified LAI map (none for 
 
 bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
 bcdir=$HOME/ccaminstall/erai                 # host atmospheric data (dmode=0, dmode=2 or dmode=3)
-bcsoil=0                                     # use climatology for initial soil moisture (0=constant, 1=climatology)
+bcsoil=0                                     # use climatology for initial soil moisture (0=constant, 1=climatology, 2=recycle)
+bcsoilfile=                                  # soil data for recycling with bcsoil=2
 
 ###############################################################
 # Sea Surface Temperature for dmode=1
@@ -116,6 +117,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf \
                    --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
+                   --bcsoilfile $bcsoilfile \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
                    --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \

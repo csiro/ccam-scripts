@@ -61,7 +61,7 @@ def check_inargs():
                   'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
                   'ocnbath','casafield','smclim','uclemparm','cableparm','vegindex','soilparm',
-		  'uservegfile','userlaifile']
+		  'uservegfile','userlaifile','bcsoilfile']
 
     for i in args2check:
      if not( i in d.keys() ):
@@ -440,10 +440,12 @@ def config_initconds():
 
         if d['bcsoil'] == 0:
             d['nrungcm'] = -1
-        else:
+        elif d['bcsoil'] == 1:
             if os.path.exists(fpath):
                 run_cmdline('cp -f '+fpath+' {wdir}/ifile.nc')
                 d['ifile'] = dict2str('{wdir}/ifile.nc')
+        else:
+            d['nrungcm'] = -4
 
 
 def set_nudging():
@@ -762,7 +764,7 @@ def prepare_ccam_soil():
 
     if d['bcsoil'] == 1 and os.path.exists(d['ifile']):
         if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
-	    print "Appending soil climatology to initial conditions"
+            print "Appending soil climatology to initial conditions"
             if d['machinetype']==1:
                 run_cmdline('srun -n 1 {smclim} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')	
             else:
@@ -770,6 +772,10 @@ def prepare_ccam_soil():
             xtest = (commands.getoutput('grep -o "smclim completed successfully" smclim.log') == "smclim completed successfully")
             if xtest == False:
                 raise ValueError(dict2str("An error occured while running smclim.  Check smclim.log for details"))
+    elif d['bcsoil'] == 2:
+        if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
+            print "Recycle soil from input file"
+
 
 def check_correct_host():
     "Check if host is CCAM"
@@ -1188,6 +1194,7 @@ def input_template_1():
      casafile=   '{vegin}/casa{domain}'
      phenfile=   '{stdat}/modis_phenology_csiro.nc'
      casapftfile='{stdat}/pftlookup.csv'
+     surf_00    ='{bcsoilfile}'
      """
      
     template2 = """  
@@ -1513,7 +1520,7 @@ if __name__ == '__main__':
     parser.add_argument("--userlaifile", type=str, help=" User defined LAI map (none for no file)")
 
     parser.add_argument("--machinetype", type=int, choices=[0,1], help=" Machine type (0=generic, 1=cray)")
-    parser.add_argument("--bcsoil", type=int, choices=[0,1], help=" Initial soil moisture (0=constant, 1=climatology)")
+    parser.add_argument("--bcsoil", type=int, choices=[0,1,2], help=" Initial soil moisture (0=constant, 1=climatology)")
 
     ###############################################################
     # Specify directories, datasets and executables
@@ -1530,6 +1537,7 @@ if __name__ == '__main__':
     parser.add_argument("--wdir", type=str, help=" working directory")
     parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0, dmode=2 or dmode=3)")
     parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
+    parser.add_argument("--bcsoilfile", type=str, help=" Input file for soil recycle")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
 
     parser.add_argument("--terread", type=str, help=" path of terread executable")
