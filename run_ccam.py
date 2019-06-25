@@ -1141,7 +1141,7 @@ def input_template_1():
      COMMENT='nudging'
      nbd={nbd} mbd={mbd} mbd_maxscale={mbd_maxscale} mbd_maxgrid={mbd_maxgrid}
      nud_p={nud_p} nud_q={nud_q} nud_t={nud_t} nud_uv={nud_uv}
-     nud_aero={nud_aero} nud_hrs=
+     nud_aero={nud_aero} nud_hrs=1
      nud_period=60
      kbotdav={kbotdav} ktopdav={ktopdav} sigramplow={sigramplow}
      mbd_maxscale_mlo=500 mbd_mlo={mbd_mlo}
