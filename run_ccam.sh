@@ -78,6 +78,7 @@ userlaifile=none                             # User specified LAI map (none for 
 
 ###############################################################
 # Host atmosphere for dmode=0, dmode=2 or dmode=3
+# and soil data options
 
 bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
 bcdir=$HOME/ccaminstall/erai                 # host atmospheric data (dmode=0, dmode=2 or dmode=3)

@@ -431,21 +431,22 @@ def config_initconds():
 
     if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
 
-        if d['dmode'] in [0,2,3]:
-            d.update({'ifile': d['mesonest']})
-            fpath = dict2str('{bcdir}/{mesonest}')
-        else:
-            d.update({'ifile': d['sstinit']})
-            fpath = dict2str('{sstinit}')
-
         if d['bcsoil'] == 0:
             d['nrungcm'] = -1
         elif d['bcsoil'] == 1:
+            if d['dmode'] in [0,2,3]:
+                d.update({'ifile': d['mesonest']})
+                fpath = dict2str('{bcdir}/{mesonest}')
+            else:
+                d.update({'ifile': d['sstinit']})
+                fpath = dict2str('{sstinit}')
+	
             if os.path.exists(fpath):
                 run_cmdline('cp -f '+fpath+' {wdir}/ifile.nc')
                 d['ifile'] = dict2str('{wdir}/ifile.nc')
         else:
             d['nrungcm'] = -4
+	    check_file_exists(d['bcsoilfile']+'.000000')
 
 
 def set_nudging():
@@ -1415,7 +1416,7 @@ def cc_template_3():
     &end
     &histnl
      htype="inst"
-     hnames= "uas","vas","tscrn","rhscrn","psl","rnd","sno","grpl","d10","u10"
+     hnames= "uas","vas","tscrn","tscrn_stn","tdscrn","tdscrn_stn","rhscrn","rhscrn_stn","psl","ps","rnd","sno","grpl","d10","u10","u10_stn","dni","sgdn_ave"
      hfreq = 1
     &end
     """
@@ -1446,7 +1447,7 @@ def cc_template_4():
     &end
     &histnl
      htype="inst"
-     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","fbeam_ave","sdischarge","urbantas","evspsblpot","sfcWindmax","thetavstar","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
+     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","u10_stn","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","fbeam_ave","sdischarge","tdscrn","urbantas","evspsblpot","sfcWindmax","thetavstar","tdscrn_stn","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
      hfreq = 1
     &end
     """
