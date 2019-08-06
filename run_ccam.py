@@ -431,16 +431,16 @@ def config_initconds():
 
     if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
 
+        if d['dmode'] in [0,2,3]:
+            d.update({'ifile': d['mesonest']})
+            fpath = dict2str('{bcdir}/{mesonest}')
+        else:
+            d.update({'ifile': d['sstinit']})
+            fpath = dict2str('{sstinit}')
+
         if d['bcsoil'] == 0:
             d['nrungcm'] = -1
         elif d['bcsoil'] == 1:
-            if d['dmode'] in [0,2,3]:
-                d.update({'ifile': d['mesonest']})
-                fpath = dict2str('{bcdir}/{mesonest}')
-            else:
-                d.update({'ifile': d['sstinit']})
-                fpath = dict2str('{sstinit}')
-	
             if os.path.exists(fpath):
                 run_cmdline('cp -f '+fpath+' {wdir}/ifile.nc')
                 d['ifile'] = dict2str('{wdir}/ifile.nc')
@@ -1447,7 +1447,7 @@ def cc_template_4():
     &end
     &histnl
      htype="inst"
-     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","u10_stn","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","fbeam_ave","sdischarge","tdscrn","urbantas","evspsblpot","sfcWindmax","thetavstar","tdscrn_stn","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
+     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","u10_stn","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","fbeam_ave","sdischarge","tdscrn","urbantas","evspsblpot","sfcWindmax","thetavstar","tdscrn_stn","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave","tscrn_stn","tmaxscr_stn","tminscr_stn","u10_stn","rhscrn_stn","rhmaxscr_stn","rhminscr_stn"
      hfreq = 1
     &end
     """
