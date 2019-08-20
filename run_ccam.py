@@ -401,6 +401,10 @@ def prep_iofiles():
         d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
         fpath = dict2str('{bcdir}/{mesonest}')
 
+    if not (os.path.exists(fpath+'.000000')):
+        d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
+        fpath = dict2str('{bcdir}/{mesonest}')
+
     # Define restart file:
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
 
