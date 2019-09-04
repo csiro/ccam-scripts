@@ -795,7 +795,7 @@ def check_correct_host():
         elif ccam_host == False and d['dmode'] == 2:
             raise ValueError('CCAM is not the host model. Use dmode = 0')
 
-    if d['dmode'] == 0:
+    if d['dmode'] == 1:
         if d['inv_schmidt'] < 0.2:
 	    raise ValueError('CCAM grid stretching is too high for dmode=0.  Try reducing grid resolution or increasing grid size')
 
