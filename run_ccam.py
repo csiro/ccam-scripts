@@ -1363,7 +1363,7 @@ def cc_template_2():
      minlat = {minlat}, maxlat = {maxlat}
      minlon = {minlon}, maxlon = {maxlon}
      use_plevs = F
-     use_mlevs = F
+     use_meters = F
      use_dlevs = F
     &end
     &histnl
