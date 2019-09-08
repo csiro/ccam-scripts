@@ -1364,7 +1364,7 @@ def cc_template_2():
      minlon = {minlon}, maxlon = {maxlon}
      use_plevs = F
      use_meters = F
-     use_dlevs = F
+     use_depth = F
     &end
     &histnl
      htype="inst"
