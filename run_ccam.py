@@ -1076,7 +1076,7 @@ def sibveg_template():
      landtypeout="veg{domain}"
      datapath="{insdir}/vegin"
      fastsib=t
-     siblsmask=t
+     siblsmask=f
      ozlaipatch=f
      binlimit=2
      zmin=20.
@@ -1305,7 +1305,7 @@ def input_template_6():
     &turbnml
      buoymeth=1 mineps=1.e-11 qcmf=1.e-4 amxlsq={amxlsq} ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
-     be=1. b1=1. b2=2. m0=0.2 maxdts=60.
+     be=1. b1=1. b2=2. m0=0.1
      ngwd={ngwd} helim={helim} fc2={fc2}
      sigbot_gwd={sigbot_gwd} alphaj={alphaj}
     &end
