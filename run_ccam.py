@@ -1164,15 +1164,13 @@ def input_template_1():
 
      COMMENT='boundary layer'
      nvmix={nvmix} nlocal={nlocal}
-     cgmap_offset=600. cgmap_scale=200.
 
      COMMENT='station'
      mstn=0 nstn=0
 
      COMMENT='file'
-     localhist=.true. unlimitedhist=.true. synchist=.false.
-     procformat=.true. compression=1
-     tbave={tbave}
+     localhist=.true. unlimitedhist=.false. synchist=.false.
+     compression=1 tbave={tbave}
     &end
     &skyin
      mins_rad=-1 qgmin=2.E-7
@@ -1306,6 +1304,7 @@ def input_template_6():
      buoymeth=1 mineps=1.e-11 qcmf=1.e-4 amxlsq={amxlsq} ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
      be=1. b1=1. b2=2. m0=0.1
+     dvmodmin=0.01
      ngwd={ngwd} helim={helim} fc2={fc2}
      sigbot_gwd={sigbot_gwd} alphaj={alphaj}
     &end
