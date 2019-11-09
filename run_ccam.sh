@@ -57,8 +57,8 @@ ncsurf=0                                     # high-freq output (0=none, 1=lat/l
 ktc_surf=10                                  # high-freq file output period (mins)
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr )
-cmip=cmip5                                   # CMIP scenario (CMIP3 or CMIP5)
-rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85)
+cmip=cmip5                                   # CMIP scenario (cmip5 or cmip6)
+rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=35                                      # number of model levels (27, 35, 54, 72, 108 or 144)
 sib=1                                        # land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)
 aero=1                                       # aerosols (0=off, 1=prognostic)

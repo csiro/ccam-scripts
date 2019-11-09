@@ -112,13 +112,56 @@ def check_inargs():
         d['uservegfile'] = ''
     if d['userlaifile'] == 'none':
         d['userlaifile'] = ''	
+
+
+def create_directories():
+    "Create output directories and go to working directory"
+
+    dirname = dict2str('{hdir}')
+    if not(os.path.isdir(dirname)):
+        os.mkdir(dirname)
+	
+    os.chdir(dirname)
+    
+    for dirname in ['daily','OUTPUT','RESTART','vegdata']:
+        if not(os.path.isdir(dirname)):
+            os.mkdir(dirname)
+   
+    run_cmdline('rm -f {hdir}/restart.qm')
+
+    dirname = dict2str('{wdir}')
+    if not(os.path.isdir(dirname)):
+        os.mkdir(dirname)
+
+    os.chdir(dirname)
 	    
 	    
 def check_surface_files():
     "Ensure surface datasets exist"
-    
+
     d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
 
+    if (not(os.path.exists('custom.qm'))):
+        run_cable()
+    else:
+        filename = open('custom.qm','r')
+	testfail = False
+	if dict2str('{uclemparm}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{cableparm}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{soilparm}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{vegindex}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{uservegfile}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{userlaifile}\n') != filename.readline():
+	    testfail = True
+	filename.close()    
+        if testfail == True:
+	    run_cable()
+	    
     for fname in ['topout','bath','casa']:
         if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):
             run_cable()
@@ -129,6 +172,7 @@ def check_surface_files():
             run_cable()
         if check_correct_landuse(fname) == True:
             run_cable()
+
 
 def run_cable():
     "Generate topography and land-use files for CCAM"
@@ -191,31 +235,20 @@ def run_cable():
     run_cmdline('mv -f bath{domain} {hdir}/vegdata')
     run_cmdline('mv -f casa{domain} {hdir}/vegdata')
 
-def create_directories():
-    "Create output directories and go to working directory"
+    filename = open('custom.qm','w+')
+    filename.write(dict2str('{uclemparm}\n'))
+    filename.write(dict2str('{cableparm}\n'))
+    filename.write(dict2str('{soilparm}\n'))
+    filename.write(dict2str('{vegindex}\n'))
+    filename.write(dict2str('{uservegfile}\n'))
+    filename.write(dict2str('{userlaifile}\n'))
+    filename.close()
 
-    dirname = dict2str('{hdir}')
-    if not(os.path.isdir(dirname)):
-        os.mkdir(dirname)
-	
-    os.chdir(dirname)
-    
-    for dirname in ['daily','OUTPUT','RESTART','vegdata']:
-        if not(os.path.isdir(dirname)):
-            os.mkdir(dirname)
-   
-    run_cmdline('rm -f {hdir}/restart.qm')
-
-    dirname = dict2str('{wdir}')
-    if not(os.path.isdir(dirname)):
-        os.mkdir(dirname)
-
-    os.chdir(dirname)
 
 def calc_dt_out():
     "Calculate model output timestep"
 
-    d['dtout']=360  # raw cc output frequency (mins)
+    d['dtout'] = 360  # raw cc output frequency (mins)
 
     if d['ncout'] == 3:
         d['dtout'] = 60 # need hourly output for CTM
@@ -315,7 +348,7 @@ def get_datetime():
         print("Start date: "+str(d['iyr'])+mon_2digit(d['imth'])+'01')
         print("If this is the incorrect start date, please delete year.qm")
     else:
-        d['iyr']  = d['iys']
+        d['iyr'] = d['iys']
         d['imth'] = d['ims']
 
     # Abort run at finish year:
@@ -410,16 +443,76 @@ def prep_iofiles():
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
 
     # Define ozone infile:
-    if d['rcp'] == "historic" or d['iyr'] < 2005 :
-        d['ozone'] = dict2str('{stdat}/{cmip}/historic/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_historic_T3M_O3.nc')
+    if d['cmip'] == "cmip5" :
+        if d['rcp'] == "historic" or d['iyr'] < 2005 :
+            d['ozone'] = dict2str('{stdat}/{cmip}/historic/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_historic_T3M_O3.nc')
+        else:
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
     else:
-        d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
+        if d['iyr'] < 1900 :
+	    d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_185001-189912.nc')
+	elif d['iyr'] < 1950 :
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_190001-194912.nc')
+	elif d['iyr'] < 2000 :
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_195001-199912.nc')
+        elif d['iyr'] < 2015 :
+	    if d['rcp'] == "historic" :
+              d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp370-1-0_gn_200001-201412.nc')
+	    else:
+              d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_200001-201412.nc')
+        elif d['iyr'] < 2050 :
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
+	else:
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
+    	    
 
     # Define CO2 infile:
-    d['co2file']= dict2str('{stdat}/{cmip}/{rcp}_MIDYR_CONC.DAT')
+    if d['cmip'] == "cmip5" :
+        d['co2file']= dict2str('{stdat}/{cmip}/{rcp}_MIDYR_CONC.DAT')
+	d['ch4file']=""
+	d['n2ofile']=""
+	d['cfc11file']=""
+	d['cfc12file']=""
+	d['cfc113file']=""
+	d['hcfc22file']=""
+	d['solarfile']=""
+        for fname in [d['ozone'],d['co2file']]:
+            check_file_exists(fname)
+    else:
+        if d['iyr'] < 2015 :
+            d['co2file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+	    d['ch4file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['n2ofile']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['cfc11file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['cfc12file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['cfc113file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+	    d['hcfc22file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+	else:
+            if d['rcp'] == "ssp126" :
+	        d['rcplabel'] = "IMAGE"
+            elif d['rcp'] == "ssp245" :
+                d['rcplabel'] = "MESSAGE-GLOBIOM"
+            elif d['rcp'] == "ssp370" :
+                d['rcplabel'] = "AIM"
+            elif d['rcp'] == "ssp460" :
+                d['rcplabel'] = "GCAM4"
+            elif d['rcp'] == "ssp585" :
+                d['rcplabel'] = "REWIND-MAGPIE"
+            else:
+                raise ValueError(dict2str("Invalid choice for rcp")) 	
+		
+            d['co2file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+	    d['ch4file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['n2ofile']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['cfc11file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['cfc12file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['cfc113file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+	    d['hcfc22file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+	    
+        d['solarfile']=dict2str('{stdat}/{cmip}/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-3-2_gn_185001-229912.nc')
+        for fname in [d['ozone'],d['co2file'],d['ch4file'],d['n2ofile'],d['cfc11file'],d['cfc12file'],d['cfc113file'],d['hcfc22file'],d['solarfile']]:
+            check_file_exists(fname)
 
-    for fname in [d['ozone'],d['co2file']]:
-        check_file_exists(fname)
 
 def set_mlev_params():
     "Set the parameters related to the number of model levels"
@@ -638,40 +731,80 @@ def set_aeros():
 
         fpath_cmip =dict2str('{stdat}/{cmip}/{rcp}')
 
-        if d['rcp'] == "historic":
-            aero = {
-                    'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_SO2_anthropogenic_{ddyear}*.nc'),
-                    'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_SO2_ships_{ddyear}*.nc'),
-                    'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_GriddedBiomassBurningEmissions_SO2_decadalmonthlymean{ddyear}*.nc'),
-                    'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_BC_anthropogenic_{ddyear}*.nc'),
-                    'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_BC_ships_{ddyear}*.nc'),
-                    'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_GriddedBiomassBurningEmissions_BC_decadalmonthlymean{ddyear}*.nc'),
-                    'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_OC_anthropogenic_{ddyear}*.nc'),
-                    'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_OC_ships_{ddyear}*.nc'),
-                    'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_GriddedBiomassBurningEmissions_OC_decadalmonthlymean{ddyear}*.nc')}
+        if d['cmip'] == "cmip5":
+            if d['rcp'] == "historic" or d['iyr'] < 2010 :
+                aero = {
+                        'so2_anth': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_anthropogenic_{ddyear}*.nc'),
+                        'so2_ship': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_ships_{ddyear}*.nc'),
+                        'so2_biom': get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_SO2_decadalmonthlymean{ddyear}*.nc'),
+                        'bc_anth':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_BC_anthropogenic_{ddyear}*.nc'),
+                        'bc_ship':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_BC_ships_{ddyear}*.nc'),
+                        'bc_biom':  get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_BC_decadalmonthlymean{ddyear}*.nc'),
+                        'oc_anth':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_anthropogenic_{ddyear}*.nc'),
+                        'oc_ship':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_ships_{ddyear}*.nc'),
+                        'oc_biom':  get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_OC_decadalmonthlymean{ddyear}*.nc')}
 
-        elif d['iyr'] >= 2010 :
-            aero = {
-                    'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_anthropogenic_{ddyear}*.nc'),
-                    'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_ships_{ddyear}*.nc'),
-                    'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_biomassburning_{ddyear}*.nc'),
-                    'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_anthropogenic_{ddyear}*.nc'),
-                    'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_ships_{ddyear}*.nc'),
-                    'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_biomassburning_{ddyear}*.nc'),
-                    'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_anthropogenic_{ddyear}*.nc'),
-                    'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_{ddyear}*.nc'),
-                    'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_{ddyear}*.nc')}
-        else:
-            aero = {
-                    'so2_anth': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_anthropogenic_{ddyear}*.nc'),
-                    'so2_ship': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_ships_{ddyear}*.nc'),
-                    'so2_biom': get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_SO2_decadalmonthlymean{ddyear}*.nc'),
-                    'bc_anth':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_BC_anthropogenic_{ddyear}*.nc'),
-                    'bc_ship':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_BC_ships_{ddyear}*.nc'),
-                    'bc_biom':  get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_BC_decadalmonthlymean{ddyear}*.nc'),
-                    'oc_anth':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_anthropogenic_{ddyear}*.nc'),
-                    'oc_ship':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_ships_{ddyear}*.nc'),
-                    'oc_biom':  get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_OC_decadalmonthlymean{ddyear}*.nc')}
+            else:
+                aero = {
+                        'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_anthropogenic_{ddyear}*.nc'),
+                        'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_ships_{ddyear}*.nc'),
+                        'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_biomassburning_{ddyear}*.nc'),
+                        'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_anthropogenic_{ddyear}*.nc'),
+                        'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_ships_{ddyear}*.nc'),
+                        'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_biomassburning_{ddyear}*.nc'),
+                        'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_anthropogenic_{ddyear}*.nc'),
+                        'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_{ddyear}*.nc'),
+                        'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_{ddyear}*.nc')}
+	elif d['cmip'] == "cmip6":
+	    if d['rcp'] == "historic" or d['iyr'] < 2015 :
+                aero = {
+                        'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'so2_ship': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'so2_biom': get_fpath('{stdat}/{cmip}/cmip/SO2-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'bc_anth':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'bc_ship':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'bc_biom':  get_fpath('{stdat}/{cmip}/cmip/BC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'oc_anth':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'oc_ship':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+                        'oc_biom':  get_fpath('{stdat}/{cmip}/cmip/OC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc')}
+	    else:
+	        if d['rcp'] == "ssp126" :
+		    d['rcplabel'] = "IMAGE"
+		elif d['rcp'] == "ssp245" :
+		    d['rcplabel'] = "MESSAGE-GLOBIOM"
+		elif d['rcp'] == "ssp370" :
+		    d['rcplabel'] = "AIM"
+		elif d['rcp'] == "ssp460" :
+		    d['rcplabel'] = "GCAM4"
+		elif d['rcp'] == "ssp585" :
+		    d['rcplabel'] = "REWIND-MAGPIE"
+		else:
+		   raise ValueError(dict2str("Invalid choice for rcp")) 
+		       
+	        if d['iyr'] < 2020 :
+                    aero = {
+                            'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                            'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc')}
+                else:
+                    aero = {
+                            'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                            'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc')}
+	else:
+	    raise ValueError(dict2str("Invalid choice for cmip"))
 
         aero['volcano'] = dict2str('{stdat}/contineous_volc.nc')
         aero['dmsfile'] = dict2str('{stdat}/dmsemiss.nc')
@@ -850,9 +983,9 @@ def post_process_output():
 
     if d['ncout'] == 1:
         write2file('cc.nml',cc_template_1(),mode='w+')
-	if d['machinetype']==1:
-	    run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
-	else:
+        if d['machinetype']==1:
+            run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
+        else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
         xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
@@ -882,12 +1015,10 @@ def post_process_output():
             xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
             if xtest == False:
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
-
         if d['ncout'] == 3:
             run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
             run_cmdline('rm ccam_{iyr}{imth_2digit}??.nc')
-
-        if d['ncout'] == 5:
+        elif d['ncout'] == 5:
             run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
 
     if d['ncout'] == 4:
@@ -1187,6 +1318,13 @@ def input_template_1():
      bathfile=   '{vegin}/bath{domain}'
      cnsdir=     '{stdat}'
      radfile=    '{co2file}'
+     ch4file=    '{ch4file}'
+     n2ofile=    '{n2ofile}'
+     cfc11file=  '{cfc11file}'
+     cfc12file=  '{cfc12file}'
+     cfc113file= '{cfc113file}'
+     hcfc22file= '{hcfc22file}'
+     solarfile=  '{solarfile}'
      eigenv=     '{stdat}/{eigenv}'
      o3file=     '{ozone}'
      so4tfile=   '{sulffile}'
@@ -1505,7 +1643,7 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")    
 
-    parser.add_argument("--dmode", type=int, choices=[0,1,2,3], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr )")
+    parser.add_argument("--dmode", type=int, choices=[0,1,2,3], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr)")
     parser.add_argument("--sib", type=int, choices=[1,2,3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0,1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0,1,2,3], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017)")
@@ -1536,8 +1674,8 @@ if __name__ == '__main__':
     parser.add_argument("--sstfile", type=str, help=" sst file for dmode=1")
     parser.add_argument("--sstinit", type=str, help=" initial conditions file for dmode=1")
 
-    parser.add_argument("--cmip", type=str, choices=['cmip5'], help=" CMIP scenario")
-    parser.add_argument("--rcp", type=str, choices=['historic','RCP26','RCP45','RCP85'], help=" RCP scenario")
+    parser.add_argument("--cmip", type=str, choices=['cmip5','cmip6'], help=" CMIP scenario")
+    parser.add_argument("--rcp", type=str, choices=['historic','RCP26','RCP45','RCP85','ssp126','ssp245','ssp370','ssp460','ssp585'], help=" RCP/SSP scenario")
     parser.add_argument("--insdir", type=str, help=" install directory")
     parser.add_argument("--hdir", type=str, help=" script directory")
     parser.add_argument("--wdir", type=str, help=" working directory")
