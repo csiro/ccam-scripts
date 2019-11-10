@@ -104,7 +104,6 @@ sibveg=$insdir/src/bin/sibveg
 ocnbath=$insdir/src/bin/ocnbath
 casafield=$insdir/src/bin/casafield
 aeroemiss=$insdir/src/bin/aeroemiss
-smclim=$insdir/src/bin/smclim
 model=$insdir/src/bin/globpea
 pcc2hist=$insdir/src/bin/pcc2hist
 
@@ -122,7 +121,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --mid
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
                    --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
-                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield --smclim $smclim \
+                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield \
 		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
 		   --uservegfile $uservegfile --userlaifile $userlaifile
 

@@ -38,7 +38,6 @@ def main(inargs):
         create_sulffile_file()
 	print("Create CCAM namelist and perform checks")
         prepare_ccam_infiles()
-        prepare_ccam_soil()
         create_input_file()
         check_correct_host()
 	print("Run CCAM")
@@ -60,7 +59,7 @@ def check_inargs():
                   'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','bcsoil','sstfile',
                   'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
                   'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
-                  'ocnbath','casafield','smclim','uclemparm','cableparm','vegindex','soilparm',
+                  'ocnbath','casafield','uclemparm','cableparm','vegindex','soilparm',
 		  'uservegfile','userlaifile','bcsoilfile']
 
     for i in args2check:
@@ -539,10 +538,12 @@ def config_initconds():
         if d['bcsoil'] == 0:
             d['nrungcm'] = -1
         elif d['bcsoil'] == 1:
-            if os.path.exists(fpath):
-                run_cmdline('cp -f '+fpath+' {wdir}/ifile.nc')
-                d['ifile'] = dict2str('{wdir}/ifile.nc')
+            print "Import soil from climatology"
+	    d['nrungcm'] = -14
+	    d.update({'bcsoilfile': dict2str('{insdir}/vegin/sm{imth_2digit}')})
+	    check_file_exists(d['bcsoilfile']+'.000000')
         else:
+            print "Recycle soil from input file"
             d['nrungcm'] = -4
 	    check_file_exists(d['bcsoilfile']+'.000000')
 
@@ -861,14 +862,10 @@ def prepare_ccam_infiles():
 
     if d['dmode'] == 0 or d['dmode'] == 2 or d['dmode'] == 3:
         fpath = dict2str('{bcdir}/{mesonest}')
-
         if os.path.exists(fpath):
-	    # may need to append soil data
-            run_cmdline('cp '+fpath+' .')
-
+            run_cmdline('ln -s '+fpath+' .')
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
-
         else:
             check_file_exists(fpath+'.tar')
             run_cmdline('tar xvf '+fpath+'.tar')
@@ -896,23 +893,6 @@ def prepare_ccam_infiles():
 
     if d['dmode'] == 1 and not(os.path.exists(dict2str('{sstdir}/{sstfile}'))):
         raise ValueError(dict2str('Cannot locate {sstdir}/{sstfile}'))
-
-def prepare_ccam_soil():
-    "Prepare soil data if required"
-
-    if d['bcsoil'] == 1 and os.path.exists(d['ifile']):
-        if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
-            print "Appending soil climatology to initial conditions"
-            if d['machinetype']==1:
-                run_cmdline('srun -n 1 {smclim} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')	
-            else:
-                run_cmdline('{smclim} -c {insdir}/vegin/sm{imth_2digit}.nc -o {ifile} > smclim.log')
-            xtest = (commands.getoutput('grep -o "smclim completed successfully" smclim.log') == "smclim completed successfully")
-            if xtest == False:
-                raise ValueError(dict2str("An error occured while running smclim.  Check smclim.log for details"))
-    elif d['bcsoil'] == 2:
-        if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
-            print "Recycle soil from input file"
 
 
 def check_correct_host():
@@ -1690,7 +1670,6 @@ if __name__ == '__main__':
     parser.add_argument("--ocnbath", type=str, help=" path of ocnbath executable")
     parser.add_argument("--casafield", type=str, help=" path of casafield executable")
     parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
-    parser.add_argument("--smclim", type=str, help=" path of smclim executable")
     parser.add_argument("--model", type=str, help=" path of globpea executable")
     parser.add_argument("--pcc2hist", type=str, help=" path of pcc2hist executable")
 
