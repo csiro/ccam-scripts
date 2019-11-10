@@ -449,20 +449,17 @@ def prep_iofiles():
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
     else:
         if d['iyr'] < 1900 :
-	    d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_185001-189912.nc')
+	    d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
 	elif d['iyr'] < 1950 :
-            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_190001-194912.nc')
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_190001-194912.nc')
 	elif d['iyr'] < 2000 :
-            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_195001-199912.nc')
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_195001-199912.nc')
         elif d['iyr'] < 2015 :
-	    if d['rcp'] == "historic" :
-              d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp370-1-0_gn_200001-201412.nc')
-	    else:
-              d['ozone'] = dict2str('{stdat}/{cmip}/cmip/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_200001-201412.nc')
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_200001-201412.nc')
         elif d['iyr'] < 2050 :
-            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
 	else:
-            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
     	    
 
     # Define CO2 infile:
