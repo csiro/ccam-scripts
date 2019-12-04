@@ -21,9 +21,9 @@ def main(inargs):
     for mth in xrange(0,d['ncountmax']):
         print("Reading date and time")
         get_datetime()
-	print("Prepare input files")
+        print("Prepare input files")
         prep_iofiles()
-	print("Set parameters")
+        print("Set parameters")
         set_mlev_params()
         config_initconds()
         set_nudging()
@@ -33,18 +33,18 @@ def main(inargs):
         set_atmos()
         set_surfc()
         set_aeros()
-	print("Create aerosol emissions")
+        print("Create aerosol emissions")
         create_aeroemiss_file()
         create_sulffile_file()
-	print("Create CCAM namelist and perform checks")
+        print("Create CCAM namelist and perform checks")
         prepare_ccam_infiles()
         create_input_file()
         check_correct_host()
-	print("Run CCAM")
+        print("Run CCAM")
         run_model()
-	print("Post-process CCAM output")
+        print("Post-process CCAM output")
         post_process_output()
-	print("Update simulation date and time")
+        print("Update simulation date and time")
         update_yearqm()
 
     restart_flag()
@@ -64,7 +64,7 @@ def check_inargs():
 
     for i in args2check:
      if not( i in d.keys() ):
-         print 'Missing input argument --'+i
+         print('Missing input argument --'+i)
          sys.exit(1)
 
     d['plevs'] = d['plevs'].replace(',',', ')
@@ -360,9 +360,9 @@ def get_datetime():
     iyr = d['iyr']
     imth = d['imth']
 
-    if iyr < 2010:
-        print("Changing emission scenario to historic")
-        d['rcp'] = 'historic'
+    #if iyr < 2010:
+    #    print("Changing emission scenario to historic")
+    #    d['rcp'] = 'historic'
 
     # Decade start and end:
     d['ddyear'] = (iyr/10)*10
@@ -726,8 +726,6 @@ def set_aeros():
     if d['aero'] == 1:
         # Prognostic aerosols
         d.update({'iaero': 2, 'sulffile': 'aero.nc'})
-
-        fpath_cmip =dict2str('{stdat}/{cmip}/{rcp}')
 
         if d['cmip'] == "cmip5":
             if d['rcp'] == "historic" or d['iyr'] < 2010 :
