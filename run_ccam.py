@@ -1433,7 +1433,7 @@ def input_template_6():
     &end
     &mlonml
      mlodiff=1 otaumode=1 mlojacobi=7
-     usetide=0 mlosigma=5
+     usetide=0 mlosigma=6 nodrift=1
      rivermd=1
     &end
     &tin &end
