@@ -1432,7 +1432,7 @@ def input_template_6():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=1 otaumode=1 mlojacobi=7
+     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1
      rivermd=1
     &end
