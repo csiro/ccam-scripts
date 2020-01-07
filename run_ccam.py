@@ -570,25 +570,25 @@ def set_downscaling():
 
     if d['dmode'] == 0:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
-                'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                'nud_uv': 1, 'mfix': 1, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
                 'mh_bs':3})
 
     elif d['dmode'] == 1:
         d.update({'dmode_meth': 1, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
-                'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                'nud_uv': 0, 'mfix': 1, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
                 'mh_bs':3})
 
     elif d['dmode'] == 2:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
-                'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                'nud_uv': 1, 'mfix': 1, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1,
                 'mh_bs':3})
 
     elif d['dmode'] == 3:
         d.update({'dmode_meth': 0, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
-                'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                'nud_uv': 0, 'mfix': 1, 'mfix_qg': 1, 'mfix_aero': 1,
                 'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
                 'mh_bs':3})
 
