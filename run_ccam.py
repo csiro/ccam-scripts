@@ -1255,7 +1255,7 @@ def input_template_1():
      nud_aero={nud_aero} nud_hrs=1
      nud_period=60
      kbotdav={kbotdav} ktopdav={ktopdav} sigramplow={sigramplow}
-     mbd_maxscale_mlo=500 mbd_mlo={mbd_mlo}
+     mbd_maxscale_mlo=1000 mbd_mlo={mbd_mlo}
      nud_sst={nud_sst} nud_sss={nud_sss} nud_ouv={nud_ouv} nud_sfh={nud_sfh}
      ktopmlo=1 kbotmlo={kbotmlo} mloalpha=12
 
@@ -1434,6 +1434,7 @@ def input_template_6():
     &mlonml
      mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1
+     ocnsmag=2.
      rivermd=1
     &end
     &tin &end
