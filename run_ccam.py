@@ -1187,6 +1187,7 @@ def sibveg_template():
      binlimit=2
      zmin=20.
      usedean=t
+     deanlake=f
     &end
     """
 
@@ -1202,7 +1203,7 @@ def ocnbath_template():
      fastocn=t
      bathfilt=t
      binlimit=4
-     rtest=0.2
+     rtest=1.
     &end
     """
 
@@ -1347,6 +1348,7 @@ def input_template_2():
      rhcv=0.1 rhmois=0. tied_over=-26.
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     rcrit_l=0.8 rcrit_s=0.8
     &end
     """
 
@@ -1371,6 +1373,7 @@ def input_template_3():
      nclddia=12
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     rcrit_l=0.8 rcrit_s=0.8
     &end
     """
 
@@ -1388,6 +1391,7 @@ def input_template_4():
      ldr=1 nclddia=12 nstab_cld=0 nrhcrit=10 sigcll=0.95
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     rcrit_l=0.8 rcrit_s=0.8
     &end
     """
     
@@ -1406,6 +1410,7 @@ def input_template_5():
      dsig2=0.1 kscmom=0 sig_ct=1. sigkscb=0.95 sigksct=0.8 tied_rh=0.
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     rcrit_l=0.8 rcrit_s=0.8
     &end
     """
 
@@ -1434,7 +1439,7 @@ def input_template_6():
     &mlonml
      mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1
-     ocnsmag=2.
+     ocnsmag=0.8 zomode=0 ocneps=0.2
      rivermd=1
     &end
     &tin &end
