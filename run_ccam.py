@@ -11,16 +11,17 @@ def main(inargs):
     d = vars(inargs)
     check_inargs()
     create_directories()
-    check_surface_files()
     calc_dt_out()
-    read_inv_schmidt()
-    calc_res()
     set_ktc_surf()
-    calc_dt_mod()
     
     for mth in xrange(0,d['ncountmax']):
         print("Reading date and time")
         get_datetime()
+	print("Updating land-use")
+        check_surface_files()
+        read_inv_schmidt()
+        calc_res()
+        calc_dt_mod()
         print("Prepare input files")
         prep_iofiles()
         print("Set parameters")
@@ -48,6 +49,7 @@ def main(inargs):
         update_yearqm()
 
     restart_flag()
+
 
 def check_inargs():
     "Check all inargs are specified and are internally consistent"
@@ -134,115 +136,6 @@ def create_directories():
 
     os.chdir(dirname)
 	    
-	    
-def check_surface_files():
-    "Ensure surface datasets exist"
-
-    d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
-
-    if (not(os.path.exists('custom.qm'))):
-        run_cable()
-    else:
-        filename = open('custom.qm','r')
-	testfail = False
-	if dict2str('{uclemparm}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{cableparm}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{soilparm}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{vegindex}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{uservegfile}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{userlaifile}\n') != filename.readline():
-	    testfail = True
-	filename.close()    
-        if testfail == True:
-	    run_cable()
-	    
-    for fname in ['topout','bath','casa']:
-        if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):
-            run_cable()
-
-    for mon in xrange(1,13):
-        fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
-        if not(os.path.exists(fname)):
-            run_cable()
-        if check_correct_landuse(fname) == True:
-            run_cable()
-
-
-def run_cable():
-    "Generate topography and land-use files for CCAM"
-
-    print "Generating topography file"
-    d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
-    write2file('top.nml',top_template(),mode='w+')
-    if d['machinetype']==1:
-        run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
-    else:
-        run_cmdline('{terread} < top.nml > terread.log')
-    xtest = (commands.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
-    if xtest == False:
-        raise ValueError(dict2str("An error occured while running terread.  Check terread.log for details"))
-
-    if d['sib']==2:
-        print "Generating MODIS land-use data"
-        write2file('sibveg.nml',sibveg_template(),mode='w+')
-        if d['machinetype']==1:
-	    run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
-	else:
-            run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
-        xtest = (commands.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
-        if xtest == False:
-            raise ValueError(dict2str("An error occured while running sibveg.  Check sibveg.log for details"))
-        run_cmdline('mv -f topsib{domain} topout{domain}')
-    else:
-        print "Generating CABLE land-use data"
-        write2file('igbpveg.nml',igbpveg_template(),mode='w+')
-	if d['machinetype']==1:
-            run_cmdline('srun -n 1 {igbpveg} -s 500 < igbpveg.nml > igbpveg.log')	
-	else:
-            run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
-        xtest = (commands.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
-        if xtest == False:
-            raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
-        run_cmdline('mv -f topsib{domain} topout{domain}')
-
-    print "Processing bathymetry data"
-    write2file('ocnbath.nml',ocnbath_template(),mode='w+')
-    if d['machinetype']==1:
-        run_cmdline('srun -n 1 {ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
-    else:
-        run_cmdline('{ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
-    xtest = (commands.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
-    if xtest == False:
-        raise ValueError(dict2str("An error occured while running ocnbath.  Check ocnbath.log for details"))
-
-    print "Processing CASA data"
-    if d['machinetype']==1:
-        run_cmdline('srun -n 1 {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
-    else:
-        run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
-    xtest = (commands.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
-    if xtest == False:
-        raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
-
-    run_cmdline('mv -f topout{domain} {hdir}/vegdata')
-    run_cmdline('mv -f veg{domain}* {hdir}/vegdata')
-    run_cmdline('mv -f bath{domain} {hdir}/vegdata')
-    run_cmdline('mv -f casa{domain} {hdir}/vegdata')
-
-    filename = open('custom.qm','w+')
-    filename.write(dict2str('{uclemparm}\n'))
-    filename.write(dict2str('{cableparm}\n'))
-    filename.write(dict2str('{soilparm}\n'))
-    filename.write(dict2str('{vegindex}\n'))
-    filename.write(dict2str('{uservegfile}\n'))
-    filename.write(dict2str('{userlaifile}\n'))
-    filename.close()
-
 
 def calc_dt_out():
     "Calculate model output timestep"
@@ -255,43 +148,6 @@ def calc_dt_out():
     if d['ktc'] < d['dtout']:
         d['dtout'] = d['ktc']
 
-def read_inv_schmidt():
-    "Read inverse schmidt value from NetCDF topo file and calculate grid resolution"
-
-    topofile = dict2str('{hdir}/vegdata/topout{domain}')
-    
-    d['inv_schmidt'] = float(commands.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-    d['gridsize'] = float(commands.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
-    d['lon0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-    d['lat0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-
-def calc_res():
-    "Calculate resolution for high resolution area"
-
-    gridres_m = d['gridres']*1000. # GRIDRES IN UNITS OF METERS
-
-    res=d['reqres']
-    if res == -999.:
-        res = gridres_m/112000.
-
-    if d['minlat'] == -999.:
-        d['minlat'] = d['midlat']-gridres_m*d['gridsize']/200000.
-
-    if d['maxlat'] == -999.:
-        d['maxlat'] = d['midlat']+gridres_m*d['gridsize']/200000.
-
-    if d['minlon'] == -999.:
-        d['minlon'] = d['midlon']-gridres_m*d['gridsize']/200000.
-
-    if d['maxlon'] == -999.:
-        d['maxlon'] = d['midlon']+gridres_m*d['gridsize']/200000.
-
-    d['gridres'] = gridres_m
-    d['res'] = res
-
-    # CHECK
-    # 1. Should reqres be an input argument - how does this then relate to the pre-defind inv_schmidt?
-    # 2. Note above I have divided by 112000. The original code had 100000.
 
 def set_ktc_surf():
     "Set tstep for high-frequency output"
@@ -299,39 +155,6 @@ def set_ktc_surf():
     if d['ncsurf'] == 0:
         d['ktc_surf'] = d['dtout']
 
-def calc_dt_mod():
-    """Calculate model timestep.
-     dt is a function of dx; dt out and ktc_surf must be integer multiples of dt"""
-
-    # define dictionary of pre-defined dx (mtrs) : dt (sec) relationships
-    d_dxdt = {60000:1200, 45000:900, 36000:720,
-              30000:600, 22500:450, 20000:400, 18000:360,
-              15000:300, 12000:240, 11250:225, 10000:200, 9000:180,
-              7500:150, 7200:144, 6000:120, 5000:100, 4500:90, 4000:80,
-              3750:75, 3600:72, 3000:60, 2500:50, 2400:48, 2250:45,
-              2000:40, 1800:36, 1500:30, 1250:25, 1200:24,
-              1000:20, 900:18, 800:16, 750:15, 600:12,
-              500:10, 450:9, 400:8, 300:6,
-              250:5, 200:4, 150:3, 100:2, 50:1}
-
-    # determine dt based on dx, dtout and ktc_surf
-    for dx in sorted(d_dxdt):
-        if ( d['gridres'] >= dx ) and ( 60 * d['dtout'] % d_dxdt[dx] == 0 ) and ( 60 * d['ktc_surf'] % d_dxdt[dx] == 0):
-            d['dt'] = d_dxdt[dx]
-
-    if d['gridres'] < 50:
-        raise ValueError, "Minimum grid resolution of 50m has been exceeded"
-
-    #if ( d['dtout'] % dt != 0 ):
-    #    raise ValueError, "dtout must be a multiple of dt" # CHECK: Original code has dtout must be a multiple of dt/60
-    #Is this not redundant code given that dt will be 1, above.
-
-    if ( d['ktc'] % d['dtout'] != 0):
-        raise ValueError, "ktc must be a multiple of dtout"
-
-    if d['ncsurf'] != 0:
-        if ( d['dtout'] % d['ktc_surf'] != 0): # This order is different to original code
-            raise ValueError, "dtout must be a multiple of ktc_surf"
 
 def get_datetime():
     "Determine relevant dates and timesteps for running model"
@@ -387,8 +210,10 @@ def get_datetime():
     # Calculate the next next month (+2):
     if imth > 10:
         d['imthnxtb'] = imth-10
+	d['iyrnxtb'] = iyr + 1
     else:
         d['imthnxtb'] = imth+2
+	d['iyrnxtb'] = iyr
 
     d['imthlst_2digit'] = mon_2digit(d['imthlst'])
     d['imth_2digit'] = mon_2digit(d['imth'])
@@ -401,14 +226,241 @@ def get_datetime():
     if (imth == 2) and (d['leap'] == 0):
         d['ndays']=28 #leap year turned off
 
-    # Number of steps between output:
-    d['nwt'] = d['dtout']*60/d['dt']
 
-    # Number of steps in run:
-    d['ntau'] = d['ndays']*86400/d['dt']
+def check_surface_files():
+    "Ensure surface datasets exist"
 
-    # Start date string:
-    d['kdates']=str(d['iyr']*10000 + d['imth']*100 + 01)
+    d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
+
+    if (not(os.path.exists('custom.qm'))):
+        run_cable_all()
+    else:
+        filename = open('custom.qm','r')
+	testfail = False
+	if dict2str('{uclemparm}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{cableparm}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{soilparm}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{vegindex}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{uservegfile}\n') != filename.readline():
+	    testfail = True
+	if dict2str('{userlaifile}\n') != filename.readline():
+	    testfail = True
+	filename.close()    
+        if testfail == True:
+	    run_cable_all()
+	    
+    for fname in ['topout','bath','casa']:
+        if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):
+            run_cable_all()
+
+    for mon in xrange(1,13):
+        if d['cmip'] == "cmip5" :
+            fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
+	else:
+	    fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
+        if not(os.path.exists(fname)):
+            run_cable_land()
+        if check_correct_landuse(fname) == True:
+            run_cable_land()
+
+
+def run_cable_all():
+    "Generate topography and land-use files for CCAM"
+
+    run_topo()
+    run_land()
+    run_ocean()
+    run_carbon()
+    run_cmdline('mv -f topout{domain} {hdir}/vegdata')
+    run_cmdline('mv -f veg{domain}* {hdir}/vegdata')
+    run_cmdline('mv -f bath{domain} {hdir}/vegdata')
+    run_cmdline('mv -f casa{domain} {hdir}/vegdata')
+    update_custom_land()
+   
+
+def run_cable_land():
+    "Generate topography and land-use files for CCAM"
+
+    run_cmdline("ln -s {hdir}/vegdata/topout{domain} .")
+    run_land()
+    run_cmdline('rm -f topout{domain}')
+    run_cmdline('mv -f veg{domain}* {hdir}/vegdata')
+    update_custom_land() 
+
+
+def update_custom_land():
+
+    filename = open('custom.qm','w+')
+    filename.write(dict2str('{uclemparm}\n'))
+    filename.write(dict2str('{cableparm}\n'))
+    filename.write(dict2str('{soilparm}\n'))
+    filename.write(dict2str('{vegindex}\n'))
+    filename.write(dict2str('{uservegfile}\n'))
+    filename.write(dict2str('{userlaifile}\n'))
+    filename.close()
+
+
+def run_topo():
+
+    print "Generating topography file"
+    d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
+    write2file('top.nml',top_template(),mode='w+')
+    if d['machinetype']==1:
+        run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
+    else:
+        run_cmdline('{terread} < top.nml > terread.log')
+    xtest = (commands.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
+    if xtest == False:
+        raise ValueError(dict2str("An error occured while running terread.  Check terread.log for details"))
+
+def run_land():
+
+    #default will disable change_landuse
+    d['change_landuse'] = dict2str('')
+
+    if d['sib']==2:
+        print "Generating MODIS land-use data"
+        write2file('sibveg.nml',sibveg_template(),mode='w+')
+        if d['machinetype']==1:
+	    run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
+	else:
+            run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
+        xtest = (commands.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running sibveg.  Check sibveg.log for details"))
+        run_cmdline('mv -f topsib{domain} topout{domain}')
+    else:
+        print "Generating CABLE land-use data"
+        if d['cmip'] == "cmip6":
+            if d['iyr'] < 2015 :
+                d['change_landuse'] = dict2str('{stdat}/{cmip}/cmip/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-landState-base-2-1-h_gn_0850-2015.nc')
+            else:
+                if d['rcp'] == "ssp126" :
+	            d['rcplabel'] = "IMAGE"
+                elif d['rcp'] == "ssp245" :
+                    d['rcplabel'] = "MESSAGE"
+                elif d['rcp'] == "ssp370" :
+                    d['rcplabel'] = "AIM"
+                elif d['rcp'] == "ssp460" :
+                    d['rcplabel'] = "GCAM"
+                elif d['rcp'] == "ssp585" :
+                    d['rcplabel'] = "MAGPIE"
+                else:
+                    raise ValueError(dict2str("Invalid choice for rcp"))
+                d['change_landuse'] = dict2str('{stdat}/{cmip}/{rcp}/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-{rcplabel}-{rcp}-2-1-f_gn_2015-2100.nc')
+        write2file('igbpveg.nml',igbpveg_template(),mode='w+')
+	if d['machinetype']==1:
+            run_cmdline('srun -n 1 {igbpveg} -s 500 < igbpveg.nml > igbpveg.log')	
+	else:
+            run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
+        xtest = (commands.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
+        if xtest == False:
+            raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
+        run_cmdline('mv -f topsib{domain} topout{domain}')
+
+
+def run_ocean():
+
+    print "Processing bathymetry data"
+    write2file('ocnbath.nml',ocnbath_template(),mode='w+')
+    if d['machinetype']==1:
+        run_cmdline('srun -n 1 {ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
+    else:
+        run_cmdline('{ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
+    xtest = (commands.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
+    if xtest == False:
+        raise ValueError(dict2str("An error occured while running ocnbath.  Check ocnbath.log for details"))
+
+
+def run_carbon():
+
+    print "Processing CASA data"
+    if d['machinetype']==1:
+        run_cmdline('srun -n 1 {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
+    else:
+        run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
+    xtest = (commands.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
+    if xtest == False:
+        raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
+
+
+def read_inv_schmidt():
+    "Read inverse schmidt value from NetCDF topo file and calculate grid resolution"
+
+    topofile = dict2str('{hdir}/vegdata/topout{domain}')
+    
+    d['inv_schmidt'] = float(commands.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+    d['gridsize'] = float(commands.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
+    d['lon0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+    d['lat0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+
+def calc_res():
+    "Calculate resolution for high resolution area"
+
+    gridres_m = d['gridres']*1000. # GRIDRES IN UNITS OF METERS
+
+    res=d['reqres']
+    if res == -999.:
+        res = gridres_m/112000.
+
+    if d['minlat'] == -999.:
+        d['minlat'] = d['midlat']-gridres_m*d['gridsize']/200000.
+
+    if d['maxlat'] == -999.:
+        d['maxlat'] = d['midlat']+gridres_m*d['gridsize']/200000.
+
+    if d['minlon'] == -999.:
+        d['minlon'] = d['midlon']-gridres_m*d['gridsize']/200000.
+
+    if d['maxlon'] == -999.:
+        d['maxlon'] = d['midlon']+gridres_m*d['gridsize']/200000.
+
+    d['gridres_m'] = gridres_m
+    d['res'] = res
+
+    # CHECK
+    # 1. Should reqres be an input argument - how does this then relate to the pre-defind inv_schmidt?
+    # 2. Note above I have divided by 112000. The original code had 100000.
+
+
+def calc_dt_mod():
+    """Calculate model timestep.
+     dt is a function of dx; dt out and ktc_surf must be integer multiples of dt"""
+
+    # define dictionary of pre-defined dx (mtrs) : dt (sec) relationships
+    d_dxdt = {60000:1200, 45000:900, 36000:720,
+              30000:600, 22500:450, 20000:400, 18000:360,
+              15000:300, 12000:240, 11250:225, 10000:200, 9000:180,
+              7500:150, 7200:144, 6000:120, 5000:100, 4500:90, 4000:80,
+              3750:75, 3600:72, 3000:60, 2500:50, 2400:48, 2250:45,
+              2000:40, 1800:36, 1500:30, 1250:25, 1200:24,
+              1000:20, 900:18, 800:16, 750:15, 600:12,
+              500:10, 450:9, 400:8, 300:6,
+              250:5, 200:4, 150:3, 100:2, 50:1}
+
+    # determine dt based on dx, dtout and ktc_surf
+    for dx in sorted(d_dxdt):
+        if ( d['gridres_m'] >= dx ) and ( 60 * d['dtout'] % d_dxdt[dx] == 0 ) and ( 60 * d['ktc_surf'] % d_dxdt[dx] == 0):
+            d['dt'] = d_dxdt[dx]
+
+    if d['gridres_m'] < 50:
+        raise ValueError, "Minimum grid resolution of 50m has been exceeded"
+
+    #if ( d['dtout'] % dt != 0 ):
+    #    raise ValueError, "dtout must be a multiple of dt" # CHECK: Original code has dtout must be a multiple of dt/60
+    #Is this not redundant code given that dt will be 1, above.
+
+    if ( d['ktc'] % d['dtout'] != 0):
+        raise ValueError, "ktc must be a multiple of dtout"
+
+    if d['ncsurf'] != 0:
+        if ( d['dtout'] % d['ktc_surf'] != 0): # This order is different to original code
+            raise ValueError, "dtout must be a multiple of ktc_surf"
+
 
 def prep_iofiles():
     "Prepare input and output files"
@@ -684,11 +736,19 @@ def set_atmos():
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
 	            'cable_climate': 1})
 
-    d.update({ 'vegin': dict2str('{hdir}/vegdata'),
-        'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
-        'vegfile': dict2str('veg{domain}.{imth_2digit}'),
-        'vegnext': dict2str('veg{domain}.{imthnxt_2digit}'),
-        'vegnextb': dict2str('veg{domain}.{imthnxtb_2digit}') })
+    if d['cmip'] == "cmip5":
+        d.update({ 'vegin': dict2str('{hdir}/vegdata'),
+            'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
+            'vegfile': dict2str('veg{domain}.{imth_2digit}'),
+            'vegnext': dict2str('veg{domain}.{imthnxt_2digit}'),
+            'vegnextb': dict2str('veg{domain}.{imthnxtb_2digit}') })
+    else:
+        # Use same year as LAI will not change.  Only the area fraction
+        d.update({ 'vegin': dict2str('{hdir}/vegdata'),
+            'vegprev': dict2str('veg{domain}.{iyr}.{imthlst_2digit}'),
+            'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}'),
+            'vegnext': dict2str('veg{domain}.{iyr}.{imthnxt_2digit}'),
+            'vegnextb': dict2str('veg{domain}.{iyr}.{imthnxtb_2digit}') })
 
     if d['bmix'] == 0:
         d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100.})
@@ -811,11 +871,13 @@ def set_aeros():
 
         d.update(aero)
 
+
 def create_aeroemiss_file():
     "Write arguments to 'aeroemiss' namelist file"
 
     if d['aero'] == 1:
         write2file('aeroemiss.nml',aeroemiss_template(),mode='w+')
+
 
 def create_sulffile_file():
     "Create the aerosol forcing file"
@@ -833,8 +895,18 @@ def create_sulffile_file():
     if xtest == False:
         raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
 
+
 def create_input_file():
     "Write arguments to the CCAM 'input' namelist file"
+
+    # Number of steps between output:
+    d['nwt'] = d['dtout']*60/d['dt']
+
+    # Number of steps in run:
+    d['ntau'] = d['ndays']*86400/d['dt']
+
+    # Start date string:
+    d['kdates']=str(d['iyr']*10000 + d['imth']*100 + 01)
 
     write2file('input',input_template_1(),mode='w+')
 
@@ -851,6 +923,7 @@ def create_input_file():
         write2file('input',input_template_5())
 	
     write2file('input',input_template_6())
+
 
 def prepare_ccam_infiles():
     "Prepare and check CCAM input data"
@@ -913,7 +986,7 @@ def check_correct_host():
             host_inv_schmidt = float(commands.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
             host_gridsize = float(commands.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | sed "s/\;//g"'))
             host_grid_res = host_inv_schmidt * 112. * 90. / host_gridsize
-            nest_grid_width = float(d['gridsize']) * float(d['gridres'])
+            nest_grid_width = float(d['gridsize']) * float(d['gridres_m'])
             host_grid_dx = 3. * host_grid_res
             if nest_grid_width < host_grid_dx:
                 raise ValueError('Too large a jump beteen nest and host grid.  Try reducing grid resolution or increasing grid size')
@@ -937,6 +1010,7 @@ def check_correct_landuse(fname):
         testfail = True
 
     return testfail
+
 
 def run_model():
     "Execute the CCAM model"
@@ -1148,6 +1222,7 @@ def igbpveg_template():
     return """\
     &vegnml
      month=0
+     year={iyr}
      topofile="topout{domain}"
      newtopofile="topsib{domain}"
      landtypeout="veg{domain}"
@@ -1156,6 +1231,7 @@ def igbpveg_template():
      laiinput="{insdir}/vegin"
      albvisinput="{insdir}/vegin/salbvis223.img"
      albnirinput="{insdir}/vegin/salbnir223.img"
+     change_landuse="{change_landuse}"
      fastigbp=t
      igbplsmask=t
      ozlaipatch=f
@@ -1603,7 +1679,7 @@ if __name__ == '__main__':
     parser.add_argument("--midlon", type=float, help=" central longitude of domain")
     parser.add_argument("--midlat", type=float, help=" central latitude of domain")
     parser.add_argument("--gridres", type=float, help=" required resolution (km) of domain")
-    parser.add_argument("--gridsize", type=int, help="cubic grid size")
+    parser.add_argument("--gridsize", type=int, help=" cubic grid size")
     parser.add_argument("--mlev", type=int,choices=[27,35,54,72,108,144], help=" number of model levels (27, 35, 54, 72, 108 or 144)")
     
     parser.add_argument("--iys", type=int, help=" start year [YYYY]")
