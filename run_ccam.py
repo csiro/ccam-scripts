@@ -394,7 +394,7 @@ def read_inv_schmidt():
     topofile = dict2str('{hdir}/vegdata/topout{domain}')
     
     d['inv_schmidt'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-    d['gridsize'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
+    d['gridsize'] = int(subprocess.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
     d['lon0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
     d['lat0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
 
