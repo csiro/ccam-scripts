@@ -1,7 +1,7 @@
 import os
 import argparse
 import sys
-import commands
+import subprocess
 from calendar import monthrange
 
 def main(inargs):
@@ -14,10 +14,10 @@ def main(inargs):
     calc_dt_out()
     set_ktc_surf()
     
-    for mth in xrange(0,d['ncountmax']):
+    for mth in range(0,d['ncountmax']):
         print("Reading date and time")
         get_datetime()
-	print("Updating land-use")
+        print("Updating land-use")
         check_surface_files()
         read_inv_schmidt()
         calc_res()
@@ -54,7 +54,7 @@ def main(inargs):
 def check_inargs():
     "Check all inargs are specified and are internally consistent"
 
-    args2check = ['name','nproc','midlon','midlat','gridres','gridsize','mlev','iys',
+    args2check = ['name','nproc','nnode','midlon','midlat','gridres','gridsize','mlev','iys',
                   'ims','iye','ime','leap','ncountmax','ktc','minlat','maxlat',
                   'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dlevs','dmode',
                   'sib','aero','conv','cloud','bmix','mlo','casa',
@@ -79,27 +79,27 @@ def check_inargs():
         d['use_plevs'] = 'F'
         d['use_meters'] = 'T'
     else:
-        raise ValueError, "Invalid choice for outlevmode"
+        raise ValueError("Invalid choice for outlevmode")
 
     if d['mlo'] == 0:
         d['use_depth'] = 'F'
     elif d['mlo'] == 1:
         d['use_depth'] = 'T'
     else:
-        raise ValueError, "Invalid choice for mlo"
+        raise ValueError("Invalid choice for mlo")
 
 
     if d['gridres'] == -999.:
         d['gridres'] = 112.*90./d['gridsize']
         print(dict2str('Update gridres to {gridres}'))
-	if d['minlat'] == -999.:
-	    d['minlat'] = -90.
-	if d['maxlat'] == -999.:
-	    d['maxlat'] = 90.
-	if d['minlon'] == -999.:
-	    d['minlon'] = 0.
-	if d['maxlon'] == -999.:
-	    d['maxlon'] = 360.
+        if d['minlat'] == -999.:
+            d['minlat'] = -90.
+        if d['maxlat'] == -999.:
+            d['maxlat'] = 90.
+        if d['minlon'] == -999.:
+            d['minlon'] = 0.
+        if d['maxlon'] == -999.:
+            d['maxlon'] = 360.
 	    
     if d['uclemparm'] == 'default':
         d['uclemparm'] = ''
@@ -178,7 +178,7 @@ def get_datetime():
     edate = d['iye']*100 +d['ime']
 
     if sdate > edate:
-        raise ValueError, 'CCAM simulation already completed. Delete year.qm to restart.'
+        raise ValueError("CCAM simulation already completed. Delete year.qm to restart.")
 
     iyr = d['iyr']
     imth = d['imth']
@@ -188,8 +188,8 @@ def get_datetime():
     #    d['rcp'] = 'historic'
 
     # Decade start and end:
-    d['ddyear'] = (iyr/10)*10
-    d['deyear'] = d['ddyear'] + 9
+    d['ddyear'] = int((iyr/10)*10)
+    d['deyear'] = int(d['ddyear'] + 9)
 
     # Calculate previous month:
     if imth == 1:
@@ -210,10 +210,10 @@ def get_datetime():
     # Calculate the next next month (+2):
     if imth > 10:
         d['imthnxtb'] = imth-10
-	d['iyrnxtb'] = iyr + 1
+        d['iyrnxtb'] = iyr + 1
     else:
         d['imthnxtb'] = imth+2
-	d['iyrnxtb'] = iyr
+        d['iyrnxtb'] = iyr
 
     d['imthlst_2digit'] = mon_2digit(d['imthlst'])
     d['imth_2digit'] = mon_2digit(d['imth'])
@@ -236,32 +236,32 @@ def check_surface_files():
         run_cable_all()
     else:
         filename = open('custom.qm','r')
-	testfail = False
-	if dict2str('{uclemparm}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{cableparm}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{soilparm}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{vegindex}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{uservegfile}\n') != filename.readline():
-	    testfail = True
-	if dict2str('{userlaifile}\n') != filename.readline():
-	    testfail = True
-	filename.close()    
+        testfail = False
+        if dict2str('{uclemparm}\n') != filename.readline():
+            testfail = True
+        if dict2str('{cableparm}\n') != filename.readline():
+            testfail = True
+        if dict2str('{soilparm}\n') != filename.readline():
+            testfail = True
+        if dict2str('{vegindex}\n') != filename.readline():
+            testfail = True
+        if dict2str('{uservegfile}\n') != filename.readline():
+            testfail = True
+        if dict2str('{userlaifile}\n') != filename.readline():
+            testfail = True
+        filename.close()    
         if testfail == True:
-	    run_cable_all()
+            run_cable_all()
 	    
     for fname in ['topout','bath','casa']:
         if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):
             run_cable_all()
 
-    for mon in xrange(1,13):
+    for mon in range(1,13):
         if d['cmip'] == "cmip5" :
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
-	else:
-	    fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
+        else:
+            fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
         if not(os.path.exists(fname)):
             run_cable_land()
         if check_correct_landuse(fname) == True:
@@ -306,14 +306,14 @@ def update_custom_land():
 
 def run_topo():
 
-    print "Generating topography file"
+    print("Generating topography file")
     d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
     write2file('top.nml',top_template(),mode='w+')
     if d['machinetype']==1:
         run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
     else:
         run_cmdline('{terread} < top.nml > terread.log')
-    xtest = (commands.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
+    xtest = (subprocess.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running terread.  Check terread.log for details"))
 
@@ -323,24 +323,24 @@ def run_land():
     d['change_landuse'] = dict2str('')
 
     if d['sib']==2:
-        print "Generating MODIS land-use data"
+        print("Generating MODIS land-use data")
         write2file('sibveg.nml',sibveg_template(),mode='w+')
         if d['machinetype']==1:
-	    run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
-	else:
+            run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
+        else:
             run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
-        xtest = (commands.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
+        xtest = (subprocess.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running sibveg.  Check sibveg.log for details"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
     else:
-        print "Generating CABLE land-use data"
+        print("Generating CABLE land-use data")
         if d['cmip'] == "cmip6":
             if d['iyr'] < 2015 :
                 d['change_landuse'] = dict2str('{stdat}/{cmip}/cmip/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-landState-base-2-1-h_gn_0850-2015.nc')
             else:
                 if d['rcp'] == "ssp126" :
-	            d['rcplabel'] = "IMAGE"
+                    d['rcplabel'] = "IMAGE"
                 elif d['rcp'] == "ssp245" :
                     d['rcplabel'] = "MESSAGE"
                 elif d['rcp'] == "ssp370" :
@@ -353,11 +353,11 @@ def run_land():
                     raise ValueError(dict2str("Invalid choice for rcp"))
                 d['change_landuse'] = dict2str('{stdat}/{cmip}/{rcp}/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-{rcplabel}-{rcp}-2-1-f_gn_2015-2100.nc')
         write2file('igbpveg.nml',igbpveg_template(),mode='w+')
-	if d['machinetype']==1:
-            run_cmdline('srun -n 1 {igbpveg} -s 500 < igbpveg.nml > igbpveg.log')	
-	else:
-            run_cmdline('{igbpveg} -s 1000 < igbpveg.nml > igbpveg.log')
-        xtest = (commands.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
+        if d['machinetype']==1:
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')	
+        else:
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+        xtest = (subprocess.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
@@ -365,25 +365,25 @@ def run_land():
 
 def run_ocean():
 
-    print "Processing bathymetry data"
+    print("Processing bathymetry data")
     write2file('ocnbath.nml',ocnbath_template(),mode='w+')
     if d['machinetype']==1:
-        run_cmdline('srun -n 1 {ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
+        run_cmdline('srun -n 1 {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     else:
-        run_cmdline('{ocnbath} -s 1000 < ocnbath.nml > ocnbath.log')
-    xtest = (commands.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
+        run_cmdline('{ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
+    xtest = (subprocess.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running ocnbath.  Check ocnbath.log for details"))
 
 
 def run_carbon():
 
-    print "Processing CASA data"
+    print("Processing CASA data")
     if d['machinetype']==1:
         run_cmdline('srun -n 1 {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
     else:
         run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
-    xtest = (commands.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
+    xtest = (subprocess.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
 
@@ -393,10 +393,10 @@ def read_inv_schmidt():
 
     topofile = dict2str('{hdir}/vegdata/topout{domain}')
     
-    d['inv_schmidt'] = float(commands.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-    d['gridsize'] = float(commands.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
-    d['lon0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-    d['lat0'] = float(commands.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+    d['inv_schmidt'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+    d['gridsize'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
+    d['lon0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+    d['lat0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
 
 def calc_res():
     "Calculate resolution for high resolution area"
@@ -448,18 +448,18 @@ def calc_dt_mod():
             d['dt'] = d_dxdt[dx]
 
     if d['gridres_m'] < 50:
-        raise ValueError, "Minimum grid resolution of 50m has been exceeded"
+        raise ValueError("Minimum grid resolution of 50m has been exceeded")
 
     #if ( d['dtout'] % dt != 0 ):
     #    raise ValueError, "dtout must be a multiple of dt" # CHECK: Original code has dtout must be a multiple of dt/60
     #Is this not redundant code given that dt will be 1, above.
 
     if ( d['ktc'] % d['dtout'] != 0):
-        raise ValueError, "ktc must be a multiple of dtout"
+        raise ValueError("ktc must be a multiple of dtout")
 
     if d['ncsurf'] != 0:
         if ( d['dtout'] % d['ktc_surf'] != 0): # This order is different to original code
-            raise ValueError, "dtout must be a multiple of ktc_surf"
+            raise ValueError("dtout must be a multiple of ktc_surf")
 
 
 def prep_iofiles():
@@ -501,43 +501,43 @@ def prep_iofiles():
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
     else:
         if d['iyr'] < 1900 :
-	    d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
-	elif d['iyr'] < 1950 :
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
+        elif d['iyr'] < 1950 :
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_190001-194912.nc')
-	elif d['iyr'] < 2000 :
+        elif d['iyr'] < 2000 :
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_195001-199912.nc')
         elif d['iyr'] < 2015 :
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_200001-201412.nc')
         elif d['iyr'] < 2050 :
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
-	else:
+        else:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
     	    
 
     # Define CO2 infile:
     if d['cmip'] == "cmip5" :
         d['co2file']= dict2str('{stdat}/{cmip}/{rcp}_MIDYR_CONC.DAT')
-	d['ch4file']=""
-	d['n2ofile']=""
-	d['cfc11file']=""
-	d['cfc12file']=""
-	d['cfc113file']=""
-	d['hcfc22file']=""
-	d['solarfile']=""
+        d['ch4file']=""
+        d['n2ofile']=""
+        d['cfc11file']=""
+        d['cfc12file']=""
+        d['cfc113file']=""
+        d['hcfc22file']=""
+        d['solarfile']=""
         for fname in [d['ozone'],d['co2file']]:
             check_file_exists(fname)
     else:
         if d['iyr'] < 2015 :
             d['co2file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-	    d['ch4file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['ch4file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
             d['n2ofile']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
             d['cfc11file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
             d['cfc12file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
             d['cfc113file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-	    d['hcfc22file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-	else:
+            d['hcfc22file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+        else:
             if d['rcp'] == "ssp126" :
-	        d['rcplabel'] = "IMAGE"
+                d['rcplabel'] = "IMAGE"
             elif d['rcp'] == "ssp245" :
                 d['rcplabel'] = "MESSAGE-GLOBIOM"
             elif d['rcp'] == "ssp370" :
@@ -550,12 +550,12 @@ def prep_iofiles():
                 raise ValueError(dict2str("Invalid choice for rcp")) 	
 		
             d['co2file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-	    d['ch4file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['ch4file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
             d['n2ofile']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
             d['cfc11file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
             d['cfc12file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
             d['cfc113file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-	    d['hcfc22file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['hcfc22file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
 	    
         d['solarfile']=dict2str('{stdat}/{cmip}/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-3-2_gn_185001-229912.nc')
         for fname in [d['ozone'],d['co2file'],d['ch4file'],d['n2ofile'],d['cfc11file'],d['cfc12file'],d['cfc113file'],d['hcfc22file'],d['solarfile']]:
@@ -587,14 +587,14 @@ def config_initconds():
         if d['bcsoil'] == 0:
             d['nrungcm'] = -1
         elif d['bcsoil'] == 1:
-            print "Import soil from climatology"
-	    d['nrungcm'] = -14
-	    d.update({'bcsoilfile': dict2str('{insdir}/vegin/sm{imth_2digit}')})
-	    check_file_exists(d['bcsoilfile']+'.000000')
+            print("Import soil from climatology")
+            d['nrungcm'] = -14
+            d.update({'bcsoilfile': dict2str('{insdir}/vegin/sm{imth_2digit}')})
+            check_file_exists(d['bcsoilfile']+'.000000')
         else:
-            print "Recycle soil from input file"
+            print("Recycle soil from input file")
             d['nrungcm'] = -4
-	    check_file_exists(d['bcsoilfile']+'.000000')
+            check_file_exists(d['bcsoilfile']+'.000000')
 
 
 def set_nudging():
@@ -708,13 +708,13 @@ def set_atmos():
 	    'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
 
         if d['casa'] == 1:
-            raise ValueError, "casa=1 requires sib=1 or sib=3"
+            raise ValueError("casa=1 requires sib=1 or sib=3")
 
         elif d['casa'] == 2:
-            raise ValueError, "casa=2 requires sib=1 or sib=3"
+            raise ValueError("casa=2 requires sib=1 or sib=3")
 
         elif d['casa'] == 3:
-            raise ValueError, "casa=3 requires sib=1 or sib=3"
+            raise ValueError("casa=3 requires sib=1 or sib=3")
 
     elif d['sib'] == 3:
         d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1,
@@ -811,8 +811,8 @@ def set_aeros():
                         'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_anthropogenic_{ddyear}*.nc'),
                         'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_{ddyear}*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_{ddyear}*.nc')}
-	elif d['cmip'] == "cmip6":
-	    if d['rcp'] == "historic" or d['iyr'] < 2015 :
+        elif d['cmip'] == "cmip6":
+            if d['rcp'] == "historic" or d['iyr'] < 2015 :
                 aero = {
                         'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
                         'so2_ship': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
@@ -823,21 +823,21 @@ def set_aeros():
                         'oc_anth':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
                         'oc_ship':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/cmip/OC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc')}
-	    else:
-	        if d['rcp'] == "ssp126" :
-		    d['rcplabel'] = "IMAGE"
-		elif d['rcp'] == "ssp245" :
-		    d['rcplabel'] = "MESSAGE-GLOBIOM"
-		elif d['rcp'] == "ssp370" :
-		    d['rcplabel'] = "AIM"
-		elif d['rcp'] == "ssp460" :
-		    d['rcplabel'] = "GCAM4"
-		elif d['rcp'] == "ssp585" :
-		    d['rcplabel'] = "REWIND-MAGPIE"
-		else:
-		   raise ValueError(dict2str("Invalid choice for rcp")) 
+            else:
+                if d['rcp'] == "ssp126" :
+                    d['rcplabel'] = "IMAGE"
+                elif d['rcp'] == "ssp245" :
+                    d['rcplabel'] = "MESSAGE-GLOBIOM"
+                elif d['rcp'] == "ssp370" :
+                    d['rcplabel'] = "AIM"
+                elif d['rcp'] == "ssp460" :
+                    d['rcplabel'] = "GCAM4"
+                elif d['rcp'] == "ssp585" :
+                    d['rcplabel'] = "REWIND-MAGPIE"
+                else:
+                    raise ValueError(dict2str("Invalid choice for rcp")) 
 		       
-	        if d['iyr'] < 2020 :
+                if d['iyr'] < 2020 :
                     aero = {
                             'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
@@ -859,14 +859,14 @@ def set_aeros():
                             'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc')}
-	else:
-	    raise ValueError(dict2str("Invalid choice for cmip"))
+        else:
+            raise ValueError(dict2str("Invalid choice for cmip"))
 
         aero['volcano'] = dict2str('{stdat}/contineous_volc.nc')
         aero['dmsfile'] = dict2str('{stdat}/dmsemiss.nc')
         aero['dustfile'] = dict2str('{stdat}/ginoux.nc')     
         
-        for fpath in aero.iterkeys():
+        for fpath in iter(aero.keys()):
             check_file_exists(aero[fpath])
 
         d.update(aero)
@@ -891,7 +891,7 @@ def create_sulffile_file():
     else:
         run_cmdline('{aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
-    xtest = (commands.getoutput('grep -o "aeroemiss completed successfully" aero.log') == "aeroemiss completed successfully")
+    xtest = (subprocess.getoutput('grep -o "aeroemiss completed successfully" aero.log') == "aeroemiss completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
 
@@ -900,13 +900,13 @@ def create_input_file():
     "Write arguments to the CCAM 'input' namelist file"
 
     # Number of steps between output:
-    d['nwt'] = d['dtout']*60/d['dt']
+    d['nwt'] = int(d['dtout']*60/d['dt'])
 
     # Number of steps in run:
-    d['ntau'] = d['ndays']*86400/d['dt']
+    d['ntau'] = int(d['ndays']*86400/d['dt'])
 
     # Start date string:
-    d['kdates']=str(d['iyr']*10000 + d['imth']*100 + 01)
+    d['kdates']=str(d['iyr']*10000 + d['imth']*100 + 1)
 
     write2file('input',input_template_1(),mode='w+')
 
@@ -969,7 +969,7 @@ def check_correct_host():
     if d['dmode'] in [0,2]:
         for fname in [d['mesonest'], d['mesonest']+'.000000']:
             if os.path.exists(fname):
-                ccam_host = (commands.getoutput('ncdump -c '+fname+' | grep -o version') == "version")
+                ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o version') == "version")
                 break
         if ccam_host == True and d['dmode'] == 0:
             raise ValueError('CCAM is the host model. Use dmode = 2')
@@ -978,13 +978,13 @@ def check_correct_host():
 
     if d['dmode'] == 1:
         if d['inv_schmidt'] < 0.2:
-	    raise ValueError('CCAM grid stretching is too high for dmode=0.  Try reducing grid resolution or increasing grid size')
+            raise ValueError('CCAM grid stretching is too high for dmode=0.  Try reducing grid resolution or increasing grid size')
 
     if d['dmode'] == 2:
         fname = d['mesonest']+'.000000'
         if os.path.exists(fname):    
-            host_inv_schmidt = float(commands.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-            host_gridsize = float(commands.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | sed "s/\;//g"'))
+            host_inv_schmidt = float(subprocess.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+            host_gridsize = float(subprocess.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | sed "s/\;//g"'))
             host_grid_res = host_inv_schmidt * 112. * 90. / host_gridsize
             nest_grid_width = float(d['gridsize']) * float(d['gridres_m'])
             host_grid_dx = 3. * host_grid_res
@@ -997,15 +997,15 @@ def check_correct_landuse(fname):
 
     testfail = False
 
-    cable_data = (commands.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
+    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
     if d['sib'] == 1 and cable_data == False:
         testfail = True
 
-    modis_data = (commands.getoutput('ncdump -c '+fname+' | grep -o sibvegversion') == "sibvegversion")
+    modis_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o sibvegversion') == "sibvegversion")
     if d['sib'] == 2 and modis_data == False:
         testfail = True
 
-    cable_data = (commands.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
+    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
     if d['sib'] == 3 and cable_data == False:
         testfail = True
 
@@ -1021,7 +1021,7 @@ def run_model():
         run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
     
     prfile = dict2str('prnew.{kdates}.{name}')
-    xtest = (commands.getoutput('grep -o "globpea completed successfully" '+prfile) == "globpea completed successfully")
+    xtest = (subprocess.getoutput('grep -o "globpea completed successfully" '+prfile) == "globpea completed successfully")
     if xtest == False:
         raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
 	
@@ -1036,32 +1036,32 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
-        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 2:
         write2file('cc.nml',cc_template_1(),mode='w+')
-	if d['machinetype']==1:
-	    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
-	else:
+        if d['machinetype']==1:
+            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+        else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 3 or d['ncout'] == 5:
-        for iday in xrange(1,d['ndays']+1):
+        for iday in range(1,d['ndays']+1):
             d['cday'] = mon_2digit(iday)
             d['iend'] = iday*1440
             d['istart'] = (iday*1440)-1440
             d['outctmfile'] = dict2str("ccam_{iyr}{imth_2digit}{cday}.nc")
             write2file('cc.nml',cc_template_2(),mode='w+')
-	    if d['machinetype']==1:
+            if d['machinetype']==1:
                 run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
-	    else:
+            else:
                 run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
-            xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
+            xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
             if xtest == False:
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
         if d['ncout'] == 3:
@@ -1072,11 +1072,11 @@ def post_process_output():
 
     if d['ncout'] == 4:
         write2file('cc.nml',cc_template_1(),mode='w+')
-	if d['machinetype']==1:
-	    run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-	else:
+        if d['machinetype']==1:
+            run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+        else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
@@ -1086,7 +1086,7 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
@@ -1096,11 +1096,11 @@ def post_process_output():
 
     if d['ncsurf'] == 1:
         write2file('cc.nml',cc_template_3(),mode='w+')
-	if d['machinetype']==1:
-	    run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
-	else:
+        if d['machinetype']==1:
+            run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
+        else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
-        xtest = (commands.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
         if xtest == False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check surf.pcc2hist.log for details"))
 
@@ -1156,7 +1156,7 @@ def restart_flag():
 
     if sdate > edate:
         write2file(d['hdir']+'/restart.qm',"Complete",mode='w+')
-	sys.exit(0)
+        sys.exit(0)
     else:
         write2file(d['hdir']+'/restart.qm',"True",mode='w+')
 
@@ -1181,7 +1181,7 @@ def write2file(fname,args_template,mode='a'):
 
 def get_fpath(fpath):
     "Get relevant file path(s)"
-    return commands.getoutput(dict2str('ls -1tr '+fpath+' | tail -1'))
+    return subprocess.getoutput(dict2str('ls -1tr '+fpath+' | tail -1'))
 
 def check_file_exists(path):
     "Check that the specified file path exists"
@@ -1675,6 +1675,7 @@ if __name__ == '__main__':
 				     
     parser.add_argument("--name", type=str, help=" run name")
     parser.add_argument("--nproc", type=int, help=" number of processors")
+    parser.add_argument("--nnode", type=int, help=" number of processors per node")
     
     parser.add_argument("--midlon", type=float, help=" central longitude of domain")
     parser.add_argument("--midlat", type=float, help=" central latitude of domain")

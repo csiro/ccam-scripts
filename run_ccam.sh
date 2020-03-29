@@ -14,7 +14,7 @@
 
 module load mpt            # MPI
 module load netcdf/4.3.3.1 # NetCDF
-module load python         # Python
+module load python/3.5.0   # Python
 
 ###############################################################
 # Specify parameters
@@ -23,6 +23,7 @@ hdir=$HOME/ccaminstall/scripts/run_ccam      # script directory
 wdir=$hdir/wdir                              # working directory
 machinetype=0                                # machine type (0=mpirun, 1=srun)
 nproc=$SLURM_NTASKS                          # number of processors
+nnode=$SLURM_NTASKS_PER_NODE                 # number of processors per node
 
 midlon=0.                                    # central longitude of domain
 midlat=0.                                    # central latitude of domain
@@ -109,7 +110,7 @@ pcc2hist=$insdir/src/bin/pcc2hist
 
 ###############################################################
 
-python $excdir/run_ccam.py --name $name --nproc $nproc --midlon " $midlon" --midlat " $midlat" --gridres " $gridres" \
+python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon " $midlon" --midlat " $midlat" --gridres " $gridres" \
                    --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --iye $iye --ime $ime --leap $leap \
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
