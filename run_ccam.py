@@ -1315,7 +1315,7 @@ def input_template_1():
      kdate_s={kdates} ktime_s=0000 leap={leap}
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
-     namip={namip} rescrn=1
+     namip={namip} rescrn=1 zo_clearing=0.05
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
