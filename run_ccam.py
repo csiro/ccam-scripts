@@ -1092,7 +1092,11 @@ def post_process_output():
 
     # surface files
 
-    d['ktc_sec'] = d['ktc_surf']*60
+    d['ktc_units'] = d['ktc_surf']
+    fname = dict2str('surf.{ofile}.000000')
+    seconds_check = (subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | grep -o seconds') == "seconds")
+    if seconds_check == True:
+        d['ktc_units'] = d['ktc_units']*60
 
     if d['ncsurf'] == 1:
         write2file('cc.nml',cc_template_3(),mode='w+')
@@ -1388,6 +1392,7 @@ def input_template_1():
      phenfile=   '{stdat}/modis_phenology_csiro.nc'
      casapftfile='{stdat}/pftlookup.csv'
      surf_00    ='{bcsoilfile}'
+     surf_cordex=1
      """
      
     template2 = """  
@@ -1611,12 +1616,12 @@ def cc_template_3():
 
     template3 = """\
      hres  = {res}
-     kta={ktc_sec}   ktb=2999999  ktc={ktc_sec}
+     kta={ktc_units}   ktb=2999999  ktc={ktc_units}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
     &end
     &histnl
      htype="inst"
-     hnames= "uas","vas","tscrn","tscrn_stn","tdscrn","tdscrn_stn","rhscrn","rhscrn_stn","psl","ps","rnd","sno","grpl","d10","u10","u10_stn","dni","sgdn_ave"
+     hnames= "uas","vas","tscrn","tdscrn","rhscrn","psl","ps","rnd","sno","grpl","d10","u10","dni","sgdn_ave","rgdn_ave","eg_ave","fg_ave","sgn_ave","rgn_ave","epot_ave","tsu","pblh","taux","tauy","runoff","mrros","snd","snm","rtu_ave","sint_ave","sot_ave"
      hfreq = 1
     &end
     """
@@ -1647,7 +1652,7 @@ def cc_template_4():
     &end
     &histnl
      htype="inst"
-     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","u10_stn","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","sdischarge","tdscrn","urbantas","evspsblpot","sfcWindmax","thetavstar","tdscrn_stn","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave","tscrn_stn","tmaxscr_stn","tminscr_stn","u10_stn","rhscrn_stn","rhmaxscr_stn","rhminscr_stn"
+     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","sdischarge","tdscrn","urbantas","evspsblpot","sfcWindmax","thetavstar","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
      hfreq = 1
     &end
     """
