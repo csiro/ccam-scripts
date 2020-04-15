@@ -19,32 +19,35 @@ def main(inargs):
         get_datetime()
         print("Updating land-use")
         check_surface_files()
-        read_inv_schmidt()
-        calc_res()
-        calc_dt_mod()
-        print("Prepare input files")
-        prep_iofiles()
-        print("Set parameters")
-        set_mlev_params()
-        config_initconds()
-        set_nudging()
-        set_downscaling()
-        set_cloud()
-        set_ocean()
-        set_atmos()
-        set_surfc()
-        set_aeros()
-        print("Create aerosol emissions")
-        create_aeroemiss_file()
-        create_sulffile_file()
-        print("Create CCAM namelist and perform checks")
-        prepare_ccam_infiles()
-        create_input_file()
-        check_correct_host()
-        print("Run CCAM")
-        run_model()
-        print("Post-process CCAM output")
-        post_process_output()
+
+	if ['dmode'] != 4:
+            read_inv_schmidt()
+            calc_res()
+            calc_dt_mod()
+            print("Prepare input files")
+            prep_iofiles()
+            print("Set parameters")
+            set_mlev_params()
+            config_initconds()
+            set_nudging()
+            set_downscaling()
+            set_cloud()
+            set_ocean()
+            set_atmos()
+            set_surfc()
+            set_aeros()
+            print("Create aerosol emissions")
+            create_aeroemiss_file()
+            create_sulffile_file()
+            print("Create CCAM namelist and perform checks")
+            prepare_ccam_infiles()
+            create_input_file()
+            check_correct_host()
+            print("Run CCAM")
+            run_model()
+            print("Post-process CCAM output")
+            post_process_output()
+	       
         print("Update simulation date and time")
         update_yearqm()
 
@@ -1319,7 +1322,7 @@ def input_template_1():
      kdate_s={kdates} ktime_s=0000 leap={leap}
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
-     namip={namip} rescrn=1 zo_clearing=0.05
+     namip={namip} rescrn=1 zo_clearing=0.
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
@@ -1706,7 +1709,7 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")    
 
-    parser.add_argument("--dmode", type=int, choices=[0,1,2,3], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr)")
+    parser.add_argument("--dmode", type=int, choices=[0,1,2,3,4], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only")
     parser.add_argument("--sib", type=int, choices=[1,2,3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0,1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0,1,2,3], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017)")

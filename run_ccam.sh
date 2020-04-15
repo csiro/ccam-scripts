@@ -57,7 +57,7 @@ dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw)
 ktc_surf=10                                  # high-freq file output period (mins)
 
-dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr )
+dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only )
 cmip=cmip5                                   # CMIP scenario (cmip5 or cmip6)
 rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=35                                      # number of model levels (27, 35, 54, 72, 108 or 144)
