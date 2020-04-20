@@ -485,6 +485,18 @@ def prep_iofiles():
         fpath = dict2str('{bcdir}/{mesonest}')
 
     if not (os.path.exists(fpath)):
+        d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
+        fpath = dict2str('{bcdir}/{mesonest}.tar')
+
+    if not (os.path.exists(fpath)):
+        d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
+        fpath = dict2str('{bcdir}/{mesonest}.tar')
+
+    if not (os.path.exists(fpath)):
+        d['mesonest'] = dict2str('{bcdom}_{iyr}{imth_2digit}')
+        fpath = dict2str('{bcdir}/{mesonest}.tar')
+
+    if not (os.path.exists(fpath)):
         d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
         fpath = dict2str('{bcdir}/{mesonest}')
 
