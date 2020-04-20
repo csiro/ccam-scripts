@@ -20,7 +20,7 @@ def main(inargs):
         print("Updating land-use")
         check_surface_files()
 
-	if ['dmode'] != 4:
+        if ['dmode'] != 4:
             read_inv_schmidt()
             calc_res()
             calc_dt_mod()
@@ -191,7 +191,7 @@ def get_datetime():
     #    d['rcp'] = 'historic'
 
     # Decade start and end:
-    d['ddyear'] = int((iyr/10)*10)
+    d['ddyear'] = int(int(iyr/10)*10)
     d['deyear'] = int(d['ddyear'] + 9)
 
     # Calculate previous month:
