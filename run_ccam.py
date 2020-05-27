@@ -13,8 +13,8 @@ def main(inargs):
     create_directories()
     calc_dt_out()
     set_ktc_surf()
-    
-    for mth in range(0,d['ncountmax']):
+
+    for mth in range(0, d['ncountmax']):
         print("Reading date and time")
         get_datetime()
         print("Updating land-use")
@@ -47,7 +47,7 @@ def main(inargs):
             run_model()
             print("Post-process CCAM output")
             post_process_output()
-	       
+
         print("Update simulation date and time")
         update_yearqm()
 
@@ -57,24 +57,24 @@ def main(inargs):
 def check_inargs():
     "Check all inargs are specified and are internally consistent"
 
-    args2check = ['name','nproc','nnode','midlon','midlat','gridres','gridsize','mlev','iys',
-                  'ims','iye','ime','leap','ncountmax','ktc','minlat','maxlat',
-                  'minlon','maxlon','reqres','outlevmode','plevs','mlevs','dlevs','dmode',
-                  'sib','aero','conv','cloud','bmix','mlo','casa',
-                  'ncout','nctar','ncsurf','ktc_surf','machinetype','bcdom','bcsoil','sstfile',
-                  'sstinit','cmip','insdir','hdir','wdir','bcdir','sstdir','stdat',
-                  'aeroemiss','model','pcc2hist','terread','igbpveg','sibveg',
-                  'ocnbath','casafield','uclemparm','cableparm','vegindex','soilparm',
-		  'uservegfile','userlaifile','bcsoilfile']
+    args2check = ['name', 'nproc', 'nnode', 'midlon', 'midlat', 'gridres', 'gridsize', 'mlev',
+                  'iys', 'ims', 'iye', 'ime', 'leap', 'ncountmax', 'ktc', 'minlat', 'maxlat',
+                  'minlon', 'maxlon', 'reqres', 'outlevmode', 'plevs', 'mlevs', 'dlevs', 'dmode',
+                  'sib', 'aero', 'conv', 'cloud', 'bmix', 'mlo', 'casa',
+                  'ncout', 'nctar', 'ncsurf', 'ktc_surf', 'machinetype', 'bcdom', 'bcsoil',
+                  'sstfile', 'sstinit', 'cmip', 'insdir', 'hdir', 'wdir', 'bcdir', 'sstdir',
+                  'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg', 'sibveg',
+                  'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex', 'soilparm',
+                  'uservegfile', 'userlaifile', 'bcsoilfile']
 
     for i in args2check:
-     if not( i in d.keys() ):
-         print('Missing input argument --'+i)
-         sys.exit(1)
+        if not i in d.keys():
+            print('Missing input argument --'+i)
+            sys.exit(1)
 
-    d['plevs'] = d['plevs'].replace(',',', ')
-    d['mlevs'] = d['mlevs'].replace(',',', ')  
-    d['dlevs'] = d['dlevs'].replace(',',', ')
+    d['plevs'] = d['plevs'].replace(',', ', ')
+    d['mlevs'] = d['mlevs'].replace(',', ', ')
+    d['dlevs'] = d['dlevs'].replace(',', ', ')
     if d['outlevmode'] == 0:
         d['use_plevs'] = 'T'
         d['use_meters'] = 'F'
@@ -103,7 +103,7 @@ def check_inargs():
             d['minlon'] = 0.
         if d['maxlon'] == -999.:
             d['maxlon'] = 360.
-	    
+
     if d['uclemparm'] == 'default':
         d['uclemparm'] = ''
     if d['cableparm'] == 'default':
@@ -115,30 +115,29 @@ def check_inargs():
     if d['uservegfile'] == 'none':
         d['uservegfile'] = ''
     if d['userlaifile'] == 'none':
-        d['userlaifile'] = ''	
+        d['userlaifile'] = ''
 
 
 def create_directories():
     "Create output directories and go to working directory"
 
     dirname = dict2str('{hdir}')
-    if not(os.path.isdir(dirname)):
+    if not os.path.isdir(dirname):
         os.mkdir(dirname)
-	
+
     os.chdir(dirname)
-    
-    for dirname in ['daily','OUTPUT','RESTART','vegdata']:
-        if not(os.path.isdir(dirname)):
+
+    for dirname in ['daily', 'OUTPUT', 'RESTART', 'vegdata']:
+        if not os.path.isdir(dirname):
             os.mkdir(dirname)
-   
+
     run_cmdline('rm -f {hdir}/restart.qm')
 
     dirname = dict2str('{wdir}')
-    if not(os.path.isdir(dirname)):
+    if not os.path.isdir(dirname):
         os.mkdir(dirname)
 
     os.chdir(dirname)
-	    
 
 def calc_dt_out():
     "Calculate model output timestep"
@@ -163,10 +162,10 @@ def get_datetime():
     "Determine relevant dates and timesteps for running model"
 
     # Load year.qm with current simulation year:
-    fname=dict2str('{hdir}/year.qm')
-    if (os.path.exists(fname)):
+    fname = dict2str('{hdir}/year.qm')
+    if os.path.exists(fname):
         yyyydd = open(fname).read()
-        d['iyr']  = int(yyyydd[0:4])
+        d['iyr'] = int(yyyydd[0:4])
         d['imth'] = int(yyyydd[4:6])
         print("ATTENTION:")
         print(dict2str("Simulation start date taken from {hdir}/year.qm"))
@@ -197,10 +196,10 @@ def get_datetime():
     # Calculate previous month:
     if imth == 1:
         d['imthlst'] = '12'
-        d['iyrlst']  = iyr-1
+        d['iyrlst'] = iyr-1
     else:
         d['imthlst'] = imth-1
-        d['iyrlst']  = iyr
+        d['iyrlst'] = iyr
 
     # Calculate the next month:
     if imth == 12:
@@ -224,10 +223,10 @@ def get_datetime():
     d['imthnxtb_2digit'] = mon_2digit(d['imthnxtb'])
 
    # Calculate number of days in current month:
-    d['ndays']=monthrange(iyr,imth)[1]
+    d['ndays'] = monthrange(iyr, imth)[1]
 
     if (imth == 2) and (d['leap'] == 0):
-        d['ndays']=28 #leap year turned off
+        d['ndays'] = 28 #leap year turned off
 
 
 def check_surface_files():
@@ -235,10 +234,10 @@ def check_surface_files():
 
     d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
 
-    if (not(os.path.exists('custom.qm'))):
+    if not os.path.exists('custom.qm'):
         run_cable_all()
     else:
-        filename = open('custom.qm','r')
+        filename = open('custom.qm', 'r')
         testfail = False
         if dict2str('{uclemparm}\n') != filename.readline():
             testfail = True
@@ -252,22 +251,22 @@ def check_surface_files():
             testfail = True
         if dict2str('{userlaifile}\n') != filename.readline():
             testfail = True
-        filename.close()    
-        if testfail == True:
-            run_cable_all()
-	    
-    for fname in ['topout','bath','casa']:
-        if not(os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}'))):
+        filename.close()
+        if testfail is True:
             run_cable_all()
 
-    for mon in range(1,13):
-        if d['cmip'] == "cmip5" :
+    for fname in ['topout', 'bath', 'casa']:
+        if not os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}')):
+            run_cable_all()
+
+    for mon in range(1, 13):
+        if d['cmip'] == "cmip5":
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
-        if not(os.path.exists(fname)):
+        if not os.path.exists(fname):
             run_cable_land()
-        if check_correct_landuse(fname) == True:
+        if check_correct_landuse(fname) is True:
             run_cable_land()
 
 
@@ -283,7 +282,7 @@ def run_cable_all():
     run_cmdline('mv -f bath{domain} {hdir}/vegdata')
     run_cmdline('mv -f casa{domain} {hdir}/vegdata')
     update_custom_land()
-   
+
 
 def run_cable_land():
     "Generate topography and land-use files for CCAM"
@@ -292,12 +291,12 @@ def run_cable_land():
     run_land()
     run_cmdline('rm -f topout{domain}')
     run_cmdline('mv -f veg{domain}* {hdir}/vegdata')
-    update_custom_land() 
+    update_custom_land()
 
 
 def update_custom_land():
 
-    filename = open('custom.qm','w+')
+    filename = open('custom.qm', 'w+')
     filename.write(dict2str('{uclemparm}\n'))
     filename.write(dict2str('{cableparm}\n'))
     filename.write(dict2str('{soilparm}\n'))
@@ -311,57 +310,59 @@ def run_topo():
 
     print("Generating topography file")
     d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
-    write2file('top.nml',top_template(),mode='w+')
-    if d['machinetype']==1:
+    write2file('top.nml', top_template(), mode='w+')
+    if d['machinetype'] == 1:
         run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
     else:
         run_cmdline('{terread} < top.nml > terread.log')
-    xtest = (subprocess.getoutput('grep -o "terread completed successfully" terread.log') == "terread completed successfully")
-    if xtest == False:
-        raise ValueError(dict2str("An error occured while running terread.  Check terread.log for details"))
+    xtest = (subprocess.getoutput('grep -o "terread completed successfully" terread.log')
+             == "terread completed successfully")
+    if xtest is False:
+        raise ValueError(dict2str("An error occured while running terread. Check terread.log"))
 
 def run_land():
 
     #default will disable change_landuse
     d['change_landuse'] = dict2str('')
 
-    if d['sib']==2:
+    if d['sib'] == 2:
         print("Generating MODIS land-use data")
-        write2file('sibveg.nml',sibveg_template(),mode='w+')
-        if d['machinetype']==1:
+        write2file('sibveg.nml', sibveg_template(), mode='w+')
+        if d['machinetype'] == 1:
             run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
         else:
             run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
-        xtest = (subprocess.getoutput('grep -o "sibveg completed successfully" sibveg.log') == "sibveg completed successfully")
-        if xtest == False:
-            raise ValueError(dict2str("An error occured while running sibveg.  Check sibveg.log for details"))
+        xtest = (subprocess.getoutput('grep -o "sibveg completed successfully" sibveg.log')
+                 == "sibveg completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured while running sibveg. Check sibveg.log"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
     else:
         print("Generating CABLE land-use data")
         if d['cmip'] == "cmip6":
-            if d['iyr'] < 2015 :
+            if d['iyr'] < 2015:
                 d['change_landuse'] = dict2str('{stdat}/{cmip}/cmip/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-landState-base-2-1-h_gn_0850-2015.nc')
             else:
-                if d['rcp'] == "ssp126" :
+                if d['rcp'] == "ssp126":
                     d['rcplabel'] = "IMAGE"
-                elif d['rcp'] == "ssp245" :
+                elif d['rcp'] == "ssp245":
                     d['rcplabel'] = "MESSAGE"
-                elif d['rcp'] == "ssp370" :
+                elif d['rcp'] == "ssp370":
                     d['rcplabel'] = "AIM"
-                elif d['rcp'] == "ssp460" :
+                elif d['rcp'] == "ssp460":
                     d['rcplabel'] = "GCAM"
-                elif d['rcp'] == "ssp585" :
+                elif d['rcp'] == "ssp585":
                     d['rcplabel'] = "MAGPIE"
                 else:
                     raise ValueError(dict2str("Invalid choice for rcp"))
                 d['change_landuse'] = dict2str('{stdat}/{cmip}/{rcp}/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-{rcplabel}-{rcp}-2-1-f_gn_2015-2100.nc')
-        write2file('igbpveg.nml',igbpveg_template(),mode='w+')
-        if d['machinetype']==1:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')	
+        write2file('igbpveg.nml', igbpveg_template(), mode='w+')
+        if d['machinetype'] == 1:
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         else:
             run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         xtest = (subprocess.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
-        if xtest == False:
+        if xtest is False:
             raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
 
@@ -369,25 +370,27 @@ def run_land():
 def run_ocean():
 
     print("Processing bathymetry data")
-    write2file('ocnbath.nml',ocnbath_template(),mode='w+')
-    if d['machinetype']==1:
+    write2file('ocnbath.nml', ocnbath_template(), mode='w+')
+    if d['machinetype'] == 1:
         run_cmdline('srun -n 1 {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     else:
         run_cmdline('{ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
-    xtest = (subprocess.getoutput('grep -o "ocnbath completed successfully" ocnbath.log') == "ocnbath completed successfully")
-    if xtest == False:
-        raise ValueError(dict2str("An error occured while running ocnbath.  Check ocnbath.log for details"))
+    xtest = (subprocess.getoutput('grep -o "ocnbath completed successfully" ocnbath.log')
+             == "ocnbath completed successfully")
+    if xtest is False:
+        raise ValueError(dict2str("An error occured while running ocnbath. Check ocnbath.log"))
 
 
 def run_carbon():
 
     print("Processing CASA data")
-    if d['machinetype']==1:
+    if d['machinetype'] == 1:
         run_cmdline('srun -n 1 {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
     else:
         run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
-    xtest = (subprocess.getoutput('grep -o "casafield completed successfully" casafield.log') == "casafield completed successfully")
-    if xtest == False:
+    xtest = (subprocess.getoutput('grep -o "casafield completed successfully" casafield.log')
+             == "casafield completed successfully")
+    if xtest is False:
         raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
 
 
@@ -395,18 +398,18 @@ def read_inv_schmidt():
     "Read inverse schmidt value from NetCDF topo file and calculate grid resolution"
 
     topofile = dict2str('{hdir}/vegdata/topout{domain}')
-    
-    d['inv_schmidt'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-    d['gridsize'] = int(subprocess.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | sed "s/\;//g"'))
-    d['lon0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-    d['lat0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
+
+    d['inv_schmidt'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep schmidt | cut -d"=" -f2 | cut -d";" -f1 | sed "s/f//g" | sed "s/ //g"'))
+    d['gridsize'] = int(subprocess.getoutput('ncdump -c '+topofile+' | grep longitude | head -1 | cut -d"=" -f2 | cut -d";" -f1 | sed "s/ //g"'))
+    d['lon0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lon0 | cut -d"=" -f2 | cut -d";" -f1 | sed "s/f//g" | sed "s/ //g"'))
+    d['lat0'] = float(subprocess.getoutput('ncdump -c '+topofile+' | grep lat0 | cut -d"=" -f2 | cut -d";" -f1 | sed "s/f//g" | sed "s/ //g"'))
 
 def calc_res():
     "Calculate resolution for high resolution area"
 
     gridres_m = d['gridres']*1000. # GRIDRES IN UNITS OF METERS
 
-    res=d['reqres']
+    res = d['reqres']
     if res == -999.:
         res = gridres_m/112000.
 
@@ -426,7 +429,8 @@ def calc_res():
     d['res'] = res
 
     # CHECK
-    # 1. Should reqres be an input argument - how does this then relate to the pre-defind inv_schmidt?
+    # 1. Should reqres be an input argument - how does this then relate to the pre-defind
+    # inv_schmidt?
     # 2. Note above I have divided by 112000. The original code had 100000.
 
 
@@ -447,7 +451,7 @@ def calc_dt_mod():
 
     # determine dt based on dx, dtout and ktc_surf
     for dx in sorted(d_dxdt):
-        if ( d['gridres_m'] >= dx ) and ( 60 * d['dtout'] % d_dxdt[dx] == 0 ) and ( 60 * d['ktc_surf'] % d_dxdt[dx] == 0):
+        if (d['gridres_m'] >= dx) and (60 * d['dtout'] % d_dxdt[dx] == 0) and (60 * d['ktc_surf'] % d_dxdt[dx] == 0):
             d['dt'] = d_dxdt[dx]
 
     if d['gridres_m'] < 50:
@@ -457,11 +461,11 @@ def calc_dt_mod():
     #    raise ValueError, "dtout must be a multiple of dt" # CHECK: Original code has dtout must be a multiple of dt/60
     #Is this not redundant code given that dt will be 1, above.
 
-    if ( d['ktc'] % d['dtout'] != 0):
+    if d['ktc'] % d['dtout'] != 0:
         raise ValueError("ktc must be a multiple of dtout")
 
     if d['ncsurf'] != 0:
-        if ( d['dtout'] % d['ktc_surf'] != 0): # This order is different to original code
+        if d['dtout'] % d['ktc_surf'] != 0: # This order is different to original code
             raise ValueError("dtout must be a multiple of ktc_surf")
 
 
@@ -476,32 +480,32 @@ def prep_iofiles():
     d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}.nc')
     fpath = dict2str('{bcdir}/{mesonest}')
 
-    if not (os.path.exists(fpath)):
+    if not os.path.exists(fpath):
         d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}.nc')
         fpath = dict2str('{bcdir}/{mesonest}')
 
-    if not (os.path.exists(fpath)):
+    if not os.path.exists(fpath):
         d['mesonest'] = dict2str('{bcdom}_{iyr}{imth_2digit}.nc')
         fpath = dict2str('{bcdir}/{mesonest}')
 
-    if not (os.path.exists(fpath)):
+    if not os.path.exists(fpath):
         d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
         fpath = dict2str('{bcdir}/{mesonest}.tar')
 
-    if not (os.path.exists(fpath)):
+    if not os.path.exists(fpath):
         d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
         fpath = dict2str('{bcdir}/{mesonest}.tar')
 
-    if not (os.path.exists(fpath)):
+    if not os.path.exists(fpath):
         d['mesonest'] = dict2str('{bcdom}_{iyr}{imth_2digit}')
         fpath = dict2str('{bcdir}/{mesonest}.tar')
 
-    if not (os.path.exists(fpath)):
+    if not os.path.exists(fpath):
         d['mesonest'] = dict2str('{bcdom}.{iyr}{imth_2digit}')
         fpath = dict2str('{bcdir}/{mesonest}')
 
-    if not (os.path.exists(fpath)):
-        if not (os.path.exists(fpath+'.000000')):
+    if not os.path.exists(fpath):
+        if not os.path.exists(fpath+'.000000'):
             d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
             fpath = dict2str('{bcdir}/{mesonest}')
 
@@ -509,81 +513,84 @@ def prep_iofiles():
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
 
     # Define ozone infile:
-    if d['cmip'] == "cmip5" :
-        if d['rcp'] == "historic" or d['iyr'] < 2005 :
+    if d['cmip'] == "cmip5":
+        if d['rcp'] == "historic" or d['iyr'] < 2005:
             d['ozone'] = dict2str('{stdat}/{cmip}/historic/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_historic_T3M_O3.nc')
         else:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
     else:
-        if d['iyr'] < 1900 :
+        if d['iyr'] < 1900:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
-        elif d['iyr'] < 1950 :
+        elif d['iyr'] < 1950:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_190001-194912.nc')
-        elif d['iyr'] < 2000 :
+        elif d['iyr'] < 2000:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_195001-199912.nc')
-        elif d['iyr'] < 2015 :
+        elif d['iyr'] < 2015:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_200001-201412.nc')
-        elif d['iyr'] < 2050 :
+        elif d['iyr'] < 2050:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
         else:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
-    	    
+
 
     # Define CO2 infile:
-    if d['cmip'] == "cmip5" :
-        d['co2file']= dict2str('{stdat}/{cmip}/{rcp}_MIDYR_CONC.DAT')
-        d['ch4file']=""
-        d['n2ofile']=""
-        d['cfc11file']=""
-        d['cfc12file']=""
-        d['cfc113file']=""
-        d['hcfc22file']=""
-        d['solarfile']=""
-        for fname in [d['ozone'],d['co2file']]:
+    if d['cmip'] == "cmip5":
+        d['co2file'] = dict2str('{stdat}/{cmip}/{rcp}_MIDYR_CONC.DAT')
+        d['ch4file'] = ""
+        d['n2ofile'] = ""
+        d['cfc11file'] = ""
+        d['cfc12file'] = ""
+        d['cfc113file'] = ""
+        d['hcfc22file'] = ""
+        d['solarfile'] = ""
+        for fname in [d['ozone'], d['co2file']]:
             check_file_exists(fname)
     else:
-        if d['iyr'] < 2015 :
-            d['co2file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-            d['ch4file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-            d['n2ofile']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-            d['cfc11file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-            d['cfc12file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-            d['cfc113file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
-            d['hcfc22file']= dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+        if d['iyr'] < 2015:
+            d['co2file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['ch4file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['n2ofile'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['cfc11file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['cfc12file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['cfc113file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
+            d['hcfc22file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
         else:
-            if d['rcp'] == "ssp126" :
+            if d['rcp'] == "ssp126":
                 d['rcplabel'] = "IMAGE"
-            elif d['rcp'] == "ssp245" :
+            elif d['rcp'] == "ssp245":
                 d['rcplabel'] = "MESSAGE-GLOBIOM"
-            elif d['rcp'] == "ssp370" :
+            elif d['rcp'] == "ssp370":
                 d['rcplabel'] = "AIM"
-            elif d['rcp'] == "ssp460" :
+            elif d['rcp'] == "ssp460":
                 d['rcplabel'] = "GCAM4"
-            elif d['rcp'] == "ssp585" :
+            elif d['rcp'] == "ssp585":
                 d['rcplabel'] = "REWIND-MAGPIE"
             else:
-                raise ValueError(dict2str("Invalid choice for rcp")) 	
-		
-            d['co2file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-            d['ch4file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-            d['n2ofile']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-            d['cfc11file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-            d['cfc12file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-            d['cfc113file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-            d['hcfc22file']= dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
-	    
-        d['solarfile']=dict2str('{stdat}/{cmip}/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-3-2_gn_185001-229912.nc')
-        for fname in [d['ozone'],d['co2file'],d['ch4file'],d['n2ofile'],d['cfc11file'],d['cfc12file'],d['cfc113file'],d['hcfc22file'],d['solarfile']]:
+                raise ValueError(dict2str("Invalid choice for rcp"))
+
+            d['co2file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['ch4file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['n2ofile'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['cfc11file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc11-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['cfc12file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc12-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['cfc113file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+            d['hcfc22file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
+
+        d['solarfile'] = dict2str('{stdat}/{cmip}/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-3-2_gn_185001-229912.nc')
+        for fname in [d['ozone'], d['co2file'], d['ch4file'], d['n2ofile'], d['cfc11file'],
+                      d['cfc12file'], d['cfc113file'], d['hcfc22file'], d['solarfile']]:
             check_file_exists(fname)
 
 
 def set_mlev_params():
     "Set the parameters related to the number of model levels"
 
-    d_mlev_eigenv = {27:"eigenv27-10.300", 35:"eigenv.35b", 54:"eigenv.54b", 72:"eigenv.72b", 108:"eigenv.108b", 144:"eigenv.144b"}
+    d_mlev_eigenv = {27:"eigenv27-10.300", 35:"eigenv.35b", 54:"eigenv.54b", 72:"eigenv.72b",
+                     108:"eigenv.108b", 144:"eigenv.144b"}
     d_mlev_modlolvl = {27:20, 35:30, 54:40, 72:60, 108:80, 144:100}
 
-    d.update({'nmr': 1, 'acon': 0.00, 'bcon': 0.02, 'eigenv': d_mlev_eigenv[d['mlev']], 'mlolvl': d_mlev_modlolvl[d['mlev']]})
+    d.update({'nmr': 1, 'acon': 0.00, 'bcon': 0.02, 'eigenv': d_mlev_eigenv[d['mlev']],
+              'mlolvl': d_mlev_modlolvl[d['mlev']]})
 
 def config_initconds():
     "Configure initial condition file"
@@ -592,7 +599,7 @@ def config_initconds():
 
     if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
 
-        if d['dmode'] in [0,2,3]:
+        if d['dmode'] in [0, 2, 3]:
             d.update({'ifile': d['mesonest']})
             fpath = dict2str('{bcdir}/{mesonest}')
         else:
@@ -617,19 +624,19 @@ def set_nudging():
 
     if d['dmode'] == 0:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+                  'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
     elif d['dmode'] == 1:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+                  'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
     elif d['dmode'] == 2:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': 1, 'ktopdav': 0, 'sigramplow': 0.05})
+                  'kbotdav': 1, 'ktopdav': 0, 'sigramplow': 0.05})
 
     elif d['dmode'] == 3:
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+                  'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
 
 def set_downscaling():
@@ -637,27 +644,27 @@ def set_downscaling():
 
     if d['dmode'] == 0:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
-                'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
-                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
-                'mh_bs':3})
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
+                  'mh_bs':3})
 
     elif d['dmode'] == 1:
         d.update({'dmode_meth': 1, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
-                'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
-                'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
-                'mh_bs':3})
+                  'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
+                  'mh_bs':3})
 
     elif d['dmode'] == 2:
         d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
-                'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
-                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1,
-                'mh_bs':3})
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1,
+                  'mh_bs':3})
 
     elif d['dmode'] == 3:
         d.update({'dmode_meth': 0, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
-                'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
-                'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
-                'mh_bs':3})
+                  'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
+                  'mh_bs':3})
 
 def set_cloud():
     "Cloud microphysics settings"
@@ -677,50 +684,50 @@ def set_ocean():
     if d['mlo'] == 0:
         #Interpolated SSTs
         d.update({'nmlo': 0, 'mbd_mlo': 0, 'nud_sst': 0,
-                'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                'kbotmlo': -1000})
+                  'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
+                  'kbotmlo': -1000})
 
     else:
         #Dynanical Ocean
         if d['dmode'] == 0 or d['dmode'] == 1 or d['dmode'] == 3:
             # Downscaling mode - GCM or SST-only:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
-                    'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                    'kbotmlo': -1000})
+                      'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
+                      'kbotmlo': -1000})
 
         elif d['dmode'] == 2:
             # Downscaling CCAM:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
-                    'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
-                    'kbotmlo': -1000})
+                      'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
+                      'kbotmlo': -1000})
 
 def set_atmos():
     "Atmospheric physics settings"
     if d['sib'] == 1:
         d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 0, 'cable_litter': 0,
-                'gs_switch': 0})
+                  'gs_switch': 0})
 
         if d['casa'] == 0:
             d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
-	            'cable_climate': 0})
+                      'cable_climate': 0})
 
         elif d['casa'] == 1:
             d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                    'cable_climate': 0})
+                      'cable_climate': 0})
 
         elif d['casa'] == 2:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                    'cable_climate': 0})
+                      'cable_climate': 0})
 
         elif d['casa'] == 3:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                    'cable_climate': 1})
+                      'cable_climate': 1})
 
 
     elif d['sib'] == 2:
         d.update({'nsib': 5, 'ccycle': 0, 'proglai': -1, 'progvcmax': 0,
-            'soil_struc': 0, 'fwsoil_switch': 0, 'cable_pop': 0,
-	    'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
+                  'soil_struc': 0, 'fwsoil_switch': 0, 'cable_pop': 0,
+                  'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
 
         if d['casa'] == 1:
             raise ValueError("casa=1 requires sib=1 or sib=3")
@@ -733,37 +740,37 @@ def set_atmos():
 
     elif d['sib'] == 3:
         d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1,
-                'gs_switch': 1})
+                  'gs_switch': 1})
 
         if d['casa'] == 0:
             d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
-	            'cable_climate': 0})
+                      'cable_climate': 0})
 
         elif d['casa'] == 1:
             d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-	            'cable_climate': 0})
+                      'cable_climate': 0})
 
         elif d['casa'] == 2:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-	            'cable_climate': 0})
+                      'cable_climate': 0})
 
         elif d['casa'] == 3:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-	            'cable_climate': 1})
+                      'cable_climate': 1})
 
     if d['cmip'] == "cmip5":
-        d.update({ 'vegin': dict2str('{hdir}/vegdata'),
-            'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
-            'vegfile': dict2str('veg{domain}.{imth_2digit}'),
-            'vegnext': dict2str('veg{domain}.{imthnxt_2digit}'),
-            'vegnextb': dict2str('veg{domain}.{imthnxtb_2digit}') })
+        d.update({'vegin': dict2str('{hdir}/vegdata'),
+                  'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
+                  'vegfile': dict2str('veg{domain}.{imth_2digit}'),
+                  'vegnext': dict2str('veg{domain}.{imthnxt_2digit}'),
+                  'vegnextb': dict2str('veg{domain}.{imthnxtb_2digit}')})
     else:
         # Use same year as LAI will not change.  Only the area fraction
-        d.update({ 'vegin': dict2str('{hdir}/vegdata'),
-            'vegprev': dict2str('veg{domain}.{iyr}.{imthlst_2digit}'),
-            'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}'),
-            'vegnext': dict2str('veg{domain}.{iyr}.{imthnxt_2digit}'),
-            'vegnextb': dict2str('veg{domain}.{iyr}.{imthnxtb_2digit}') })
+        d.update({'vegin': dict2str('{hdir}/vegdata'),
+                  'vegprev': dict2str('veg{domain}.{iyr}.{imthlst_2digit}'),
+                  'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}'),
+                  'vegnext': dict2str('veg{domain}.{iyr}.{imthnxt_2digit}'),
+                  'vegnextb': dict2str('veg{domain}.{iyr}.{imthnxtb_2digit}')})
 
     if d['bmix'] == 0:
         d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100.})
@@ -777,10 +784,10 @@ def set_atmos():
     d.update({'ngwd': -5, 'helim': 800., 'fc2': 1., 'sigbot_gwd': 0., 'alphaj': '0.000001'})
 
     if d['conv'] == 2:
-        d.update({'ngwd': -20, 'helim': 1600.,'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
+        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
 
     elif d['conv'] == 3:
-        d.update({'ngwd': -20, 'helim': 1600.,'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
+        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
 
 
 def set_surfc():
@@ -788,7 +795,7 @@ def set_surfc():
 
     d.update({'tbave': 0})
 
-    if d['ncsurf'] in [1,2]:
+    if d['ncsurf'] in [1, 2]:
         d.update({'tbave': d['ktc_surf'] * 60 / d['dt']})
 
 def set_aeros():
@@ -803,9 +810,8 @@ def set_aeros():
         d.update({'iaero': 2, 'sulffile': 'aero.nc'})
 
         if d['cmip'] == "cmip5":
-            if d['rcp'] == "historic" or d['iyr'] < 2010 :
-                aero = {
-                        'so2_anth': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_anthropogenic_{ddyear}*.nc'),
+            if d['rcp'] == "historic" or d['iyr'] < 2010:
+                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_anthropogenic_{ddyear}*.nc'),
                         'so2_ship': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_ships_{ddyear}*.nc'),
                         'so2_biom': get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_SO2_decadalmonthlymean{ddyear}*.nc'),
                         'bc_anth':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_BC_anthropogenic_{ddyear}*.nc'),
@@ -816,8 +822,7 @@ def set_aeros():
                         'oc_biom':  get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_OC_decadalmonthlymean{ddyear}*.nc')}
 
             else:
-                aero = {
-                        'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_anthropogenic_{ddyear}*.nc'),
+                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_anthropogenic_{ddyear}*.nc'),
                         'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_ships_{ddyear}*.nc'),
                         'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_biomassburning_{ddyear}*.nc'),
                         'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_anthropogenic_{ddyear}*.nc'),
@@ -827,9 +832,8 @@ def set_aeros():
                         'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_{ddyear}*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_{ddyear}*.nc')}
         elif d['cmip'] == "cmip6":
-            if d['rcp'] == "historic" or d['iyr'] < 2015 :
-                aero = {
-                        'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
+            if d['rcp'] == "historic" or d['iyr'] < 2015:
+                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
                         'so2_ship': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
                         'so2_biom': get_fpath('{stdat}/{cmip}/cmip/SO2-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
                         'bc_anth':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
@@ -839,22 +843,21 @@ def set_aeros():
                         'oc_ship':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/cmip/OC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc')}
             else:
-                if d['rcp'] == "ssp126" :
+                if d['rcp'] == "ssp126":
                     d['rcplabel'] = "IMAGE"
-                elif d['rcp'] == "ssp245" :
+                elif d['rcp'] == "ssp245":
                     d['rcplabel'] = "MESSAGE-GLOBIOM"
-                elif d['rcp'] == "ssp370" :
+                elif d['rcp'] == "ssp370":
                     d['rcplabel'] = "AIM"
-                elif d['rcp'] == "ssp460" :
+                elif d['rcp'] == "ssp460":
                     d['rcplabel'] = "GCAM4"
-                elif d['rcp'] == "ssp585" :
+                elif d['rcp'] == "ssp585":
                     d['rcplabel'] = "REWIND-MAGPIE"
                 else:
-                    raise ValueError(dict2str("Invalid choice for rcp")) 
-		       
-                if d['iyr'] < 2020 :
-                    aero = {
-                            'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
+                    raise ValueError(dict2str("Invalid choice for rcp"))
+
+                if d['iyr'] < 2020:
+                    aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
@@ -864,8 +867,7 @@ def set_aeros():
                             'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc')}
                 else:
-                    aero = {
-                            'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
+                    aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
@@ -879,8 +881,8 @@ def set_aeros():
 
         aero['volcano'] = dict2str('{stdat}/contineous_volc.nc')
         aero['dmsfile'] = dict2str('{stdat}/dmsemiss.nc')
-        aero['dustfile'] = dict2str('{stdat}/ginoux.nc')     
-        
+        aero['dustfile'] = dict2str('{stdat}/ginoux.nc')
+
         for fpath in iter(aero.keys()):
             check_file_exists(aero[fpath])
 
@@ -891,7 +893,7 @@ def create_aeroemiss_file():
     "Write arguments to 'aeroemiss' namelist file"
 
     if d['aero'] == 1:
-        write2file('aeroemiss.nml',aeroemiss_template(),mode='w+')
+        write2file('aeroemiss.nml', aeroemiss_template(), mode='w+')
 
 
 def create_sulffile_file():
@@ -901,13 +903,14 @@ def create_sulffile_file():
     run_cmdline('rm -rf {sulffile}')
 
     # Create new sulffile:
-    if d['machinetype']==1:
+    if d['machinetype'] == 1:
         run_cmdline('srun -n 1 {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
     else:
         run_cmdline('{aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
-    xtest = (subprocess.getoutput('grep -o "aeroemiss completed successfully" aero.log') == "aeroemiss completed successfully")
-    if xtest == False:
+    xtest = (subprocess.getoutput('grep -o "aeroemiss completed successfully" aero.log')
+             == "aeroemiss completed successfully")
+    if xtest is False:
         raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
 
 
@@ -921,23 +924,20 @@ def create_input_file():
     d['ntau'] = int(d['ndays']*86400/d['dt'])
 
     # Start date string:
-    d['kdates']=str(d['iyr']*10000 + d['imth']*100 + 1)
+    d['kdates'] = str(d['iyr']*10000 + d['imth']*100 + 1)
 
-    write2file('input',input_template_1(),mode='w+')
+    write2file('input', input_template_1(), mode='w+')
 
     if d['conv'] == 0:
-        write2file('input',input_template_2())
-
+        write2file('input', input_template_2())
     elif d['conv'] == 1:
-        write2file('input',input_template_3())
-
+        write2file('input', input_template_3())
     elif d['conv'] == 2:
-        write2file('input',input_template_4())
-	
+        write2file('input', input_template_4())
     elif d['conv'] == 3:
-        write2file('input',input_template_5())
-	
-    write2file('input',input_template_6())
+        write2file('input', input_template_5())
+
+    write2file('input', input_template_6())
 
 
 def prepare_ccam_infiles():
@@ -957,38 +957,38 @@ def prepare_ccam_infiles():
         check_file_exists(dict2str('{sstinit}'))
         run_cmdline('ln -s {sstinit} .')
 
-    if not(os.path.exists(d['ifile'])) and not(os.path.exists(d['ifile']+'.000000')):
+    if not os.path.exists(d['ifile']) and not os.path.exists(d['ifile']+'.000000'):
         raise ValueError(dict2str('Cannot locate {ifile} or {ifile}.000000. ')+
                          'If this is the start of a new run, please check that year.qm has been deleted')
 
     if d['dmode'] != 1:
-        if not(os.path.exists(d['mesonest'])) and not(os.path.exists(d['mesonest']+'.000000')):
+        if not os.path.exists(d['mesonest']) and not os.path.exists(d['mesonest']+'.000000'):
             raise ValueError(dict2str('Cannot locate {mesonest} or {mesonest}.000000'))
 
     for file in ['topout{domain}', '{vegprev}', '{vegfile}', '{vegnext}', '{vegnextb}']:
         check_file_exists(dict2str('{vegin}/'+file))
 
-    if d['nmlo'] != 0 and not(os.path.exists(dict2str('{vegin}/bath{domain}'))):
+    if d['nmlo'] != 0 and not os.path.exists(dict2str('{vegin}/bath{domain}')):
         raise ValueError(dict2str('Cannot locate {vegin}/bath{domain}'))
 
-    if d['aero'] != 0 and not(os.path.exists(d['sulffile'])):
+    if d['aero'] != 0 and not os.path.exists(d['sulffile']):
         raise ValueError('Cannot locate '+d['sulffile'])
 
-    if d['dmode'] == 1 and not(os.path.exists(dict2str('{sstdir}/{sstfile}'))):
+    if d['dmode'] == 1 and not os.path.exists(dict2str('{sstdir}/{sstfile}')):
         raise ValueError(dict2str('Cannot locate {sstdir}/{sstfile}'))
 
 
 def check_correct_host():
     "Check if host is CCAM"
 
-    if d['dmode'] in [0,2]:
+    if d['dmode'] in [0, 2]:
         for fname in [d['mesonest'], d['mesonest']+'.000000']:
             if os.path.exists(fname):
                 ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o version') == "version")
                 break
-        if ccam_host == True and d['dmode'] == 0:
+        if ccam_host is True and d['dmode'] == 0:
             raise ValueError('CCAM is the host model. Use dmode = 2')
-        elif ccam_host == False and d['dmode'] == 2:
+        elif ccam_host is False and d['dmode'] == 2:
             raise ValueError('CCAM is not the host model. Use dmode = 0')
 
     if d['dmode'] == 1:
@@ -997,15 +997,15 @@ def check_correct_host():
 
     if d['dmode'] == 2:
         fname = d['mesonest']+'.000000'
-        if os.path.exists(fname):    
-            host_inv_schmidt = float(subprocess.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | sed "s/f//g" | sed "s/\;//g"'))
-            host_gridsize = float(subprocess.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | sed "s/\;//g"'))
+        if os.path.exists(fname):
+            host_inv_schmidt = float(subprocess.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | cut -d";" -f1 | sed "s/f//g" | sed "s/ //g"'))
+            host_gridsize = float(subprocess.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | cut -d";" -f1 | sed "s/ //g"'))
             host_grid_res = host_inv_schmidt * 112. * 90. / host_gridsize
             nest_grid_width = float(d['gridsize']) * float(d['gridres_m'])
             host_grid_dx = 3. * host_grid_res
             if nest_grid_width < host_grid_dx:
                 raise ValueError('Too large a jump beteen nest and host grid.  Try reducing grid resolution or increasing grid size')
-    
+
 
 def check_correct_landuse(fname):
     "Check that land-use data matches what the user wants"
@@ -1013,15 +1013,15 @@ def check_correct_landuse(fname):
     testfail = False
 
     cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
-    if d['sib'] == 1 and cable_data == False:
+    if d['sib'] == 1 and cable_data is False:
         testfail = True
 
     modis_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o sibvegversion') == "sibvegversion")
-    if d['sib'] == 2 and modis_data == False:
+    if d['sib'] == 2 and modis_data is False:
         testfail = True
 
     cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
-    if d['sib'] == 3 and cable_data == False:
+    if d['sib'] == 3 and cable_data is False:
         testfail = True
 
     return testfail
@@ -1030,54 +1030,58 @@ def check_correct_landuse(fname):
 def run_model():
     "Execute the CCAM model"
 
-    if d['machinetype']==1:
-        run_cmdline('srun -n {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')    
+    if d['machinetype'] == 1:
+        run_cmdline('srun -n {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
     else:
         run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
-    
+
     prfile = dict2str('prnew.{kdates}.{name}')
-    xtest = (subprocess.getoutput('grep -o "globpea completed successfully" '+prfile) == "globpea completed successfully")
-    if xtest == False:
+    xtest = (subprocess.getoutput('grep -o "globpea completed successfully" '+prfile)
+             == "globpea completed successfully")
+    if xtest is False:
         raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
-	
+
     run_cmdline('rm {mesonest}.?????? {mesonest}')
 
 def post_process_output():
     "Post-process the CCAM model output"
 
     if d['ncout'] == 1:
-        write2file('cc.nml',cc_template_1(),mode='w+')
-        if d['machinetype']==1:
+        write2file('cc.nml', cc_template_1(), mode='w+')
+        if d['machinetype'] == 1:
             run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
-        if xtest == False:
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+                 == "pcc2hist completed successfully")
+        if xtest is False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 2:
-        write2file('cc.nml',cc_template_1(),mode='w+')
-        if d['machinetype']==1:
+        write2file('cc.nml', cc_template_1(), mode='w+')
+        if d['machinetype'] == 1:
             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
-        if xtest == False:
-            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+                 == "pcc2hist completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
 
     if d['ncout'] == 3 or d['ncout'] == 5:
-        for iday in range(1,d['ndays']+1):
+        for iday in range(1, d['ndays']+1):
             d['cday'] = mon_2digit(iday)
             d['iend'] = iday*1440
             d['istart'] = (iday*1440)-1440
             d['outctmfile'] = dict2str("ccam_{iyr}{imth_2digit}{cday}.nc")
-            write2file('cc.nml',cc_template_2(),mode='w+')
-            if d['machinetype']==1:
+            write2file('cc.nml', cc_template_2(), mode='w+')
+            if d['machinetype'] == 1:
                 run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
             else:
                 run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
-            xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log') == "pcc2hist completed successfully")
-            if xtest == False:
+            xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log')
+                     == "pcc2hist completed successfully")
+            if xtest is False:
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
         if d['ncout'] == 3:
             run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
@@ -1086,42 +1090,45 @@ def post_process_output():
             run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
 
     if d['ncout'] == 4:
-        write2file('cc.nml',cc_template_1(),mode='w+')
-        if d['machinetype']==1:
+        write2file('cc.nml', cc_template_1(), mode='w+')
+        if d['machinetype'] == 1:
             run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
-        if xtest == False:
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+                 == "pcc2hist completed successfully")
+        if xtest is False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
 
     if d['ncout'] == 6:
-        write2file('cc.nml',cc_template_4(),mode='w+')
-        if d['machinetype']==1:
+        write2file('cc.nml', cc_template_4(), mode='w+')
+        if d['machinetype'] == 1:
             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log') == "pcc2hist completed successfully")
-        if xtest == False:
-            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+                 == "pcc2hist completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
 
     # surface files
 
     d['ktc_units'] = d['ktc_surf']
     fname = dict2str('surf.{ofile}.000000')
     seconds_check = (subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | grep -o seconds') == "seconds")
-    if seconds_check == True:
+    if seconds_check is True:
         d['ktc_units'] = d['ktc_units']*60
 
     if d['ncsurf'] == 1:
-        write2file('cc.nml',cc_template_3(),mode='w+')
-        if d['machinetype']==1:
+        write2file('cc.nml', cc_template_3(), mode='w+')
+        if d['machinetype'] == 1:
             run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log') == "pcc2hist completed successfully")
-        if xtest == False:
-            raise ValueError(dict2str("An error occured while running pcc2hist.  Check surf.pcc2hist.log for details"))
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log')
+                 == "pcc2hist completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
 
     if d['ncsurf'] == 2:
         if d['nctar'] == 0:
@@ -1164,7 +1171,7 @@ def update_yearqm():
 
     yyyymm = d['iyr'] * 100 + d['imth']
     d['yyyymm'] = yyyymm
-    write2file(d['hdir']+'/year.qm',"{yyyymm}",mode='w+')
+    write2file(d['hdir']+'/year.qm', "{yyyymm}", mode='w+')
 
 def restart_flag():
     "Create restart.qm containing flag for restart. This flag signifies that CCAM completed previous month"
@@ -1174,10 +1181,10 @@ def restart_flag():
     edate = d['iye']*100 +d['ime']
 
     if sdate > edate:
-        write2file(d['hdir']+'/restart.qm',"Complete",mode='w+')
+        write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
         sys.exit(0)
     else:
-        write2file(d['hdir']+'/restart.qm',"True",mode='w+')
+        write2file(d['hdir']+'/restart.qm', "True", mode='w+')
 
 
 def run_cmdline(arg):
@@ -1190,10 +1197,10 @@ def dict2str(str_template):
 
     return str_template.format(**d)
 
-def write2file(fname,args_template,mode='a'):
+def write2file(fname, args_template, mode='a'):
     "Write arguments to namelist file"
 
-    with open(fname,mode) as ofile:
+    with open(fname, mode) as ofile:
         ofile.write(args_template.format(**d))
 
     ofile.close()
@@ -1205,7 +1212,7 @@ def get_fpath(fpath):
 def check_file_exists(path):
     "Check that the specified file path exists"
 
-    if not (os.path.exists(path)):
+    if not os.path.exists(path):
         raise ValueError('File not found: '+path)
 
 def mon_2digit(imth):
@@ -1327,14 +1334,14 @@ def aeroemiss_template():
 def input_template_1():
     "First part of template for 'input' namelist file"
 
-    template1= """\
+    template1 = """\
     &defaults &end
     &cardin
      COMMENT='date and runlength'
      kdate_s={kdates} ktime_s=0000 leap={leap}
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
-     namip={namip} rescrn=1 zo_clearing=0.
+     namip={namip} rescrn=1 zo_clearing=0.05
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
@@ -1409,22 +1416,22 @@ def input_template_1():
      surf_00    ='{bcsoilfile}'
      surf_cordex=1
      """
-     
-    template2 = """  
+
+    template2 = """
      surfile=    'surf.{ofile}'
      """
 
     template3 = """
     &end
     """
-    
+
     if d['ncsurf'] == 0:
         template = template1 + template3
     else:
         template = template1 + template2 + template3
-    
+
     return template
-    
+
 def input_template_2():
     "Second part of template for 'input' namelist file"
 
@@ -1490,7 +1497,7 @@ def input_template_4():
      rcrit_l=0.8 rcrit_s=0.8
     &end
     """
-    
+
 def input_template_5():
     "Fifth part of template for 'input' namelist file"
 
@@ -1606,13 +1613,13 @@ def cc_template_2():
     &end
     """
 
-    if d['sib']==1:
+    if d['sib'] == 1:
         template = template1 + template3
 
-    if d['sib']==2:
+    if d['sib'] == 2:
         template = template1 + template2
 
-    if d['sib']==3:
+    if d['sib'] == 3:
         template = template1 + template3
 
     return template
@@ -1678,7 +1685,7 @@ def cc_template_4():
 
 if __name__ == '__main__':
 
-    extra_info="""
+    extra_info = """
     Usage:
         python run_ccam.py [-h]
 
@@ -1687,27 +1694,27 @@ if __name__ == '__main__':
     Modifications:
         Marcus Thatcher, marcus.thatcher@csiro.au	
     """
-    description='Run the CCAM model'
+    description = 'Run the CCAM model'
     parser = argparse.ArgumentParser(description=description,
                                      epilog=extra_info,
                                      argument_default=argparse.SUPPRESS,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-				     
+
     parser.add_argument("--name", type=str, help=" run name")
     parser.add_argument("--nproc", type=int, help=" number of processors")
     parser.add_argument("--nnode", type=int, help=" number of processors per node")
-    
+
     parser.add_argument("--midlon", type=float, help=" central longitude of domain")
     parser.add_argument("--midlat", type=float, help=" central latitude of domain")
     parser.add_argument("--gridres", type=float, help=" required resolution (km) of domain")
     parser.add_argument("--gridsize", type=int, help=" cubic grid size")
-    parser.add_argument("--mlev", type=int,choices=[27,35,54,72,108,144], help=" number of model levels (27, 35, 54, 72, 108 or 144)")
-    
+    parser.add_argument("--mlev", type=int, choices=[27, 35, 54, 72, 108, 144], help=" number of model levels (27, 35, 54, 72, 108 or 144)")
+
     parser.add_argument("--iys", type=int, help=" start year [YYYY]")
-    parser.add_argument("--ims", type=int, choices=[1,2,3,4,5,6,7,8,9,10,11,12], help=" start month [MM]")
+    parser.add_argument("--ims", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" start month [MM]")
     parser.add_argument("--iye", type=int, help=" end year [YYYY]")
-    parser.add_argument("--ime", type=int, choices=[1,2,3,4,5,6,7,8,9,10,11,12], help=" end month [MM]")
-    parser.add_argument("--leap", type=int, choices=[0,1], help=" Use leap days (0=off, 1=on)")
+    parser.add_argument("--ime", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" end month [MM]")
+    parser.add_argument("--leap", type=int, choices=[0, 1], help=" Use leap days (0=off, 1=on)")
     parser.add_argument("--ncountmax", type=int, help=" Number of months before resubmit")
 
     parser.add_argument("--ktc", type=int, help=" standard output period (mins)")
@@ -1716,22 +1723,22 @@ if __name__ == '__main__':
     parser.add_argument("--minlon", type=float, help=" output min longitude (degrees)")
     parser.add_argument("--maxlon", type=float, help=" output max longitude (degrees)")
     parser.add_argument("--reqres", type=float, help=" required output resolution (degrees) (-1.=automatic)")
-    parser.add_argument("--outlevmode", type=int, choices=[0,1], help=" Output level mode (0=pressure, 1=meters)")    
+    parser.add_argument("--outlevmode", type=int, choices=[0, 1], help=" Output level mode (0=pressure, 1=meters)")
     parser.add_argument("--plevs", type=str, help=" output pressure levels (hPa)")
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
-    parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")    
+    parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
-    parser.add_argument("--dmode", type=int, choices=[0,1,2,3,4], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only")
-    parser.add_argument("--sib", type=int, choices=[1,2,3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
-    parser.add_argument("--aero", type=int, choices=[0,1], help=" aerosols (0=off, 1=prognostic)")
-    parser.add_argument("--conv", type=int, choices=[0,1,2,3], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017)")
-    parser.add_argument("--cloud", type=int, choices=[0,1,2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
-    parser.add_argument("--bmix", type=int, choices=[0,1,2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
-    parser.add_argument("--mlo", type=int, choices=[0,1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
-    parser.add_argument("--casa", type=int, choices=[0,1,2,3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
-    parser.add_argument("--ncout", type=int, choices=[0,1,2,3,4,5,6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw), 6=CORDEX-surface)")
-    parser.add_argument("--nctar", type=int, choices=[0,1,2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
-    parser.add_argument("--ncsurf", type=int, choices=[0,1,2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
+    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only")
+    parser.add_argument("--sib", type=int, choices=[1, 2, 3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
+    parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
+    parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017)")
+    parser.add_argument("--cloud", type=int, choices=[0, 1, 2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
+    parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
+    parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
+    parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
+    parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw), 6=CORDEX-surface)")
+    parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
+    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
@@ -1741,8 +1748,8 @@ if __name__ == '__main__':
     parser.add_argument("--uservegfile", type=str, help=" User defined vegetation map (none for no file)")
     parser.add_argument("--userlaifile", type=str, help=" User defined LAI map (none for no file)")
 
-    parser.add_argument("--machinetype", type=int, choices=[0,1], help=" Machine type (0=generic, 1=cray)")
-    parser.add_argument("--bcsoil", type=int, choices=[0,1,2], help=" Initial soil moisture (0=constant, 1=climatology)")
+    parser.add_argument("--machinetype", type=int, choices=[0, 1], help=" Machine type (0=generic, 1=cray)")
+    parser.add_argument("--bcsoil", type=int, choices=[0, 1, 2], help=" Initial soil moisture (0=constant, 1=climatology)")
 
     ###############################################################
     # Specify directories, datasets and executables
@@ -1752,8 +1759,8 @@ if __name__ == '__main__':
     parser.add_argument("--sstfile", type=str, help=" sst file for dmode=1")
     parser.add_argument("--sstinit", type=str, help=" initial conditions file for dmode=1")
 
-    parser.add_argument("--cmip", type=str, choices=['cmip5','cmip6'], help=" CMIP scenario")
-    parser.add_argument("--rcp", type=str, choices=['historic','RCP26','RCP45','RCP85','ssp126','ssp245','ssp370','ssp460','ssp585'], help=" RCP/SSP scenario")
+    parser.add_argument("--cmip", type=str, choices=['cmip5', 'cmip6'], help=" CMIP scenario")
+    parser.add_argument("--rcp", type=str, choices=['historic', 'RCP26', 'RCP45', 'RCP85', 'ssp126', 'ssp245', 'ssp370', 'ssp460', 'ssp585'], help=" RCP/SSP scenario")
     parser.add_argument("--insdir", type=str, help=" install directory")
     parser.add_argument("--hdir", type=str, help=" script directory")
     parser.add_argument("--wdir", type=str, help=" working directory")
@@ -1764,7 +1771,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--terread", type=str, help=" path of terread executable")
     parser.add_argument("--igbpveg", type=str, help=" path of igbpveg executable")
-    parser.add_argument("--sibveg", type=str, help=" path of sibveg executable")    
+    parser.add_argument("--sibveg", type=str, help=" path of sibveg executable")
     parser.add_argument("--ocnbath", type=str, help=" path of ocnbath executable")
     parser.add_argument("--casafield", type=str, help=" path of casafield executable")
     parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
