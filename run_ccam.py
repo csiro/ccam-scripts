@@ -564,7 +564,7 @@ def prep_iofiles():
             elif d['rcp'] == "ssp460":
                 d['rcplabel'] = "GCAM4"
             elif d['rcp'] == "ssp585":
-                d['rcplabel'] = "REWIND-MAGPIE"
+                d['rcplabel'] = "REMIND-MAGPIE"
             else:
                 raise ValueError(dict2str("Invalid choice for rcp"))
 
@@ -852,7 +852,7 @@ def set_aeros():
                 elif d['rcp'] == "ssp460":
                     d['rcplabel'] = "GCAM4"
                 elif d['rcp'] == "ssp585":
-                    d['rcplabel'] = "REWIND-MAGPIE"
+                    d['rcplabel'] = "REMIND-MAGPIE"
                 else:
                     raise ValueError(dict2str("Invalid choice for rcp"))
 
