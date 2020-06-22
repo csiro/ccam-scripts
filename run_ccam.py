@@ -601,10 +601,8 @@ def config_initconds():
 
         if d['dmode'] in [0, 2, 3]:
             d.update({'ifile': d['mesonest']})
-            fpath = dict2str('{bcdir}/{mesonest}')
         else:
             d.update({'ifile': d['sstinit']})
-            fpath = dict2str('{sstinit}')
 
         if d['bcsoil'] == 0:
             d['nrungcm'] = -1
@@ -732,10 +730,10 @@ def set_atmos():
         if d['casa'] == 1:
             raise ValueError("casa=1 requires sib=1 or sib=3")
 
-        elif d['casa'] == 2:
+        if d['casa'] == 2:
             raise ValueError("casa=2 requires sib=1 or sib=3")
 
-        elif d['casa'] == 3:
+        if d['casa'] == 3:
             raise ValueError("casa=3 requires sib=1 or sib=3")
 
     elif d['sib'] == 3:
@@ -984,11 +982,11 @@ def check_correct_host():
     if d['dmode'] in [0, 2]:
         for fname in [d['mesonest'], d['mesonest']+'.000000']:
             if os.path.exists(fname):
-                ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o version') == "version")
+                ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o :version') == ":version")
                 break
         if ccam_host is True and d['dmode'] == 0:
             raise ValueError('CCAM is the host model. Use dmode = 2')
-        elif ccam_host is False and d['dmode'] == 2:
+        if ccam_host is False and d['dmode'] == 2:
             raise ValueError('CCAM is not the host model. Use dmode = 0')
 
     if d['dmode'] == 1:
@@ -1222,8 +1220,8 @@ def mon_2digit(imth):
 
     if imth < 10:
         return '0'+str(imth)
-    else:
-        return str(imth)
+
+    return str(imth)
 
 def top_template():
     "Template for writing top.nml namelist file"
