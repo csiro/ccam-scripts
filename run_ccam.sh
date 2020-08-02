@@ -63,7 +63,7 @@ rcp=RCP45                                    # RCP scenario (historic, RCP45 or 
 mlev=35                                      # number of model levels (27, 35, 54, 72, 108 or 144)
 sib=1                                        # land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)
 aero=1                                       # aerosols (0=off, 1=prognostic)
-conv=1                                       # convection (0=2014, 1=2015a, 2=2015b, 3=2017)
+conv=1                                       # convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)
 cloud=2                                      # cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)
 bmix=1                                       # boundary layer (0=Ri, 1=TKE-eps)
 mlo=0                                        # ocean (0=Interpolated SSTs, 1=Dynamical ocean)

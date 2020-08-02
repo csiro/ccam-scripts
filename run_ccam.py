@@ -372,9 +372,9 @@ def run_ocean():
     print("Processing bathymetry data")
     write2file('ocnbath.nml', ocnbath_template(), mode='w+')
     if d['machinetype'] == 1:
-        run_cmdline('srun -n 1 {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     else:
-        run_cmdline('{ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     xtest = (subprocess.getoutput('grep -o "ocnbath completed successfully" ocnbath.log')
              == "ocnbath completed successfully")
     if xtest is False:
@@ -902,9 +902,9 @@ def create_sulffile_file():
 
     # Create new sulffile:
     if d['machinetype'] == 1:
-        run_cmdline('srun -n 1 {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
     else:
-        run_cmdline('{aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
     xtest = (subprocess.getoutput('grep -o "aeroemiss completed successfully" aero.log')
              == "aeroemiss completed successfully")
@@ -934,6 +934,8 @@ def create_input_file():
         write2file('input', input_template_4())
     elif d['conv'] == 3:
         write2file('input', input_template_5())
+    elif d['conv'] == 4:
+        write2file('input', input_template_3a())
 
     write2file('input', input_template_6())
 
@@ -1478,6 +1480,31 @@ def input_template_3():
     &end
     """
 
+def input_template_3a():
+    "Third part (mod) of template for 'input' namelist file"
+
+    return """
+    &kuonml
+     alfsea=1.1 alflnd=1.1
+     convfact=1.05 convtime=-2525.60
+     fldown=-0.3
+     iterconv=3
+     ksc=0 kscsea=0 kscmom=1 dsig2=0.1
+     mbase=4 nbase=-2
+     methprec=5 detrain=0.1 methdetr=-2
+     mdelay=0
+     ncvcloud=0
+     nevapcc=0 entrain=-0.5
+     nuvconv=-3
+     rhmois=0. rhcv=0.1
+     tied_con=0. tied_over=2626. tied_rh=0.
+     nclddia=12
+     nmr={nmr}
+     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     rcrit_l=0.8 rcrit_s=0.8
+    &end
+    """
+
 def input_template_4():
     "Fourth part of template for 'input' namelist file"
 
@@ -1729,7 +1756,7 @@ if __name__ == '__main__':
     parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only")
     parser.add_argument("--sib", type=int, choices=[1, 2, 3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
-    parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017)")
+    parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)")
     parser.add_argument("--cloud", type=int, choices=[0, 1, 2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
