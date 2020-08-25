@@ -147,6 +147,9 @@ def calc_dt_out():
     if d['ncout'] == 3:
         d['dtout'] = 60 # need hourly output for CTM
 
+    if d['ncout'] == 5:
+        d['dtout'] = 60 # need hourly output for CTM
+
     if d['ktc'] < d['dtout']:
         d['dtout'] = d['ktc']
 
