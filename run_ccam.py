@@ -957,8 +957,14 @@ def prepare_ccam_infiles():
             run_cmdline('tar xvf '+fpath+'.tar')
 
     if d['dmode'] == 1:
-        check_file_exists(dict2str('{sstinit}'))
-        run_cmdline('ln -s {sstinit} .')
+        fpath = dict2str('{sstinit}')
+        if os.path.exists(fpath):
+            run_cmdline('ln -s '+fpath+' .')
+        elif os.path.exists(fpath+'.000000'):
+            run_cmdline('ln -s '+fpath+'.?????? .')
+        else:
+            check_file_exists(fpath+'.tar')
+            run_cmdline('tar xvf '+fpath+'.tar')
 
     if not os.path.exists(d['ifile']) and not os.path.exists(d['ifile']+'.000000'):
         raise ValueError(dict2str('Cannot locate {ifile} or {ifile}.000000. ')+
