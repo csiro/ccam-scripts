@@ -1556,7 +1556,7 @@ def input_template_6():
 
     return """
     &turbnml
-     buoymeth=1 tkemeth=0
+     buoymeth=1 tkemeth=1
      mintke=1.5e-4 mineps=1.e-6 minl=5. maxl=500.
      qcmf=1.e-4 ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
