@@ -796,7 +796,7 @@ def set_surfc():
 
     d.update({'tbave': 0})
 
-    if d['ncsurf'] in [1, 2]:
+    if d['ncsurf'] != 0:
         d.update({'tbave': d['ktc_surf'] * 60 / d['dt']})
 
 def set_aeros():
@@ -1139,26 +1139,34 @@ def post_process_output():
         if xtest is False:
             raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
 
-    if d['ncsurf'] == 2:
-        if d['nctar'] == 0:
-            run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
-
-        if d['nctar'] == 1:
-            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
-
-        if d['nctar'] == 2:
-            run_cmdline('rm surf.{ofile}.??????')
+    if d['ncsurf'] == 3:
+        write2file('cc.nml', cc_template_5(), mode='w+')
+        if d['machinetype'] == 1:
+            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+        else:
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log')
+                 == "pcc2hist completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
 
     # store output
     if d['nctar'] == 0:
         run_cmdline('mv {ofile}.?????? {hdir}/OUTPUT')
+        if d['ncsurf'] != 0:
+            run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
 
     if d['nctar'] == 1:
         run_cmdline('tar cvf {hdir}/OUTPUT/{ofile}.tar {ofile}.??????')
         run_cmdline('rm {ofile}.??????')
+        if d['ncsurf'] != 0:
+            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
+            run_cmdline('rm surf.{ofile}.??????')
 
     if d['nctar'] == 2:
         run_cmdline('rm {ofile}.??????')
+        if d['ncsurf'] != 0:
+            run_cmdline('rm surf.{ofile}.??????')
 
     # update counter for next simulation month and remove old files
     d['imth'] = d['imth'] + 1
@@ -1717,6 +1725,35 @@ def cc_template_4():
 
     return template
 
+def cc_template_5():
+    "Fifth part of template for 'cc.nml' namelist file"
+
+    template1 = """\
+    &input
+     ifile = "surf.{ofile}"
+    """
+
+    template2 = """\
+     ofile = "{hdir}/daily/surf.{ofile}.nc"
+    """
+
+    template3 = """\
+     hres  = {res}
+     kta={ktc_units}   ktb=2999999  ktc={ktc_units}
+     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
+    &end
+    &histnl
+     htype="inst"
+     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rlds","hfls","hfss","rsus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua850","va850","ta850","hus850","ua500","va500","ta500","zg500","ua200","va200","ta200","zg200","clh","clm","cll","snc","snd","sic","prsn","orog","sftlf"
+     hfreq = 1
+    &end
+    """
+
+    template = template1 + template2 + template3
+
+    return template
+
+
 if __name__ == '__main__':
 
     extra_info = """
@@ -1772,7 +1809,7 @@ if __name__ == '__main__':
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
     parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw), 6=CORDEX-surface)")
     parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
-    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 2], help=" High-freq output (0=none, 1=lat/lon, 2=raw)")
+    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 3], help=" High-freq output (0=none, 1=lat/lon, 3=cordex)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
