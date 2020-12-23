@@ -204,26 +204,8 @@ def get_datetime():
         d['imthlst'] = imth-1
         d['iyrlst'] = iyr
 
-    # Calculate the next month:
-    if imth == 12:
-        d['imthnxt'] = 1
-        d['iyrnxt'] = iyr+1
-    else:
-        d['imthnxt'] = imth+1
-        d['iyrnxt'] = iyr
-
-    # Calculate the next next month (+2):
-    if imth > 10:
-        d['imthnxtb'] = imth-10
-        d['iyrnxtb'] = iyr + 1
-    else:
-        d['imthnxtb'] = imth+2
-        d['iyrnxtb'] = iyr
-
     d['imthlst_2digit'] = mon_2digit(d['imthlst'])
     d['imth_2digit'] = mon_2digit(d['imth'])
-    d['imthnxt_2digit'] = mon_2digit(d['imthnxt'])
-    d['imthnxtb_2digit'] = mon_2digit(d['imthnxtb'])
 
    # Calculate number of days in current month:
     d['ndays'] = monthrange(iyr, imth)[1]
@@ -709,7 +691,7 @@ def set_atmos():
                   'gs_switch': 0})
 
         if d['casa'] == 0:
-            d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
+            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
                       'cable_climate': 0})
 
         elif d['casa'] == 1:
@@ -726,7 +708,7 @@ def set_atmos():
 
 
     elif d['sib'] == 2:
-        d.update({'nsib': 5, 'ccycle': 0, 'proglai': -1, 'progvcmax': 0,
+        d.update({'nsib': 5, 'ccycle': 0, 'proglai': 0, 'progvcmax': 0,
                   'soil_struc': 0, 'fwsoil_switch': 0, 'cable_pop': 0,
                   'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
 
@@ -744,7 +726,7 @@ def set_atmos():
                   'gs_switch': 1})
 
         if d['casa'] == 0:
-            d.update({'ccycle': 0, 'proglai': -1, 'progvcmax': 0, 'cable_pop': 0,
+            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
                       'cable_climate': 0})
 
         elif d['casa'] == 1:
@@ -761,17 +743,11 @@ def set_atmos():
 
     if d['cmip'] == "cmip5":
         d.update({'vegin': dict2str('{hdir}/vegdata'),
-                  'vegprev': dict2str('veg{domain}.{imthlst_2digit}'),
-                  'vegfile': dict2str('veg{domain}.{imth_2digit}'),
-                  'vegnext': dict2str('veg{domain}.{imthnxt_2digit}'),
-                  'vegnextb': dict2str('veg{domain}.{imthnxtb_2digit}')})
+                  'vegfile': dict2str('veg{domain}.{imth_2digit}')})
     else:
         # Use same year as LAI will not change.  Only the area fraction
         d.update({'vegin': dict2str('{hdir}/vegdata'),
-                  'vegprev': dict2str('veg{domain}.{iyr}.{imthlst_2digit}'),
-                  'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}'),
-                  'vegnext': dict2str('veg{domain}.{iyr}.{imthnxt_2digit}'),
-                  'vegnextb': dict2str('veg{domain}.{iyr}.{imthnxtb_2digit}')})
+                  'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}')})
 
     if d['bmix'] == 0:
         d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100.})
@@ -974,7 +950,7 @@ def prepare_ccam_infiles():
         if not os.path.exists(d['mesonest']) and not os.path.exists(d['mesonest']+'.000000'):
             raise ValueError(dict2str('Cannot locate {mesonest} or {mesonest}.000000'))
 
-    for file in ['topout{domain}', '{vegprev}', '{vegfile}', '{vegnext}', '{vegnextb}']:
+    for file in ['topout{domain}', '{vegfile}']:
         check_file_exists(dict2str('{vegin}/'+file))
 
     if d['nmlo'] != 0 and not os.path.exists(dict2str('{vegin}/bath{domain}')):
@@ -1406,10 +1382,7 @@ def input_template_1():
      ifile=      '{ifile}'
      mesonest=   '{mesonest}'
      topofile=   '{vegin}/topout{domain}'
-     vegprev=    '{vegin}/{vegprev}'
      vegfile=    '{vegin}/{vegfile}'
-     vegnext=    '{vegin}/{vegnext}'
-     vegnext2=   '{vegin}/{vegnextb}'
      bathfile=   '{vegin}/bath{domain}'
      cnsdir=     '{stdat}'
      radfile=    '{co2file}'
