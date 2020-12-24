@@ -1153,7 +1153,7 @@ def post_process_output():
     elif d['imth'] > 12:
         run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
         run_cmdline('rm Rest{name}.{iyr}0?.?????? Rest{name}.{iyr}10.?????? Rest{name}.{iyr}11.??????')
-        run_cmdline('rm prnew.{iyr}*')
+        #run_cmdline('rm prnew.{iyr}*')
         run_cmdline('rm {name}*{iyr}??')
         run_cmdline('rm {name}*{iyr}??.nc')
         d['imth'] = 1
