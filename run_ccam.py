@@ -300,7 +300,7 @@ def run_topo():
         run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
     else:
         run_cmdline('{terread} < top.nml > terread.log')
-    xtest = (subprocess.getoutput('grep -o "terread completed successfully" terread.log')
+    xtest = (subprocess.getoutput('grep -o --text "terread completed successfully" terread.log')
              == "terread completed successfully")
     if xtest is False:
         raise ValueError(dict2str("An error occured while running terread. Check terread.log"))
@@ -317,7 +317,7 @@ def run_land():
             run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
         else:
             run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
-        xtest = (subprocess.getoutput('grep -o "sibveg completed successfully" sibveg.log')
+        xtest = (subprocess.getoutput('grep -o --text "sibveg completed successfully" sibveg.log')
                  == "sibveg completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running sibveg. Check sibveg.log"))
@@ -346,7 +346,7 @@ def run_land():
             run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         else:
             run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
-        xtest = (subprocess.getoutput('grep -o "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
+        xtest = (subprocess.getoutput('grep -o --text "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
@@ -360,7 +360,7 @@ def run_ocean():
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     else:
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
-    xtest = (subprocess.getoutput('grep -o "ocnbath completed successfully" ocnbath.log')
+    xtest = (subprocess.getoutput('grep -o --text "ocnbath completed successfully" ocnbath.log')
              == "ocnbath completed successfully")
     if xtest is False:
         raise ValueError(dict2str("An error occured while running ocnbath. Check ocnbath.log"))
@@ -373,7 +373,7 @@ def run_carbon():
         run_cmdline('srun -n 1 {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
     else:
         run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
-    xtest = (subprocess.getoutput('grep -o "casafield completed successfully" casafield.log')
+    xtest = (subprocess.getoutput('grep -o --text "casafield completed successfully" casafield.log')
              == "casafield completed successfully")
     if xtest is False:
         raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
@@ -885,7 +885,7 @@ def create_sulffile_file():
     else:
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
-    xtest = (subprocess.getoutput('grep -o "aeroemiss completed successfully" aero.log')
+    xtest = (subprocess.getoutput('grep -o --text "aeroemiss completed successfully" aero.log')
              == "aeroemiss completed successfully")
     if xtest is False:
         raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
@@ -969,7 +969,7 @@ def check_correct_host():
     if d['dmode'] in [0, 2]:
         for fname in [d['mesonest'], d['mesonest']+'.000000']:
             if os.path.exists(fname):
-                ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o :version') == ":version")
+                ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text :version') == ":version")
                 break
         if ccam_host is True and d['dmode'] == 0:
             raise ValueError('CCAM is the host model. Use dmode = 2')
@@ -997,15 +997,15 @@ def check_correct_landuse(fname):
 
     testfail = False
 
-    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
+    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
     if d['sib'] == 1 and cable_data is False:
         testfail = True
 
-    modis_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o sibvegversion') == "sibvegversion")
+    modis_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text sibvegversion') == "sibvegversion")
     if d['sib'] == 2 and modis_data is False:
         testfail = True
 
-    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o cableversion') == "cableversion")
+    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
     if d['sib'] == 3 and cable_data is False:
         testfail = True
 
@@ -1021,7 +1021,7 @@ def run_model():
         run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
 
     prfile = dict2str('prnew.{kdates}.{name}')
-    xtest = (subprocess.getoutput('grep -o "globpea completed successfully" '+prfile)
+    xtest = (subprocess.getoutput('grep -o --text "globpea completed successfully" '+prfile)
              == "globpea completed successfully")
     if xtest is False:
         raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
@@ -1037,7 +1037,7 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                  == "pcc2hist completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
@@ -1048,7 +1048,7 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                  == "pcc2hist completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
@@ -1064,7 +1064,7 @@ def post_process_output():
                 run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
             else:
                 run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
-            xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist_ctm.log')
+            xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist_ctm.log')
                      == "pcc2hist completed successfully")
             if xtest is False:
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
@@ -1080,7 +1080,7 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                  == "pcc2hist completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
@@ -1091,7 +1091,7 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                  == "pcc2hist completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
@@ -1100,7 +1100,7 @@ def post_process_output():
 
     d['ktc_units'] = d['ktc_surf']
     fname = dict2str('surf.{ofile}.000000')
-    seconds_check = (subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | grep -o seconds') == "seconds")
+    seconds_check = (subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | grep -o --text seconds') == "seconds")
     if seconds_check is True:
         d['ktc_units'] = d['ktc_units']*60
 
@@ -1110,7 +1110,7 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                  == "pcc2hist completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
@@ -1121,7 +1121,7 @@ def post_process_output():
             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
         else:
             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o "pcc2hist completed successfully" surf.pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                  == "pcc2hist completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))

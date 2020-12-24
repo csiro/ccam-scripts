@@ -54,7 +54,7 @@ outlevmode=0                                 # output mode for levels (0=pressur
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
-ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw)
+ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw, 3=CORDEX)
 ktc_surf=10                                  # high-freq file output period (mins)
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only )
