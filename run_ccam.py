@@ -1658,7 +1658,7 @@ def cc_template_3():
     &end
     &histnl
      htype="inst"
-     hnames= "uas","vas","tscrn","tdscrn","rhscrn","psl","ps","rnd","sno","grpl","d10","u10","dni","sgdn_ave","rgdn_ave","eg_ave","fg_ave","sgn_ave","rgn_ave","epot_ave","tsu","pblh","taux","tauy","runoff","mrros","snd","snm","rtu_ave","sint_ave","sot_ave"
+     hnames= "uas","vas","tscrn","tdew","rhscrn","psl","ps","rnd","sno","grpl","d10","u10","dni","sgdn_ave","rgdn_ave","eg_ave","fg_ave","sgn_ave","rgn_ave","epot_ave","tsu","pblh","taux","tauy","runoff","mrros","snd","snm","rtu_ave","sint_ave","sot_ave"
      hfreq = 1
     &end
     """
@@ -1689,7 +1689,7 @@ def cc_template_4():
     &end
     &histnl
      htype="inst"
-     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","sdischarge","tdscrn","urbantas","evspsblpot","sfcWindmax","thetavstar","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
+     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","grpl","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","sdischarge","tdew","urbantas","evspsblpot","sfcWindmax","thetavstar","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
      hfreq = 1
     &end
     """
