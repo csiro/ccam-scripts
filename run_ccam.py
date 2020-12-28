@@ -1263,6 +1263,7 @@ def igbpveg_template():
      soilconfig="{soilparm}"
      user_veginput="{uservegfile}"
      user_laiinput="{userlaifile}"
+     natural_maxtile=5
     &end
     """
 
