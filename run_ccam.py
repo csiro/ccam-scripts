@@ -494,6 +494,9 @@ def prep_iofiles():
             d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
             fpath = dict2str('{bcdir}/{mesonest}')
 
+    if d['dmode']==1:
+      d['mesonest'] = 'error'
+
     # Define restart file:
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
 
@@ -1026,7 +1029,8 @@ def run_model():
     if xtest is False:
         raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
 
-    run_cmdline('rm {mesonest}.?????? {mesonest}')
+    if d['dmode'] != 1:
+        run_cmdline('rm {mesonest}.?????? {mesonest}')
 
 def post_process_output():
     "Post-process the CCAM model output"
