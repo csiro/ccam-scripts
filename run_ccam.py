@@ -505,7 +505,10 @@ def prep_iofiles():
         if d['rcp'] == "historic" or d['iyr'] < 2005:
             d['ozone'] = dict2str('{stdat}/{cmip}/historic/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_historic_T3M_O3.nc')
         else:
-            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
+	    if d['iyr'] > 2099:
+	        d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_2090-2099_{rcp}_T3M_O3.nc')
+            else:		
+                d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
     else:
         if d['iyr'] < 1900:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
@@ -803,8 +806,7 @@ def set_aeros():
                         'oc_anth':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_anthropogenic_{ddyear}*.nc'),
                         'oc_ship':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_ships_{ddyear}*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_OC_decadalmonthlymean{ddyear}*.nc')}
-
-            else:
+            elif d['iyr'] < 2100:
                 aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_anthropogenic_{ddyear}*.nc'),
                         'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_ships_{ddyear}*.nc'),
                         'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_biomassburning_{ddyear}*.nc'),
@@ -814,6 +816,16 @@ def set_aeros():
                         'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_anthropogenic_{ddyear}*.nc'),
                         'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_{ddyear}*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_{ddyear}*.nc')}
+	    else:
+                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_anthropogenic_2090*.nc'),
+                        'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_ships_2090*.nc'),
+                        'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_biomassburning_2090*.nc'),
+                        'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_anthropogenic_2090*.nc'),
+                        'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_ships_2090*.nc'),
+                        'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_BC_biomassburning_2090*.nc'),
+                        'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_anthropogenic_2090*.nc'),
+                        'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_2090*.nc'),
+                        'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_2090*.nc')}
         elif d['cmip'] == "cmip6":
             if d['rcp'] == "historic" or d['iyr'] < 2015:
                 aero = {'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
@@ -849,7 +861,7 @@ def set_aeros():
                             'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc')}
-                else:
+                elif d['iyr'] < 2100:
                     aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
@@ -859,6 +871,16 @@ def set_aeros():
                             'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc')}
+		else:
+                    aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
+                            'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc')}
         else:
             raise ValueError(dict2str("Invalid choice for cmip"))
 
