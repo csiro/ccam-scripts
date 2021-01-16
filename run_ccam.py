@@ -1407,6 +1407,7 @@ def input_template_1():
     &skyin
      mins_rad=-1 qgmin=2.E-7
      ch_dust=3.E-10
+     siglow=0.78 sigmid=0.54
     &end
     &datafile
      ifile=      '{ifile}'
