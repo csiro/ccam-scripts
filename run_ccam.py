@@ -665,7 +665,7 @@ def set_cloud():
     elif d['cloud'] == 2:
         d.update({'ncloud': 3, 'vdeposition_mode': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
     elif d['cloud'] == 3:
-        d.update({'ncloud': 13, 'vdeposition_mode': 1, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
+        d.update({'ncloud': 13, 'vdeposition_mode': 0, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
 
 def set_ocean():
     "Ocean physics settings"
