@@ -660,12 +660,12 @@ def set_cloud():
 
     if d['cloud'] == 0:
         d.update({'ncloud': 0})
-
     elif d['cloud'] == 1:
         d.update({'ncloud': 2})
-
     elif d['cloud'] == 2:
         d.update({'ncloud': 3})
+    elif d['cloud'] == 3:
+        d.update({'ncloud': 13})
 
 def set_ocean():
     "Ocean physics settings"
@@ -1407,7 +1407,7 @@ def input_template_1():
     &skyin
      mins_rad=-1 qgmin=2.E-7
      ch_dust=3.E-10
-     siglow=0.78 sigmid=0.54
+     siglow=0.76 sigmid=0.44
     &end
     &datafile
      ifile=      '{ifile}'
@@ -1803,7 +1803,7 @@ if __name__ == '__main__':
     parser.add_argument("--sib", type=int, choices=[1, 2, 3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)")
-    parser.add_argument("--cloud", type=int, choices=[0, 1, 2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
+    parser.add_argument("--cloud", type=int, choices=[0, 1, 2, 3], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel, 3=Tiedtke)")
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")

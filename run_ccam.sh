@@ -64,7 +64,7 @@ mlev=54                                      # number of model levels (27, 35, 5
 sib=1                                        # land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)
 aero=1                                       # aerosols (0=off, 1=prognostic)
 conv=4                                       # convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)
-cloud=2                                      # cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)
+cloud=2                                      # cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel, 3=Tiedtke)
 bmix=1                                       # boundary layer (0=Ri, 1=TKE-eps)
 mlo=0                                        # ocean (0=Interpolated SSTs, 1=Dynamical ocean)
 casa=0                                       # CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)
