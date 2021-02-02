@@ -659,13 +659,13 @@ def set_cloud():
     "Cloud microphysics settings"
 
     if d['cloud'] == 0:
-        d.update({'ncloud': 0, 'vdeposition_mode': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
+        d.update({'ncloud': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
     elif d['cloud'] == 1:
-        d.update({'ncloud': 2, 'vdeposition_mode': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
+        d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
     elif d['cloud'] == 2:
-        d.update({'ncloud': 3, 'vdeposition_mode': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
+        d.update({'ncloud': 3, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
     elif d['cloud'] == 3:
-        d.update({'ncloud': 13, 'vdeposition_mode': 0, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
+        d.update({'ncloud': 13, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
 
 def set_ocean():
     "Ocean physics settings"
@@ -1472,7 +1472,7 @@ def input_template_2():
      rhcv=0.1 rhmois=0. tied_over=-26.
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-     vdeposition_mode={vdeposition_mode} rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     rcrit_l={rcrit_l} rcrit_s={rcrit_s}
     &end
     """
 
@@ -1497,7 +1497,7 @@ def input_template_3():
      nclddia=12
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-     vdeposition_mode={vdeposition_mode} rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     rcrit_l={rcrit_l} rcrit_s={rcrit_s}
     &end
     """
 
@@ -1522,7 +1522,7 @@ def input_template_3a():
      nclddia=12
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-     vdeposition_mode={vdeposition_mode} rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     rcrit_l={rcrit_l} rcrit_s={rcrit_s}
     &end
     """
 
@@ -1540,7 +1540,7 @@ def input_template_4():
      ldr=1 nclddia=12 nstab_cld=0 nrhcrit=10 sigcll=0.95
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-     vdeposition_mode={vdeposition_mode} rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     rcrit_l={rcrit_l} rcrit_s={rcrit_s}
     &end
     """
 
@@ -1559,7 +1559,7 @@ def input_template_5():
      dsig2=0.1 kscmom=0 sig_ct=1. sigkscb=0.95 sigksct=0.8 tied_rh=0.
      nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
-     vdeposition_mode={vdeposition_mode} rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     rcrit_l={rcrit_l} rcrit_s={rcrit_s}
     &end
     """
 
