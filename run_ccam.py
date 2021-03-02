@@ -400,9 +400,13 @@ def calc_res():
 
     if d['minlat'] == -999.:
         d['minlat'] = d['midlat']-gridres_m*d['gridsize']/200000.
+        if d['minlat'] < -90.:
+            d['minlat'] = -90.
 
     if d['maxlat'] == -999.:
         d['maxlat'] = d['midlat']+gridres_m*d['gridsize']/200000.
+        if d['maxlat'] > 90.:
+            d['maxlat'] = 90.
 
     if d['minlon'] == -999.:
         d['minlon'] = d['midlon']-gridres_m*d['gridsize']/200000.
