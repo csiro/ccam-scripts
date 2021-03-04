@@ -410,9 +410,17 @@ def calc_res():
 
     if d['minlon'] == -999.:
         d['minlon'] = d['midlon']-gridres_m*d['gridsize']/200000.
+        if d['minlat'] == -90.:
+            d['minlon'] = 0.
+        if d['maxlat'] == 90.:
+            d['minlon'] = 0.
 
     if d['maxlon'] == -999.:
         d['maxlon'] = d['midlon']+gridres_m*d['gridsize']/200000.
+        if d['minlat'] == -90.:
+            d['maxlon'] = 360.
+        if d['maxlat'] == 90.:
+            d['maxlon'] = 360.
 
     d['gridres_m'] = gridres_m
     d['res'] = res
