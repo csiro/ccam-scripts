@@ -65,6 +65,7 @@ sib=1                                        # land surface (1=CABLE, 2=MODIS, 3
 aero=1                                       # aerosols (0=off, 1=prognostic)
 conv=4                                       # convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)
 cloud=2                                      # cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)
+rad=1                                        # radiation (0=SEA-ESF3, 1=SEA-ESF4)
 bmix=1                                       # boundary layer (0=Ri, 1=TKE-eps)
 mlo=0                                        # ocean (0=Interpolated SSTs, 1=Dynamical ocean)
 casa=0                                       # CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)
@@ -115,7 +116,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
 		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
-                   --sib $sib --aero $aero --conv $conv --cloud $cloud --bmix $bmix --mlo $mlo \
+                   --sib $sib --aero $aero --conv $conv --cloud $cloud --rad $rad --bmix $bmix --mlo $mlo \
                    --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf \
                    --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
                    --bcsoilfile $bcsoilfile \

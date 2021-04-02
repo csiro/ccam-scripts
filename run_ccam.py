@@ -32,6 +32,7 @@ def main(inargs):
             set_nudging()
             set_downscaling()
             set_cloud()
+            set_radiation()
             set_ocean()
             set_atmos()
             set_surfc()
@@ -60,7 +61,7 @@ def check_inargs():
     args2check = ['name', 'nproc', 'nnode', 'midlon', 'midlat', 'gridres', 'gridsize', 'mlev',
                   'iys', 'ims', 'iye', 'ime', 'leap', 'ncountmax', 'ktc', 'minlat', 'maxlat',
                   'minlon', 'maxlon', 'reqres', 'outlevmode', 'plevs', 'mlevs', 'dlevs', 'dmode',
-                  'sib', 'aero', 'conv', 'cloud', 'bmix', 'mlo', 'casa',
+                  'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix', 'mlo', 'casa',
                   'ncout', 'nctar', 'ncsurf', 'ktc_surf', 'machinetype', 'bcdom', 'bcsoil',
                   'sstfile', 'sstinit', 'cmip', 'insdir', 'hdir', 'wdir', 'bcdir', 'sstdir',
                   'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg', 'sibveg',
@@ -676,6 +677,18 @@ def set_cloud():
         d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
     elif d['cloud'] == 2:
         d.update({'ncloud': 3, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
+
+def set_radiation():
+    "Radiation settings"
+
+    if d['rad'] == 0:
+        d.update({'linecatalog_form': 'hitran_2000',
+                  'continuum_form': 'ckd2.4',
+                  'do_co2_10um': '.false.'})
+    elif d['rad'] == 1:
+        d.update({'linecatalog_form': 'hitran_2012',
+                  'continuum_form': 'mt_ckd2.5',
+                  'do_co2_10um': '.true.'})
 
 def set_ocean():
     "Ocean physics settings"
@@ -1412,12 +1425,15 @@ def input_template_1():
 
      COMMENT='file'
      localhist=.true. unlimitedhist=.false. synchist=.false.
-     compression=1 tbave={tbave}
+     compression=1 tbave={tbave} procmode=12
     &end
     &skyin
      mins_rad=-1 qgmin=2.E-7
      ch_dust=3.E-10
      siglow=0.76 sigmid=0.44
+     linecatalog_form='{linecatalog_form}'
+     continuum_form='{continuum_form}' 
+     do_co2_10um={do_co2_10um}
     &end
     &datafile
      ifile=      '{ifile}'
@@ -1817,7 +1833,8 @@ if __name__ == '__main__':
     parser.add_argument("--sib", type=int, choices=[1, 2, 3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)")
-    parser.add_argument("--cloud", type=int, choices=[0, 1, 2, 3], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel")
+    parser.add_argument("--cloud", type=int, choices=[0, 1, 2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
+    parser.add_argument("--rad", type=int, choices=[0, 1], help=" radiation (0=SE3, 1=SE4)")
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
