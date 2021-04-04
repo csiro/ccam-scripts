@@ -782,7 +782,7 @@ def set_atmos():
         d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100.})
 
     elif d['bmix'] == 1:
-        if d['nmlo'] == 1:
+        if d['mlo'] == 1:
             d.update({'nvmix': 9, 'nlocal': 7, 'amxlsq': 9.})
         else:
             d.update({'nvmix': 6, 'nlocal': 7, 'amxlsq': 9.})
