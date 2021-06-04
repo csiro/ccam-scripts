@@ -48,6 +48,11 @@ def main(inargs):
             run_model()
             print("Post-process CCAM output")
             post_process_output()
+        else:
+            d['imth'] = d['imth'] + 1
+            if d['imth'] > 12:
+                d['imth'] = 1
+                d['iyr'] = d['iyr'] + 1
 
         print("Update simulation date and time")
         update_yearqm()
