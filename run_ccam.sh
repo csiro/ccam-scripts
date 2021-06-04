@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=ccam
-#SBATCH --mem=96gb
-#SBATCH --ntasks-per-node=50
-#SBATCH --cores-per-socket=10
+#SBATCH --nodes=5
+#SBATCH --mem=40gb
+#SBATCH --ntasks-per-node=20
 #SBATCH --time=24:00:00
 
 ###############################################################
@@ -12,9 +12,9 @@
 ###############################################################
 # MODULES
 
-module load mpt            # MPI
-module load netcdf/4.3.3.1 # NetCDF
-module load python/3.5.0   # Python
+module load openmpi/3.1.4-ofed45      # MPI
+module load netcdf/4.3.3.1            # NetCDF
+module load python/3.7.2              # Python
 
 ###############################################################
 # Specify parameters

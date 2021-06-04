@@ -20,7 +20,7 @@ def main(inargs):
         print("Updating land-use")
         check_surface_files()
 
-        if ['dmode'] != 4:
+        if d['dmode'] != 4:
             read_inv_schmidt()
             calc_res()
             calc_dt_mod()
@@ -1840,7 +1840,7 @@ if __name__ == '__main__':
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
     parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw), 6=CORDEX-surface)")
     parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
-    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 3], help=" High-freq output (0=none, 1=lat/lon, 3=cordex)")
+    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 2, 3], help=" High-freq output (0=none, 1=lat/lon, 2=raw, 3=cordex)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
