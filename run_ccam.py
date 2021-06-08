@@ -1430,7 +1430,7 @@ def input_template_1():
 
      COMMENT='file'
      localhist=.true. unlimitedhist=.false. synchist=.false.
-     compression=1 tbave={tbave} procmode=12
+     compression=1 tbave={tbave} procmode=12 fnproc_bcast_max=24
     &end
     &skyin
      mins_rad=-1 qgmin=2.E-7
@@ -1617,9 +1617,9 @@ def input_template_6():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
-     usetide=0 mlosigma=6 nodrift=1
-     ocnsmag=0.8 zomode=0 ocneps=0.2
+     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
+     usetide=0 mlosigma=6 nodrift=1 oclosure=1
+     ocnsmag=1. zomode=0 ocneps=0.2
      rivermd=1
     &end
     &tin &end
