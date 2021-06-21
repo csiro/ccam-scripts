@@ -1268,12 +1268,12 @@ def check_file_exists(path):
 def mon_2digit(imth):
     "Create 2-digit numerical string for given month"
 
-    imth = int(imth)
+    cmth = int(imth)
 
-    if imth < 10:
-        return '0'+str(imth)
+    if cmth < 10:
+        return '0'+str(cmth)
 
-    return str(imth)
+    return str(cmth)
 
 def top_template():
     "Template for writing top.nml namelist file"
@@ -1283,7 +1283,7 @@ def top_template():
      il={gridsize}
      debug=t idia=29 jdia=48 id=2 jd=4
      fileout="topout{domain}" luout=50
-     rlong0={midlon} rlat0={midlat} schmidt={inv_schmidt:0.4f}
+     rlong0={midlon} rlat0={midlat} schmidt={inv_schmidt}
      dosrtm=f do1km=t do250=t netout=t topfilt=t    
      filepath10km="{insdir}/vegin"
      filepath1km="{insdir}/vegin"
