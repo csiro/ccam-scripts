@@ -13,16 +13,17 @@ def main(inargs):
     create_directories()
     calc_dt_out()
     set_ktc_surf()
+    calc_res()
 
     for mth in range(0, d['ncountmax']):
         print("Reading date and time")
         get_datetime()
-        print("Updating land-use")
-        check_surface_files()
-
-        if d['dmode'] != 4:
+        d['ofile'] = dict2str('{name}.{iyr}{imth_2digit}')		
+        if d['dmode'] != 5:
+            print("Updating land-use")
+            check_surface_files()
+        if (d['dmode']!=4) and (d['dmode']!=5):
             read_inv_schmidt()
-            calc_res()
             calc_dt_mod()
             print("Prepare input files")
             prep_iofiles()
@@ -46,8 +47,11 @@ def main(inargs):
             check_correct_host()
             print("Run CCAM")
             run_model()
+        if d['dmode'] != 4:
             print("Post-process CCAM output")
             post_process_output()
+        if (d['dmode']!=4) and (d['dmode']!=5):
+            update_monthyear()
         else:
             d['imth'] = d['imth'] + 1
             if d['imth'] > 12:
@@ -139,9 +143,14 @@ def create_directories():
 
     run_cmdline('rm -f {hdir}/restart.qm')
 
-    dirname = dict2str('{wdir}')
-    if not os.path.isdir(dirname):
-        os.mkdir(dirname)
+    if d['dmode'] == 5:
+        dirname = dict2str('{hdir}/OUTPUT')
+        if not os.path.isdir(dirname):
+            raise ValueError(dict2str("dmode=5 requires existing data in OUTPUT directory"))
+    else:
+        dirname = dict2str('{wdir}')
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
 
     os.chdir(dirname)
 
@@ -460,10 +469,6 @@ def calc_dt_mod():
     if d['gridres_m'] < 50:
         raise ValueError("Minimum grid resolution of 50m has been exceeded")
 
-    #if ( d['dtout'] % dt != 0 ):
-    #    raise ValueError, "dtout must be a multiple of dt" # CHECK: Original code has dtout must be a multiple of dt/60
-    #Is this not redundant code given that dt will be 1, above.
-
     if d['ktc'] % d['dtout'] != 0:
         raise ValueError("ktc must be a multiple of dtout")
 
@@ -477,7 +482,6 @@ def prep_iofiles():
 
     # Define restart file:
     d['ifile'] = dict2str('Rest{name}.{iyrlst}{imthlst_2digit}')
-    d['ofile'] = dict2str('{name}.{iyr}{imth_2digit}')
 
     # Define host model fields:
     d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}.nc')
@@ -1110,7 +1114,18 @@ def post_process_output():
         if xtest is False:
             raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
 
-    if d['ncout'] == 3 or d['ncout'] == 5:
+    if d['ncout'] == 4:
+        write2file('cc.nml', cc_template_1(), mode='w+')
+        if d['machinetype'] == 1:
+            run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+        else:
+            run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                 == "pcc2hist completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+
+    if d['ncout'] == 5:
         for iday in range(1, d['ndays']+1):
             d['cday'] = mon_2digit(iday)
             d['iend'] = iday*1440
@@ -1125,22 +1140,7 @@ def post_process_output():
                      == "pcc2hist completed successfully")
             if xtest is False:
                 raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
-        if d['ncout'] == 3:
-            run_cmdline('tar cvf {hdir}/daily/ctm_{iyr}{imth_2digit}.tar ccam_{iyr}{imth_2digit}??.nc')
-            run_cmdline('rm ccam_{iyr}{imth_2digit}??.nc')
-        elif d['ncout'] == 5:
-            run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
-
-    if d['ncout'] == 4:
-        write2file('cc.nml', cc_template_1(), mode='w+')
-        if d['machinetype'] == 1:
-            run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-        else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                 == "pcc2hist completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+        run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
 
     if d['ncout'] == 6:
         write2file('cc.nml', cc_template_4(), mode='w+')
@@ -1201,6 +1201,7 @@ def post_process_output():
         if d['ncsurf'] != 0:
             run_cmdline('rm surf.{ofile}.??????')
 
+def update_monthyear():
     # update counter for next simulation month and remove old files
     d['imth'] = d['imth'] + 1
 
@@ -1834,7 +1835,7 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
-    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only")
+    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only, 5=postprocess-only")
     parser.add_argument("--sib", type=int, choices=[1, 2, 3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)")
@@ -1843,7 +1844,7 @@ if __name__ == '__main__':
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
-    parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM(tar), 4=Nearest, 5=CTM(raw), 6=CORDEX-surface)")
+    parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)")
     parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
     parser.add_argument("--ncsurf", type=int, choices=[0, 1, 2, 3], help=" High-freq output (0=none, 1=lat/lon, 2=raw, 3=cordex)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")

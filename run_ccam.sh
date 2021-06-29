@@ -42,7 +42,7 @@ if [[ $gridres = "-999." ]]; then
   name=`echo $name | sed "s/$gridres/$gridtxt"/g`
 fi
 
-ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 3=CTM-tar, 4=Nearest, 5=CTM-raw, 6=CORDEX-surface)
+ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)
 nctar=1                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
 ktc=360                                      # standard output period (mins)
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
@@ -57,7 +57,7 @@ dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw, 3=CORDEX)
 ktc_surf=10                                  # high-freq file output period (mins)
 
-dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only )
+dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5 postprocess-only )
 cmip=cmip5                                   # CMIP scenario (cmip5 or cmip6)
 rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=54                                      # number of model levels (27, 35, 54, 72, 108 or 144)
