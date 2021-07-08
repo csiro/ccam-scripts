@@ -372,7 +372,7 @@ def run_ocean():
     print("Processing bathymetry data")
     write2file('ocnbath.nml', ocnbath_template(), mode='w+')
     if d['machinetype'] == 1:
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     else:
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     xtest = (subprocess.getoutput('grep -o --text "ocnbath completed successfully" ocnbath.log')
@@ -941,7 +941,7 @@ def create_sulffile_file():
 
     # Create new sulffile:
     if d['machinetype'] == 1:
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
     else:
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
