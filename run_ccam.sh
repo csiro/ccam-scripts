@@ -57,7 +57,7 @@ dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw, 3=CORDEX)
 ktc_surf=10                                  # high-freq file output period (mins)
 
-dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5 postprocess-only )
+dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5=postprocess-only, 6=Spectral(GCM)+SST )
 cmip=cmip5                                   # CMIP scenario (cmip5 or cmip6)
 rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=54                                      # number of model levels (27, 35, 54, 72, 108 or 144)
@@ -79,7 +79,7 @@ uservegfile=none                             # User specified vegetation map (no
 userlaifile=none                             # User specified LAI map (none for no user file)
 
 ###############################################################
-# Host atmosphere for dmode=0, dmode=2 or dmode=3
+# Host atmosphere for dmode=0, dmode=2, dmode=3 or dmode=6
 # and soil data options
 
 bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
@@ -88,7 +88,7 @@ bcsoil=0                                     # use climatology for initial soil 
 bcsoilfile=none                              # soil data for recycling with bcsoil=2
 
 ###############################################################
-# Sea Surface Temperature for dmode=1
+# Sea Surface Temperature for dmode=1 or dmode=6
 
 sstfile=ACCESS1-0_RCP45_bcvc_osc_ots_santop96_18_0.0_0.0_1.0.nc # sst file for dmode=1
 sstinit=$bcdir/$bcdom$iys$ims.nc                                # initial conditions file for dmode=1

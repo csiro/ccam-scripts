@@ -612,7 +612,7 @@ def config_initconds():
 
     if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
 
-        if d['dmode'] in [0, 2, 3]:
+        if d['dmode'] in [0, 2, 3, 6]:
             d.update({'ifile': d['mesonest']})
         else:
             d.update({'ifile': d['sstinit']})
@@ -649,32 +649,41 @@ def set_nudging():
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
                   'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
+    elif d['dmode'] == 6:
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+                  'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
 def set_downscaling():
     "Set downscaling parameters"
 
     if d['dmode'] == 0:
-        d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
+        d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                   'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
                   'mh_bs':3})
 
     elif d['dmode'] == 1:
-        d.update({'dmode_meth': 1, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
+        d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                   'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                   'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
                   'mh_bs':3})
 
     elif d['dmode'] == 2:
-        d.update({'dmode_meth': 0, 'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
+        d.update({'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                   'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1,
                   'mh_bs':3})
 
     elif d['dmode'] == 3:
-        d.update({'dmode_meth': 0, 'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
+        d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                   'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
                   'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
+                  'mh_bs':3})
+		  
+    if d['dmode'] == 6:
+        d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 14, 'nud_aero': 0,
                   'mh_bs':3})
 
 def set_cloud():
@@ -710,7 +719,7 @@ def set_ocean():
 
     else:
         #Dynanical Ocean
-        if d['dmode'] == 0 or d['dmode'] == 1 or d['dmode'] == 3:
+        if d['dmode'] == 0 or d['dmode'] == 1 or d['dmode'] == 3 or d['dmode'] == 6:
             # Downscaling mode - GCM or SST-only:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
@@ -982,7 +991,7 @@ def create_input_file():
 def prepare_ccam_infiles():
     "Prepare and check CCAM input data"
 
-    if d['dmode'] == 0 or d['dmode'] == 2 or d['dmode'] == 3:
+    if d['dmode'] == 0 or d['dmode'] == 2 or d['dmode'] == 3 or d['dmode'] == 6:
         fpath = dict2str('{bcdir}/{mesonest}')
         if os.path.exists(fpath):
             run_cmdline('ln -s '+fpath+' .')
@@ -1022,11 +1031,14 @@ def prepare_ccam_infiles():
     if d['dmode'] == 1 and not os.path.exists(dict2str('{sstdir}/{sstfile}')):
         raise ValueError(dict2str('Cannot locate {sstdir}/{sstfile}'))
 
+    if d['dmode'] == 6 and not os.path.exists(dict2str('{sstdir}/{sstfile}')):
+        raise ValueError(dict2str('Cannot locate {sstdir}/{sstfile}'))
+
 
 def check_correct_host():
     "Check if host is CCAM"
 
-    if d['dmode'] in [0, 2]:
+    if d['dmode'] in [0, 2, 6]:
         for fname in [d['mesonest'], d['mesonest']+'.000000']:
             if os.path.exists(fname):
                 ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text :version') == ":version")
@@ -1035,6 +1047,9 @@ def check_correct_host():
             raise ValueError('CCAM is the host model. Use dmode = 2')
         if ccam_host is False and d['dmode'] == 2:
             raise ValueError('CCAM is not the host model. Use dmode = 0')
+        if ccam_host is True and d['dmode'] == 6:
+            raise ValueError('CCAM is the host model. Use dmode = 2')
+
 
     if d['dmode'] == 1:
         if d['inv_schmidt'] < 0.2:
@@ -1835,7 +1850,7 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
-    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only, 5=postprocess-only")
+    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only, 5=postprocess-only, 6=spectral(GCM)+SST")
     parser.add_argument("--sib", type=int, choices=[1, 2, 3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)")
@@ -1862,9 +1877,9 @@ if __name__ == '__main__':
     ###############################################################
     # Specify directories, datasets and executables
 
-    parser.add_argument("--bcdom", type=str, help=" host file prefix for dmode=0, dmode=2 or dmode=3")
+    parser.add_argument("--bcdom", type=str, help=" host file prefix for dmode=0, dmode=2, dmode=3 or dmode=6")
 
-    parser.add_argument("--sstfile", type=str, help=" sst file for dmode=1")
+    parser.add_argument("--sstfile", type=str, help=" sst file for dmode=1 or dmode=6")
     parser.add_argument("--sstinit", type=str, help=" initial conditions file for dmode=1")
 
     parser.add_argument("--cmip", type=str, choices=['cmip5', 'cmip6'], help=" CMIP scenario")
@@ -1872,8 +1887,8 @@ if __name__ == '__main__':
     parser.add_argument("--insdir", type=str, help=" install directory")
     parser.add_argument("--hdir", type=str, help=" script directory")
     parser.add_argument("--wdir", type=str, help=" working directory")
-    parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0, dmode=2 or dmode=3)")
-    parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1)")
+    parser.add_argument("--bcdir", type=str, help=" host atmospheric data (for dmode=0, dmode=2, dmode=3 or dmode=6)")
+    parser.add_argument("--sstdir", type=str, help=" SST data (for dmode=1 or dmode=6)")
     parser.add_argument("--bcsoilfile", type=str, help=" Input file for soil recycle")
     parser.add_argument("--stdat", type=str, help=" eigen and radiation datafiles")
 
