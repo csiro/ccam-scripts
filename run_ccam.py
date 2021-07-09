@@ -725,8 +725,8 @@ def set_ocean():
 def set_atmos():
     "Atmospheric physics settings"
     if d['sib'] == 1:
-        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 0, 'cable_litter': 0,
-                  'gs_switch': 0})
+        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3, 'cable_litter': 0,
+                  'gs_switch': 1})
 
         if d['casa'] == 0:
             d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
@@ -747,8 +747,8 @@ def set_atmos():
 
     elif d['sib'] == 2:
         d.update({'nsib': 5, 'ccycle': 0, 'proglai': 0, 'progvcmax': 0,
-                  'soil_struc': 0, 'fwsoil_switch': 0, 'cable_pop': 0,
-                  'gs_switch': 0, 'cable_litter': 0, 'cable_climate': 0})
+                  'soil_struc': 0, 'fwsoil_switch': 3, 'cable_pop': 0,
+                  'gs_switch': 1, 'cable_litter': 0, 'cable_climate': 0})
 
         if d['casa'] == 1:
             raise ValueError("casa=1 requires sib=1 or sib=3")
@@ -814,7 +814,7 @@ def set_surfc():
     d.update({'tbave': 0})
 
     if d['ncsurf'] != 0:
-        d.update({'tbave': d['ktc_surf'] * 60 / d['dt']})
+        d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
 
 def set_aeros():
     "Prepare aerosol files"
