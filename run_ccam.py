@@ -251,6 +251,10 @@ def check_surface_files():
             testfail = True
         if dict2str('{userlaifile}\n') != filename.readline():
             testfail = True
+        if dict2str('{cmip}\n') != filename.readline():
+            testfail = True
+        if dict2str('{rcp}\n') != filename.readline():
+            testfail = True
         filename.close()
         if testfail is True:
             run_cable_all()
@@ -303,6 +307,8 @@ def update_custom_land():
     filename.write(dict2str('{vegindex}\n'))
     filename.write(dict2str('{uservegfile}\n'))
     filename.write(dict2str('{userlaifile}\n'))
+    filename.write(dict2str('{cmip}\n'))
+    filename.write(dict2str('{rcp}\n'))
     filename.close()
 
 
