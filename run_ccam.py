@@ -277,6 +277,7 @@ def check_surface_files():
 def run_cable_all():
     "Generate topography and land-use files for CCAM"
 
+    run_cmdline('rm -f {hdir}/vegdata/*')
     run_topo()
     run_land()
     run_ocean()
