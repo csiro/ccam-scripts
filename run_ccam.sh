@@ -42,8 +42,10 @@ if [[ $gridres = "-999." ]]; then
   name=`echo $name | sed "s/$gridres/$gridtxt"/g`
 fi
 
-ncout=2                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)
-nctar=1                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
+ncsurf=3                                     # high-freq output (0=none, 1=lat/lon, 3=CORDEX)
+ncout=0                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)
+nctar=0                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
+ktc_surf=60                                  # high-freq file output period (mins)
 ktc=360                                      # standard output period (mins)
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
 maxlat=-999.                                 # output max latitude (degrees) (-999.=automatic)
@@ -54,8 +56,6 @@ outlevmode=0                                 # output mode for levels (0=pressur
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
-ncsurf=0                                     # high-freq output (0=none, 1=lat/lon, 2=raw, 3=CORDEX)
-ktc_surf=10                                  # high-freq file output period (mins)
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5=postprocess-only, 6=Spectral(GCM)+SST )
 cmip=cmip5                                   # CMIP scenario (cmip5 or cmip6)

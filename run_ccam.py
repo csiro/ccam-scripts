@@ -50,13 +50,8 @@ def main(inargs):
         if d['dmode'] != 4:
             print("Post-process CCAM output")
             post_process_output()
-        if (d['dmode']!=4) and (d['dmode']!=5):
+        if d['dmode'] != 5:
             update_monthyear()
-        else:
-            d['imth'] = d['imth'] + 1
-            if d['imth'] > 12:
-                d['imth'] = 1
-                d['iyr'] = d['iyr'] + 1
 
         print("Update simulation date and time")
         update_yearqm()
@@ -197,7 +192,7 @@ def get_datetime():
     sdate = d['iyr']*100 +d['imth']
     edate = d['iye']*100 +d['ime']
 
-    if sdate > edate:
+    if (sdate>edate) and (d['dmode']!=5):
         raise ValueError("CCAM simulation already completed. Delete year.qm to restart.")
 
     iyr = d['iyr']
@@ -222,7 +217,7 @@ def get_datetime():
     d['imthlst_2digit'] = mon_2digit(d['imthlst'])
     d['imth_2digit'] = mon_2digit(d['imth'])
 
-   # Calculate number of days in current month:
+    # Calculate number of days in current month:
     d['ndays'] = monthrange(iyr, imth)[1]
 
     if (imth == 2) and (d['leap'] == 0):
@@ -479,7 +474,7 @@ def calc_dt_mod():
     if d['ktc'] % d['dtout'] != 0:
         raise ValueError("ktc must be a multiple of dtout")
 
-    if d['ncsurf'] != 0:
+    if d['ktc_surf'] != 0:
         if d['dtout'] % d['ktc_surf'] != 0: # This order is different to original code
             raise ValueError("dtout must be a multiple of ktc_surf")
 
@@ -827,10 +822,7 @@ def set_atmos():
 def set_surfc():
     "Prepare surface files"
 
-    d.update({'tbave': 0})
-
-    if d['ncsurf'] != 0:
-        d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
+    d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
 
 def set_aeros():
     "Prepare aerosol files"
@@ -1108,132 +1100,190 @@ def run_model():
     if xtest is False:
         raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
 
-    if d['dmode'] != 1:
-        run_cmdline('rm {mesonest}.?????? {mesonest}')
+    fname = dict2str('{mesonest}.000000')
+    if os.path.exists(fname):
+        run_cmdline('rm {mesonest}.??????')
+    fname = dict2str('{mesonest}')
+    if os.path.exists(fname):
+        run_cmdline('rm {mesonest}')
 
 def post_process_output():
     "Post-process the CCAM model output"
+    
+    hy = d['iys']
+    hm = 1
+    ftest = True
+    while ftest:
+        d['histmonth'] = mon_2digit(hm)
+        d['histyear'] = hy
+        d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
+	
+        fname = dict2str('{histfile}.tar')
+        if os.path.exists(fname):
+            run_cmdline('tar xvf '+fname)    
+	
+        fname = dict2str('{histfile}.000000')
+        if os.path.exists(fname):
 
-    if d['ncout'] == 1:
-        write2file('cc.nml', cc_template_1(), mode='w+')
-        if d['machinetype'] == 1:
-            run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
-        else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                 == "pcc2hist completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+            if d['ncout'] == 1:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if not os.path.exists(fname):
+                    write2file('cc.nml', cc_template_1(), mode='w+')
+                    if d['machinetype'] == 1:
+                        run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+                    ftest = False
 
-    if d['ncout'] == 2:
-        write2file('cc.nml', cc_template_1(), mode='w+')
-        if d['machinetype'] == 1:
-            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                 == "pcc2hist completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
+            if d['ncout'] == 2:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if not os.path.exists(fname):
+                    write2file('cc.nml', cc_template_1(), mode='w+')
+                    if d['machinetype'] == 1:
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
+                    ftest = False		
 
-    if d['ncout'] == 4:
-        write2file('cc.nml', cc_template_1(), mode='w+')
-        if d['machinetype'] == 1:
-            run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-        else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                 == "pcc2hist completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+            if d['ncout'] == 4:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if not os.path.exists(fname):
+                    write2file('cc.nml', cc_template_1(), mode='w+')
+                    if d['machinetype'] == 1:
+                        run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+                    ftest = False		
 
-    if d['ncout'] == 5:
-        for iday in range(1, d['ndays']+1):
-            d['cday'] = mon_2digit(iday)
-            d['iend'] = iday*1440
-            d['istart'] = (iday*1440)-1440
-            d['outctmfile'] = dict2str("ccam_{iyr}{imth_2digit}{cday}.nc")
-            write2file('cc.nml', cc_template_2(), mode='w+')
-            if d['machinetype'] == 1:
-                run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
-            else:
-                run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
-            xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist_ctm.log')
-                     == "pcc2hist completed successfully")
-            if xtest is False:
-                raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
-        run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
+            if d['ncout'] == 5:
+                histndays = monthrange(histear, histmonth)[1]
+                d['cday'] = mon_2digit(histndays)
+                fname = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
+                if not os.path.exists(fname):
+                    for iday in range(1, histndays+1):
+                        d['cday'] = mon_2digit(iday)
+                        d['iend'] = iday*1440
+                        d['istart'] = (iday*1440)-1440
+                        d['outctmfile'] = dict2str("ccam_{iyr}{imth_2digit}{cday}.nc")
+                        write2file('cc.nml', cc_template_2(), mode='w+')
+                        if d['machinetype'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist_ctm.log')
+                                 == "pcc2hist completed successfully")
+                        if xtest is False:
+                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
+                    run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
+                    ftest = False
 
-    if d['ncout'] == 6:
-        write2file('cc.nml', cc_template_4(), mode='w+')
-        if d['machinetype'] == 1:
-            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                 == "pcc2hist completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+            if d['ncout'] == 6:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if not os.path.exists(fname):
+                    write2file('cc.nml', cc_template_4(), mode='w+')
+                    if d['machinetype'] == 1:
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                    ftest = False
 
-    # surface files
+            # store output
+            if (d['nctar']==0) and (d['dmode']!=5):
+                run_cmdline('mv {histfile}.?????? {hdir}/OUTPUT')
 
-    d['ktc_units'] = d['ktc_surf']
-    fname = dict2str('surf.{ofile}.000000')
-    seconds_check = (subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | grep -o --text seconds') == "seconds")
-    if seconds_check is True:
-        d['ktc_units'] = d['ktc_units']*60
+            if d['nctar'] == 1:
+                run_cmdline('tar cvf {hdir}/OUTPUT/{histfile}.tar {histfile}.??????')
+                run_cmdline('rm {histfile}.??????')
 
-    if d['ncsurf'] == 1:
-        write2file('cc.nml', cc_template_3(), mode='w+')
-        if d['machinetype'] == 1:
-            run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
-        else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
-                 == "pcc2hist completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+            if d['nctar'] == 2:
+                run_cmdline('rm {histfile}.??????')
 
-    if d['ncsurf'] == 3:
-        write2file('cc.nml', cc_template_5(), mode='w+')
-        if d['machinetype'] == 1:
-            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
-        else:
-            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
-        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
-                 == "pcc2hist completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+        # surface files
+        fname = dict2str('surf.{histfile}.000000')
+        if os.path.exists(fname):
 
-    # store output
-    if d['nctar'] == 0:
-        run_cmdline('mv {ofile}.?????? {hdir}/OUTPUT')
-        if d['ncsurf'] != 0:
-            run_cmdline('mv surf.{ofile}.?????? {hdir}/OUTPUT')
+            d['ktc_units'] = d['ktc_surf']
+            fname = dict2str('surf.{histfile}.000000')
+            seconds_check = (subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | grep -o --text seconds') == "seconds")
+            if seconds_check is True:
+                d['ktc_units'] = d['ktc_units']*60
 
-    if d['nctar'] == 1:
-        run_cmdline('tar cvf {hdir}/OUTPUT/{ofile}.tar {ofile}.??????')
-        run_cmdline('rm {ofile}.??????')
-        if d['ncsurf'] != 0:
-            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{ofile}.tar surf.{ofile}.??????')
-            run_cmdline('rm surf.{ofile}.??????')
+            if d['ncsurf'] == 1:
+                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
+                if not os.path.exists(fname):
+                    write2file('cc.nml', cc_template_3(), mode='w+')
+                    if d['machinetype'] == 1:
+                        run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+                    ftest = False
 
-    if d['nctar'] == 2:
-        run_cmdline('rm {ofile}.??????')
-        if d['ncsurf'] != 0:
-            run_cmdline('rm surf.{ofile}.??????')
+            if d['ncsurf'] == 3:
+                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
+                if not os.path.exists(fname):
+                    write2file('cc.nml', cc_template_5(), mode='w+')
+                    if d['machinetype'] == 1:
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+                    ftest = False
+
+            # store output
+            if (d['nctar']==0) and (d['dmode']!=5):
+                run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
+
+            if d['nctar'] == 1:
+                run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
+                run_cmdline('rm surf.{histfile}.??????')
+
+            if d['nctar'] == 2:
+                run_cmdline('rm surf.{histfile}.??????')
+
+        hm = hm + 1
+        if hm > 12:
+            hm = 1
+            hy = hy + 1
+        if (hy>d['iye']) and (ftest==True):
+            print("CCAM post-processing is completed")
+            write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
+            sys.exit(0)
 
 def update_monthyear():
     # update counter for next simulation month and remove old files
     d['imth'] = d['imth'] + 1
 
     if d['imth'] < 12:
-        run_cmdline('rm Rest{name}.{iyrlst}12.??????')
+        fname = dict2str('Rest{name}.{iyrlst}12.000000')
+        if os.path.exists(fname):
+            run_cmdline('rm Rest{name}.{iyrlst}12.??????')
 
-    elif d['imth'] > 12:
+    if d['imth'] > 12:
         run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
         run_cmdline('rm Rest{name}.{iyr}0?.?????? Rest{name}.{iyr}10.?????? Rest{name}.{iyr}11.??????')
-        #run_cmdline('rm prnew.{iyr}*')
         run_cmdline('rm {name}*{iyr}??')
         run_cmdline('rm {name}*{iyr}??.nc')
         d['imth'] = 1
@@ -1253,7 +1303,7 @@ def restart_flag():
     sdate = d['iyr']*100 +d['imth']
     edate = d['iye']*100 +d['ime']
 
-    if sdate > edate:
+    if (sdate>edate) and (d['dmode']!=5):
         write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
         sys.exit(0)
     else:
@@ -1500,7 +1550,7 @@ def input_template_1():
     &end
     """
 
-    if d['ncsurf'] == 0:
+    if d['ktc_surf'] == 0:
         template = template1 + template3
     else:
         template = template1 + template2 + template3
@@ -1654,8 +1704,8 @@ def cc_template_1():
 
     template = """\
     &input
-     ifile = "{ofile}"
-     ofile = "{hdir}/daily/{ofile}.nc"
+     ifile = "{histfile}"
+     ofile = "{hdir}/daily/{histfile}.nc"
      hres  = {res}
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
@@ -1679,7 +1729,7 @@ def cc_template_2():
 
     template1 = """\
     &input
-     ifile = "{ofile}"
+     ifile = "{histfile}"
      ofile = "{outctmfile}"
      hres  = {res}
      kta={istart} ktb={iend} ktc=60
@@ -1729,11 +1779,11 @@ def cc_template_3():
 
     template1 = """\
     &input
-     ifile = "surf.{ofile}"
+     ifile = "surf.{histfile}"
     """
 
     template2 = """\
-     ofile = "{hdir}/daily/surf.{ofile}.nc"
+     ofile = "{hdir}/daily/surf.{histfile}.nc"
     """
 
     template3 = """\
@@ -1757,11 +1807,11 @@ def cc_template_4():
 
     template1 = """\
     &input
-     ifile = "{ofile}"
+     ifile = "{histfile}"
     """
 
     template2 = """\
-     ofile = "{hdir}/daily/{ofile}.nc"
+     ofile = "{hdir}/daily/{histfile}.nc"
     """
 
     template3 = """\
@@ -1788,11 +1838,11 @@ def cc_template_5():
 
     template1 = """\
     &input
-     ifile = "surf.{ofile}"
+     ifile = "surf.{histfile}"
     """
 
     template2 = """\
-     ofile = "{hdir}/daily/surf.{ofile}.nc"
+     ofile = "{hdir}/daily/surf.{histfile}.nc"
     """
 
     template3 = """\
@@ -1868,7 +1918,7 @@ if __name__ == '__main__':
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
     parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)")
     parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
-    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 2, 3], help=" High-freq output (0=none, 1=lat/lon, 2=raw, 3=cordex)")
+    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 3], help=" High-freq output (0=none, 1=lat/lon, 3=cordex)")
     parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
 
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
