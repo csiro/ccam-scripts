@@ -250,6 +250,8 @@ def check_surface_files():
             testfail = True
         if dict2str('{rcp}\n') != filename.readline():
             testfail = True
+        if dict2str('{sib}\n') != filename.readline():
+            testfail = True
         filename.close()
         if testfail is True:
             run_cable_all()
@@ -259,7 +261,7 @@ def check_surface_files():
             run_cable_all()
 
     for mon in range(1, 13):
-        if d['cmip'] == "cmip5":
+        if (d['cmip']=="cmip5") or (d['sib']==4):
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
@@ -305,6 +307,7 @@ def update_custom_land():
     filename.write(dict2str('{userlaifile}\n'))
     filename.write(dict2str('{cmip}\n'))
     filename.write(dict2str('{rcp}\n'))
+    filename.write(dict2str('{sib}\n'))    
     filename.close()
 
 
@@ -338,6 +341,16 @@ def run_land():
                  == "sibveg completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running sibveg. Check sibveg.log"))
+        run_cmdline('mv -f topsib{domain} topout{domain}')
+    elif d['sib'] == 4:
+        write2file('igbpveg.nml', igbpveg_template(), mode='w+')
+        if d['machinetype'] == 1:
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+        else:
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+        xtest = (subprocess.getoutput('grep -o --text "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
         run_cmdline('mv -f topsib{domain} topout{domain}')
     else:
         print("Generating CABLE land-use data")
@@ -755,7 +768,6 @@ def set_atmos():
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
                       'cable_climate': 1})
 
-
     elif d['sib'] == 2:
         d.update({'nsib': 5, 'ccycle': 0, 'proglai': 0, 'progvcmax': 0,
                   'soil_struc': 0, 'fwsoil_switch': 3, 'cable_pop': 0,
@@ -789,8 +801,31 @@ def set_atmos():
         elif d['casa'] == 3:
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
                       'cable_climate': 1})
+		      
+    elif d['sib'] == 4:
+        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3, 'cable_litter': 0,
+                  'gs_switch': 1})
+
+        if d['casa'] == 0:
+            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
+                      'cable_climate': 0})
+
+        elif d['casa'] == 1:
+            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
+                      'cable_climate': 0})
+
+        elif d['casa'] == 2:
+            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
+                      'cable_climate': 0})
+
+        elif d['casa'] == 3:
+            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
+                      'cable_climate': 1})
 
     if d['cmip'] == "cmip5":
+        d.update({'vegin': dict2str('{hdir}/vegdata'),
+                  'vegfile': dict2str('veg{domain}.{imth_2digit}')})
+    elif d['sib'] == 4:
         d.update({'vegin': dict2str('{hdir}/vegdata'),
                   'vegfile': dict2str('veg{domain}.{imth_2digit}')})
     else:
@@ -1071,17 +1106,25 @@ def check_correct_landuse(fname):
 
     testfail = False
 
-    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-    if d['sib'] == 1 and cable_data is False:
-        testfail = True
+    if d['sib'] == 1:
+        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
+        if cable_data is False:
+            testfail = True
 
-    modis_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text sibvegversion') == "sibvegversion")
-    if d['sib'] == 2 and modis_data is False:
-        testfail = True
+    if d['sib'] == 2:
+        modis_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text sibvegversion') == "sibvegversion")
+        if modis_data is False:
+            testfail = True
 
-    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-    if d['sib'] == 3 and cable_data is False:
-        testfail = True
+    if d['sib'] == 3:
+        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
+        if cable_data is False:
+            testfail = True
+	
+    if d['sib'] == 4:	
+        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
+        if cable_data is False:
+            testfail = True
 
     return testfail
 
@@ -1772,6 +1815,9 @@ def cc_template_2():
 
     if d['sib'] == 3:
         template = template1 + template3
+	
+    if d['sib'] == 4:
+        template = template1 + template3
 
     return template
 
@@ -1909,7 +1955,7 @@ if __name__ == '__main__':
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
     parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only, 5=postprocess-only, 6=spectral(GCM)+SST")
-    parser.add_argument("--sib", type=int, choices=[1, 2, 3], help=" land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)")
+    parser.add_argument("--sib", type=int, choices=[1, 2, 3, 4], help=" land surface (1=CABLE+vary, 2=MODIS, 3=CABLE+SLI, 4=CABLE+const)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)")
     parser.add_argument("--cloud", type=int, choices=[0, 1, 2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")

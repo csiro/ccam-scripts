@@ -58,8 +58,8 @@ mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outl
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5=postprocess-only, 6=Spectral(GCM)+SST )
-cmip=cmip5                                   # CMIP scenario (cmip5 or cmip6)
-rcp=RCP45                                    # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
+cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
+rcp=ssp245                                   # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=54                                      # number of model levels (27, 35, 54, 72, 108 or 144)
 sib=1                                        # land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)
 aero=1                                       # aerosols (0=off, 1=prognostic)
