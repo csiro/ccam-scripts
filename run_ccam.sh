@@ -61,7 +61,7 @@ dmode=0                                      # simulation type (0=downscale spec
 cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
 rcp=ssp245                                   # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=54                                      # number of model levels (27, 35, 54, 72, 108 or 144)
-sib=1                                        # land surface (1=CABLE, 2=MODIS, 3=CABLE+SLI)
+sib=1                                        # land surface (1=CABLE+varying landuse, 2=MODIS, 3=CABLE+SLI, 4=CABLE+const landuse)
 aero=1                                       # aerosols (0=off, 1=prognostic)
 conv=4                                       # convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)
 cloud=2                                      # cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)

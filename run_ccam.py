@@ -12,7 +12,6 @@ def main(inargs):
     check_inargs()
     create_directories()
     calc_dt_out()
-    set_ktc_surf()
     calc_res()
 
     for mth in range(0, d['ncountmax']):
@@ -162,13 +161,6 @@ def calc_dt_out():
 
     if d['ktc'] < d['dtout']:
         d['dtout'] = d['ktc']
-
-
-def set_ktc_surf():
-    "Set tstep for high-frequency output"
-
-    if d['ncsurf'] == 0:
-        d['ktc_surf'] = d['dtout']
 
 
 def get_datetime():
@@ -477,9 +469,15 @@ def calc_dt_mod():
               250:5, 200:4, 150:3, 100:2, 50:1}
 
     # determine dt based on dx, dtout and ktc_surf
-    for dx in sorted(d_dxdt):
-        if (d['gridres_m'] >= dx) and (60 * d['dtout'] % d_dxdt[dx] == 0) and (60 * d['ktc_surf'] % d_dxdt[dx] == 0):
-            d['dt'] = d_dxdt[dx]
+    if d['ktc_surf'] > 0:
+        for dx in sorted(d_dxdt):
+            if (d['gridres_m'] >= dx) and (60 * d['dtout'] % d_dxdt[dx] == 0) and (60 * d['ktc_surf'] % d_dxdt[dx] == 0):
+                d['dt'] = d_dxdt[dx]
+    else:
+        for dx in sorted(d_dxdt):
+            if (d['gridres_m'] >= dx) and (60 * d['dtout'] % d_dxdt[dx] == 0):
+                d['dt'] = d_dxdt[dx]
+    
 
     if d['gridres_m'] < 50:
         raise ValueError("Minimum grid resolution of 50m has been exceeded")
@@ -487,7 +485,7 @@ def calc_dt_mod():
     if d['ktc'] % d['dtout'] != 0:
         raise ValueError("ktc must be a multiple of dtout")
 
-    if d['ktc_surf'] != 0:
+    if d['ktc_surf'] > 0:
         if d['dtout'] % d['ktc_surf'] != 0: # This order is different to original code
             raise ValueError("dtout must be a multiple of ktc_surf")
 
@@ -857,7 +855,10 @@ def set_atmos():
 def set_surfc():
     "Prepare surface files"
 
-    d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
+    if d['ktc_surf'] > 0:
+        d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
+    else:
+        d.update({'tbave': 0})	
 
 def set_aeros():
     "Prepare aerosol files"
