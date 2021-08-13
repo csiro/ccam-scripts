@@ -1169,6 +1169,9 @@ def post_process_output():
         fname = dict2str('{histfile}.000000')
         if os.path.exists(fname):
 
+            if d['ncout'] == 0:
+	        ftest = False
+
             if d['ncout'] == 1:
                 fname = dict2str('{hdir}/daily/{histfile}.nc')
                 if not os.path.exists(fname):
@@ -1268,6 +1271,9 @@ def post_process_output():
             if seconds_check is True:
                 d['ktc_units'] = d['ktc_units']*60
 
+            if d['ncsurf'] == 0:
+	        ftest = False
+
             if d['ncsurf'] == 1:
                 fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
                 if not os.path.exists(fname):
@@ -1312,9 +1318,11 @@ def post_process_output():
             hm = 1
             hy = hy + 1
         if (hy>d['iye']) and (ftest==True):
-            print("CCAM post-processing is completed")
-            write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
-            sys.exit(0)
+	    if d['dmode'] == 5:
+                print("CCAM post-processing is complete")
+                write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
+                sys.exit(0)
+
 
 def update_monthyear():
     # update counter for next simulation month and remove old files
