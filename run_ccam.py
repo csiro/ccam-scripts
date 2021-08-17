@@ -121,6 +121,9 @@ def check_inargs():
     if d['userlaifile'] == 'none':
         d['userlaifile'] = ''
 
+    if (d['ncsurf']==0) and (d['nctar']==0):
+        d['ktc_surf'] = 0
+
 
 def create_directories():
     "Create output directories and go to working directory"
