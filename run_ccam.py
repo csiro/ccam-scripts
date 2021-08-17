@@ -1170,7 +1170,7 @@ def post_process_output():
         if os.path.exists(fname):
 
             if d['ncout'] == 0:
-	        ftest = False
+                ftest = False
 
             if d['ncout'] == 1:
                 fname = dict2str('{hdir}/daily/{histfile}.nc')
@@ -1272,7 +1272,7 @@ def post_process_output():
                 d['ktc_units'] = d['ktc_units']*60
 
             if d['ncsurf'] == 0:
-	        ftest = False
+                ftest = False
 
             if d['ncsurf'] == 1:
                 fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
@@ -1318,7 +1318,7 @@ def post_process_output():
             hm = 1
             hy = hy + 1
         if (hy>d['iye']) and (ftest==True):
-	    if d['dmode'] == 5:
+            if d['dmode'] == 5:
                 print("CCAM post-processing is complete")
                 write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
                 sys.exit(0)
