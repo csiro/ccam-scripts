@@ -851,6 +851,8 @@ def set_atmos():
     elif d['conv'] == 3:
         d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
 
+    elif d['conv'] == 5:
+        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
 
 def set_surfc():
     "Prepare surface files"
@@ -1021,6 +1023,8 @@ def create_input_file():
         write2file('input', input_template_5())
     elif d['conv'] == 4:
         write2file('input', input_template_3a())
+    elif d['conv'] == 5:
+        write2file('input', input_template_2b())
 
     write2file('input', input_template_6())
 
@@ -1721,6 +1725,31 @@ def input_template_5():
     &end
     """
 
+def input_template_2b():
+    "Second part of template for 'input' namelist file"
+
+    return """
+    &kuonml
+     nkuo=21
+     alfsea=1.10 alflnd=1.10
+     convfact=1.05 convtime=-3030.60
+     tied_con=0.85 mdelay=0
+     fldown=-0.3
+     iterconv=3
+     ksc=0 kscsea=0 kscmom=1 dsig2=0.1
+     mbase=3 nbase=3
+     methprec=5 detrain=0.05 methdetr=-5
+     ncvcloud=0
+     nevapcc=0 entrain=-0.5
+     nuvconv=-3
+     rhcv=0. rhmois=0. tied_over=1026.
+     nmr={nmr} nclddia=12 nevapls=-4
+     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+    &end
+    """
+
+
 def input_template_6():
     "Sixth part of template for 'input' namelist file"
 
@@ -1967,7 +1996,7 @@ if __name__ == '__main__':
     parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only, 5=postprocess-only, 6=spectral(GCM)+SST")
     parser.add_argument("--sib", type=int, choices=[1, 2, 3, 4], help=" land surface (1=CABLE+vary, 2=MODIS, 3=CABLE+SLI, 4=CABLE+const)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
-    parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a)")
+    parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4, 5], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a, 5=2021)")
     parser.add_argument("--cloud", type=int, choices=[0, 1, 2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
     parser.add_argument("--rad", type=int, choices=[0, 1], help=" radiation (0=SE3, 1=SE4)")
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
