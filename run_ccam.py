@@ -973,26 +973,28 @@ def set_aeros():
 def create_aeroemiss_file():
     "Write arguments to 'aeroemiss' namelist file"
 
-    if d['aero'] == 1:
+    if d['aero'] != 0:
         write2file('aeroemiss.nml', aeroemiss_template(), mode='w+')
 
 
 def create_sulffile_file():
     "Create the aerosol forcing file"
 
-    # Remove any existing sulffile:
-    run_cmdline('rm -rf {sulffile}')
+    if d['aero'] != 0:
 
-    # Create new sulffile:
-    if d['machinetype'] == 1:
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
-    else:
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+        # Remove any existing sulffile:
+        run_cmdline('rm -rf {sulffile}')
 
-    xtest = (subprocess.getoutput('grep -o --text "aeroemiss completed successfully" aero.log')
-             == "aeroemiss completed successfully")
-    if xtest is False:
-        raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
+        # Create new sulffile:
+        if d['machinetype'] == 1:
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+        else:
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+
+        xtest = (subprocess.getoutput('grep -o --text "aeroemiss completed successfully" aero.log')
+                 == "aeroemiss completed successfully")
+        if xtest is False:
+            raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
 
 
 def create_input_file():
