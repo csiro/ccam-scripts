@@ -1743,8 +1743,8 @@ def input_template_2b():
      nevapcc=0 entrain=-0.5
      nuvconv=-3
      rhcv=0. rhmois=0. tied_over=1026.
-     nmr={nmr} nclddia=12 nevapls=-4
-     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     nmr={nmr} nclddia=12
+     nevapls=-4 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
     &end
     """
