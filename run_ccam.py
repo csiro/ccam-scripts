@@ -1201,13 +1201,17 @@ def post_process_output():
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --multioutput > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
                         if d['ncmulti'] == 1:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1224,13 +1228,17 @@ def post_process_output():
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
                         if d['ncmulti'] == 1:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1247,13 +1255,17 @@ def post_process_output():
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --multioutput --interp=nearest > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
                         if d['ncmulti'] == 1:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput --interp=nearest > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1292,13 +1304,17 @@ def post_process_output():
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
                         if d['ncmulti'] == 1:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1339,13 +1355,17 @@ def post_process_output():
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --multioutput > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                     else:
                         if d['ncmulti'] == 1:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1362,13 +1382,17 @@ def post_process_output():
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                     else:
                         if d['ncmulti'] == 1:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                         else:
                             run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1855,7 +1879,7 @@ def cc_template_1():
     template = """\
     &input
      ifile = "{histfile}"
-     ofile = "{hdir}/daily/{histfile}.nc"
+     ofile = "{histfile}.nc"
      hres  = {res}
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
@@ -1936,7 +1960,7 @@ def cc_template_3():
     """
 
     template2 = """\
-     ofile = "{hdir}/daily/surf.{histfile}.nc"
+     ofile = "surf.{histfile}.nc"
     """
 
     template3 = """\
@@ -1964,7 +1988,7 @@ def cc_template_4():
     """
 
     template2 = """\
-     ofile = "{hdir}/daily/{histfile}.nc"
+     ofile = "{histfile}.nc"
     """
 
     template3 = """\
@@ -1995,7 +2019,7 @@ def cc_template_5():
     """
 
     template2 = """\
-     ofile = "{hdir}/daily/surf.{histfile}.nc"
+     ofile = "surf.{histfile}.nc"
     """
 
     template3 = """\
