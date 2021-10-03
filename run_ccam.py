@@ -65,7 +65,7 @@ def check_inargs():
                   'iys', 'ims', 'iye', 'ime', 'leap', 'ncountmax', 'ktc', 'minlat', 'maxlat',
                   'minlon', 'maxlon', 'reqres', 'outlevmode', 'plevs', 'mlevs', 'dlevs', 'dmode',
                   'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix', 'mlo', 'casa',
-                  'ncout', 'nctar', 'ncsurf', 'ktc_surf', 'machinetype', 'bcdom', 'bcsoil',
+                  'ncout', 'nctar', 'ncsurf', 'ncmulti', 'ktc_surf', 'machinetype', 'bcdom', 'bcsoil',
                   'sstfile', 'sstinit', 'cmip', 'insdir', 'hdir', 'wdir', 'bcdir', 'sstdir',
                   'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg', 'sibveg',
                   'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex', 'soilparm',
@@ -1091,10 +1091,13 @@ def check_correct_host():
         if ccam_host is True and d['dmode'] == 6:
             raise ValueError('CCAM is the host model. Use dmode = 2')
 
+    if d['dmode'] == 0:
+        if d['inv_schmidt'] < 0.2:
+            raise ValueError('CCAM grid stretching is too high for dmode=0.  Try reducing grid resolution or increasing grid size')
 
     if d['dmode'] == 1:
         if d['inv_schmidt'] < 0.2:
-            raise ValueError('CCAM grid stretching is too high for dmode=0.  Try reducing grid resolution or increasing grid size')
+            raise ValueError('CCAM grid stretching is too high for dmode=1.  Try reducing grid resolution or increasing grid size')
 
     if d['dmode'] == 2:
         fname = d['mesonest']+'.000000'
@@ -1157,6 +1160,16 @@ def run_model():
     if os.path.exists(fname):
         run_cmdline('rm {mesonest}')
 
+    fname = dict2str('{hdir}/daily/{ofile}.nc')
+    if os.path.exists(fname):
+        run_cmdline('rm {hdir}/daily/{ofile}.nc')
+    fname = dict2str('{hdir}/daily/surf.{ofile}.nc')
+    if os.path.exists(fname):
+        run_cmdline('rm {hdir}/daily/surf.{ofile}.nc')
+    fname = dict2str('{hdir}/daily/ccam_{iyr}{imth_2digit}01.nc')
+    if os.path.exists(fname):
+        run_cmdline('rm {hdir}/daily/ccam_{iyr}{imth_2digit}??.nc')
+
 def post_process_output():
     "Post-process the CCAM model output"
     
@@ -1179,13 +1192,22 @@ def post_process_output():
                 ftest = False
 
             if d['ncout'] == 1:
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if d['numulti'] == 1:
+                    fname = dict2str('{hdir}/daily/rnd_{histfile}.nc')
+                else:
+                    fname = dict2str('{hdir}/daily/{histfile}.nc')
                 if not os.path.exists(fname):
                     write2file('cc.nml', cc_template_1(), mode='w+')
                     if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
                     else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1193,13 +1215,22 @@ def post_process_output():
                     ftest = False
 
             if d['ncout'] == 2:
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if d['ncmulti'] == 1:
+                    fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
+                else:
+                    fname = dict2str('{hdir}/daily/{histfile}.nc')
                 if not os.path.exists(fname):
                     write2file('cc.nml', cc_template_1(), mode='w+')
                     if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
                     else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1207,13 +1238,22 @@ def post_process_output():
                     ftest = False		
 
             if d['ncout'] == 4:
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if d['ncmulti'] == 1:
+                    fname = dict2str('{hdir}/daily/rnd_{histfile}.nc')
+                else:
+                    fname = dict2str('{hdir}/daily/{histfile}.nc')
                 if not os.path.exists(fname):
                     write2file('cc.nml', cc_template_1(), mode='w+')
                     if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --multioutput --interp=nearest > pcc2hist.log')
+                        else:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
                     else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput --interp=nearest > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1229,7 +1269,7 @@ def post_process_output():
                         d['cday'] = mon_2digit(iday)
                         d['iend'] = iday*1440
                         d['istart'] = (iday*1440)-1440
-                        d['outctmfile'] = dict2str("ccam_{iyr}{imth_2digit}{cday}.nc")
+                        d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
                         write2file('cc.nml', cc_template_2(), mode='w+')
                         if d['machinetype'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
@@ -1243,13 +1283,22 @@ def post_process_output():
                     ftest = False
 
             if d['ncout'] == 6:
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if d['ncmulti'] == 1:
+                    fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
+                else:
+                    fname = dict2str('{hdir}/daily/{histfile}.nc')
                 if not os.path.exists(fname):
                     write2file('cc.nml', cc_template_4(), mode='w+')
                     if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
                     else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1281,13 +1330,22 @@ def post_process_output():
                 ftest = False
 
             if d['ncsurf'] == 1:
-                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
+                if d['ncmulti'] == 1:
+                    fname = dict2str('{hdir}/daily/rnd_surf.{histfile}.nc')
+                else:
+                    fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
                 if not os.path.exists(fname):
                     write2file('cc.nml', cc_template_3(), mode='w+')
                     if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --multioutput > surf.pcc2hist.log')
+                        else:
+                            run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
                     else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput > surf.pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1295,13 +1353,22 @@ def post_process_output():
                     ftest = False
 
             if d['ncsurf'] == 3:
-                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
+                if d['ncmulti'] == 1:
+                    fname = dict2str('{hdir}/daily/pr_surf.{histfile}.nc')
+                else:
+                    fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
                 if not os.path.exists(fname):
                     write2file('cc.nml', cc_template_5(), mode='w+')
                     if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                        else:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
                     else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                        if d['ncmulti'] == 1:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1451,7 +1518,7 @@ def igbpveg_template():
      soilconfig="{soilparm}"
      user_veginput="{uservegfile}"
      user_laiinput="{userlaifile}"
-     natural_maxtile=5
+     natural_maxtile=4
     &end
     """
 
@@ -2005,7 +2072,8 @@ if __name__ == '__main__':
     parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)")
     parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
     parser.add_argument("--ncsurf", type=int, choices=[0, 1, 3], help=" High-freq output (0=none, 1=lat/lon, 3=cordex)")
-    parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins)")
+    parser.add_argument("--ncmulti", type=int, choices=[0, 1], help=" Multiple output per variable (0=off, 1=on)")
+    parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins) (0=off)")
 
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
     parser.add_argument("--cableparm", type=str, help=" User defined CABLE vegetation parameter file (default for standard values)")

@@ -44,8 +44,9 @@ fi
 
 ncsurf=3                                     # high-freq output (0=none, 1=lat/lon, 3=CORDEX)
 ncout=0                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)
+ncmulti=1                                    # multiple output per variable (0=off, 1=on)
 nctar=0                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
-ktc_surf=60                                  # high-freq file output period (mins)
+ktc_surf=60                                  # high-freq file output period (mins) (0=off)
 ktc=360                                      # standard output period (mins)
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
 maxlat=-999.                                 # output max latitude (degrees) (-999.=automatic)
@@ -117,7 +118,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
 		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --rad $rad --bmix $bmix --mlo $mlo \
-                   --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf \
+                   --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf --ncmulti $ncmulti \
                    --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
                    --bcsoilfile $bcsoilfile \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
