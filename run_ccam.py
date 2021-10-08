@@ -1866,7 +1866,7 @@ def input_template_6():
     &mlonml
      mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=0
-     ocnsmag=1. zomode=0 ocneps=0.2 omaxl=1000.
+     ocnsmag=1. zomode=0 ocneps=0.3 omaxl=1000.
      rivermd=1
     &end
     &tin &end
