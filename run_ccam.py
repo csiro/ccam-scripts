@@ -728,7 +728,7 @@ def set_ocean():
         #Interpolated SSTs
         d.update({'nmlo': 0, 'mbd_mlo': 0, 'nud_sst': 0,
                   'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                  'kbotmlo': -1000})
+                  'kbotmlo': -40})
 
     else:
         #Dynanical Ocean
@@ -736,13 +736,13 @@ def set_ocean():
             # Downscaling mode - GCM or SST-only:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                      'kbotmlo': -1000})
+                      'kbotmlo': -40})
 
         elif d['dmode'] == 2:
             # Downscaling CCAM:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
-                      'kbotmlo': -1000})
+                      'kbotmlo': -40})
 
 def set_atmos():
     "Atmospheric physics settings"
