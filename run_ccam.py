@@ -135,13 +135,13 @@ def create_directories():
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
 
-    run_cmdline('rm -f {hdir}/restart.qm')
-
     if d['dmode'] == 5:
+        run_cmdline('rm -f {hdir}/restart5.qm')    
         dirname = dict2str('{hdir}/OUTPUT')
         if not os.path.isdir(dirname):
             raise ValueError(dict2str("dmode=5 requires existing data in OUTPUT directory"))
     else:
+        run_cmdline('rm -f {hdir}/restart.qm')    
         dirname = dict2str('{wdir}')
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
@@ -152,9 +152,6 @@ def calc_dt_out():
     "Calculate model output timestep"
 
     d['dtout'] = 360  # raw cc output frequency (mins)
-
-    if d['ncout'] == 3:
-        d['dtout'] = 60 # need hourly output for CTM
 
     if d['ncout'] == 5:
         d['dtout'] = 60 # need hourly output for CTM
@@ -1245,33 +1242,6 @@ def post_process_output():
                         raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
                     ftest = False		
 
-            if d['ncout'] == 4:
-                if d['ncmulti'] == 1:
-                    fname = dict2str('{hdir}/daily/rnd_{histfile}.nc')
-                else:
-                    fname = dict2str('{hdir}/daily/{histfile}.nc')
-                if not os.path.exists(fname):
-                    write2file('cc.nml', cc_template_1(), mode='w+')
-                    if d['machinetype'] == 1:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --multioutput --interp=nearest > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                    else:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput --interp=nearest > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=nearest > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-                    ftest = False		
-
             if d['ncout'] == 5:
                 histndays = monthrange(histear, histmonth)[1]
                 d['cday'] = mon_2digit(histndays)
@@ -1294,13 +1264,13 @@ def post_process_output():
                     run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
                     ftest = False
 
-            if d['ncout'] == 6:
+            if d['ncout'] == 7:
                 if d['ncmulti'] == 1:
                     fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
                 else:
                     fname = dict2str('{hdir}/daily/{histfile}.nc')
                 if not os.path.exists(fname):
-                    write2file('cc.nml', cc_template_4(), mode='w+')
+                    write2file('cc.nml', cc_template_6(), mode='w+')
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
@@ -1417,7 +1387,7 @@ def post_process_output():
         if (hy>d['iye']) and (ftest==True):
             if d['dmode'] == 5:
                 print("CCAM post-processing is complete")
-                write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
+                write2file(d['hdir']+'/restart5.qm', "Complete", mode='w+')
                 sys.exit(0)
 
 
@@ -1452,11 +1422,14 @@ def restart_flag():
     sdate = d['iyr']*100 +d['imth']
     edate = d['iye']*100 +d['ime']
 
-    if (sdate>edate) and (d['dmode']!=5):
-        write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
-        sys.exit(0)
-    else:
-        write2file(d['hdir']+'/restart.qm', "True", mode='w+')
+    if d['dmode'] == 5:
+        write2file(d['hdir']+'/restart5.qm', "True", mode='w+')
+    else:	
+        if sdate > edate:
+            write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
+            sys.exit(0)
+        else:
+            write2file(d['hdir']+'/restart.qm', "True", mode='w+')
 
 
 def run_cmdline(arg):
@@ -1979,37 +1952,6 @@ def cc_template_3():
 
     return template
 
-def cc_template_4():
-    "First part of template for 'cc.nml' namelist file"
-
-    template1 = """\
-    &input
-     ifile = "{histfile}"
-    """
-
-    template2 = """\
-     ofile = "{histfile}.nc"
-    """
-
-    template3 = """\
-     hres  = {res}
-     kta={ktc}   ktb=999999  ktc={ktc}
-     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
-     use_plevs = F
-     use_meters = F
-     use_depth = F
-    &end
-    &histnl
-     htype="inst"
-     hnames= "he","pr","ps","ts","alb","clh","cll","clm","clt","cor","d10","dni","lai","prc","psl","sic","snc","snd","snm","snw","tas","epan","evap","grid","prgr","hfls","hfss","hurs","huss","mrro","mrso","orog","prsn","rlds","rlus","rlut","rsds","rsdt","rsus","rsut","sund","tauu","tauv","tpan","vegt","zmla","clivi","clwvi","mrfso","mrros","prmax","qstar","rnd24","sftlf","siced","sigmf","sigmu","soilt","tstar","uscrn","ustar","zolnd","tasmax","tasmin","u10max","v10max","uriver","vriver","wetfac","dew_ave","evspsbl","sfcWind","anth_ave","cape_ave","cape_max","cbas_ave","ctop_ave","epan_ave","rhmaxscr","rhminscr","rnet_ave","sdischarge","tdew","urbantas","evspsblpot","sfcWindmax","thetavstar","urbantasmax","urbantasmin","anth_elecgas_ave","anth_heat_ave","anth_cool_ave"
-     hfreq = 1
-    &end
-    """
-
-    template = template1 + template2 + template3
-
-    return template
-
 def cc_template_5():
     "Fifth part of template for 'cc.nml' namelist file"
 
@@ -2035,6 +1977,48 @@ def cc_template_5():
     """
 
     template = template1 + template2 + template3
+
+    return template
+
+def cc_template_6():
+    "Sixth part of template for 'cc.nml' namelist file"
+
+    template1 = """\
+    &input
+     ifile = "{histfile}"
+     ofile = "{histfile}.nc"
+     hres  = {res}
+     kta={ktc}   ktb=999999  ktc={ktc}
+     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
+     use_plevs = {use_plevs}
+     use_meters = {use_meters}     
+     use_depth = {use_depth}
+     plevs = {plevs}
+     mlevs = {mlevs}
+     dlevs = {dlevs}
+    &end
+    &histnl
+     htype="inst"
+    """
+    template2 = """\
+    hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
+"tasmax","tasmin","sfcWind","zg","hus"
+     hfreq = 1
+    &end
+    """
+    
+    template3 = """\
+    hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
+"tasmax","tasmin","sfcWind","zg","hus","tos","sos","uos","vos"
+     hfreq = 1
+    &end
+    """
+    
+    if d['mlo'] == 0:
+        template = template1 + template2
+
+    if d['mlo'] == 1:
+        template = template1 + template3
 
     return template
 
@@ -2093,7 +2077,7 @@ if __name__ == '__main__':
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
-    parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 4, 5, 6], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)")
+    parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 5, 7], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 5=CTM, 7=basic)")
     parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
     parser.add_argument("--ncsurf", type=int, choices=[0, 1, 3], help=" High-freq output (0=none, 1=lat/lon, 3=cordex)")
     parser.add_argument("--ncmulti", type=int, choices=[0, 1], help=" Multiple output per variable (0=off, 1=on)")
