@@ -42,6 +42,9 @@ if [[ $gridres = "-999." ]]; then
   name=`echo $name | sed "s/$gridres/$gridtxt"/g`
 fi
 
+drsmode=0                                    # DRS output (0=off, 1=on)
+drshost=none                                 # Host GCM for DRS otput (e.g., ACCESS1-0)
+drsdomain=none                               # DRS domain (e.g., AUS-50)
 ncsurf=3                                     # high-freq output (0=none, 1=lat/lon, 3=CORDEX)
 ncout=0                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)
 ncmulti=1                                    # multiple output per variable (0=off, 1=on)
@@ -128,13 +131,19 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
 		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
 		   --uservegfile $uservegfile --userlaifile $userlaifile
 
-if [ "`cat $hdir/restart.qm`" == "True" ]; then
+if [ $dmode -eq 5 ]; then
+  restname = restart5.qm
+else
+  restname = restar.qm
+fi
+
+if [ "`cat $hdir/$restname`" == "True" ]; then
   echo 'Restarting script'
-  rm $hdir/restart.qm
+  rm $hdir/$restname
   sbatch $hdir/run_ccam.sh
-elif [ "`cat $hdir/restart.qm`" == "Complete" ]; then
+elif [ "`cat $hdir/$restname`" == "Complete" ]; then
   echo 'CCAM simulation completed normally'
-  rm $hdir/restart.qm
+  rm $hdir/$restname
 fi
 
 exit

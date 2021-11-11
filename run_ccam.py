@@ -3,6 +3,7 @@ import argparse
 import sys
 import subprocess
 from calendar import monthrange
+import json
 
 def main(inargs):
     "Run the CCAM model"
@@ -1172,28 +1173,30 @@ def post_process_output():
     
     hy = d['iys']
     hm = 1
+    ftest_cordex = False
     ftest = True
     while ftest:
         d['histmonth'] = mon_2digit(hm)
         d['histyear'] = hy
         d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
 	
-        fname = dict2str('{histfile}.tar')
-        if os.path.exists(fname):
-            run_cmdline('tar xvf '+fname)    
-	
-        fname = dict2str('{histfile}.000000')
-        if os.path.exists(fname):
+        if d['ncout'] == 0:
+            ftest = False
 
-            if d['ncout'] == 0:
-                ftest = False
-
-            if d['ncout'] == 1:
-                if d['numulti'] == 1:
-                    fname = dict2str('{hdir}/daily/rnd_{histfile}.nc')
-                else:
-                    fname = dict2str('{hdir}/daily/{histfile}.nc')
-                if not os.path.exists(fname):
+        if d['ncout'] == 1:
+            if d['numulti'] == 1:
+                fname = dict2str('{hdir}/daily/rnd_{histfile}.nc')
+            else:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)    
+                if os.path.exists(cname):
                     write2file('cc.nml', cc_template_1(), mode='w+')
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
@@ -1213,14 +1216,24 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
                     ftest = False
 
-            if d['ncout'] == 2:
-                if d['ncmulti'] == 1:
-                    fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
-                else:
-                    fname = dict2str('{hdir}/daily/{histfile}.nc')
-                if not os.path.exists(fname):
+        if d['ncout'] == 2:
+            if d['ncmulti'] == 1:
+                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
+            else:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)    
+                if os.path.exists(cname):
                     write2file('cc.nml', cc_template_1(), mode='w+')
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
@@ -1240,13 +1253,23 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
                     ftest = False		
 
-            if d['ncout'] == 5:
-                histndays = monthrange(histear, histmonth)[1]
-                d['cday'] = mon_2digit(histndays)
-                fname = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
-                if not os.path.exists(fname):
+        if d['ncout'] == 5:
+            histndays = monthrange(histear, histmonth)[1]
+            d['cday'] = mon_2digit(histndays)
+            fname = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)    
+                if os.path.exists(cname):
                     for iday in range(1, histndays+1):
                         d['cday'] = mon_2digit(iday)
                         d['iend'] = iday*1440
@@ -1262,14 +1285,24 @@ def post_process_output():
                         if xtest is False:
                             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
                     run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
                     ftest = False
 
-            if d['ncout'] == 7:
-                if d['ncmulti'] == 1:
-                    fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
-                else:
-                    fname = dict2str('{hdir}/daily/{histfile}.nc')
-                if not os.path.exists(fname):
+        if d['ncout'] == 7:
+            if d['ncmulti'] == 1:
+                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
+            else:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)    
+                if os.path.exists(cname):
                     write2file('cc.nml', cc_template_6(), mode='w+')
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
@@ -1289,38 +1322,50 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
                     ftest = False
 
-            # store output
-            if (d['nctar']==0) and (d['dmode']!=5):
+        # store output
+        if (d['nctar']==0) and (d['dmode']!=5):
+            cname = dict2str('{histfile}.000000')
+            if os.path.exists(cname):
                 run_cmdline('mv {histfile}.?????? {hdir}/OUTPUT')
 
-            if d['nctar'] == 1:
+        if d['nctar'] == 1:
+            cname = dict2str('{histfile}.000000')
+            if os.path.exists(cname):
                 run_cmdline('tar cvf {hdir}/OUTPUT/{histfile}.tar {histfile}.??????')
                 run_cmdline('rm {histfile}.??????')
 
-            if d['nctar'] == 2:
+        if d['nctar'] == 2:
+            cname = dict2str('{histfile}.000000')
+            if os.path.exists(cname):
                 run_cmdline('rm {histfile}.??????')
 
         # surface files
-        fname = dict2str('surf.{histfile}.000000')
-        if os.path.exists(fname):
+        if d['ncsurf'] == 0:
+            ftest = False
 
-            d['ktc_units'] = d['ktc_surf']
-            fname = dict2str('surf.{histfile}.000000')
-            seconds_check = (subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | grep -o --text seconds') == "seconds")
-            if seconds_check is True:
-                d['ktc_units'] = d['ktc_units']*60
-
-            if d['ncsurf'] == 0:
-                ftest = False
-
-            if d['ncsurf'] == 1:
-                if d['ncmulti'] == 1:
-                    fname = dict2str('{hdir}/daily/rnd_surf.{histfile}.nc')
-                else:
-                    fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
-                if not os.path.exists(fname):
+        if d['ncsurf'] == 1:
+            if d['ncmulti'] == 1:
+                fname = dict2str('{hdir}/daily/rnd_surf.{histfile}.nc')
+            else:
+                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)    
+                if os.path.exists(cname):
+                    d['ktc_units'] = d['ktc_surf']
+                    cname = dict2str('surf.{histfile}.000000')
+                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
+                    if seconds_check is True:
+                        d['ktc_units'] = d['ktc_units']*60
                     write2file('cc.nml', cc_template_3(), mode='w+')
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
@@ -1340,14 +1385,29 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
                     ftest = False
 
-            if d['ncsurf'] == 3:
-                if d['ncmulti'] == 1:
-                    fname = dict2str('{hdir}/daily/pr_surf.{histfile}.nc')
-                else:
-                    fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
-                if not os.path.exists(fname):
+        if d['ncsurf'] == 3:
+            if d['ncmulti'] == 1:
+                fname = dict2str('{hdir}/daily/pr_surf.{histfile}.nc')
+            else:
+                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)    
+                if os.path.exists(cname):
+                    d['ktc_units'] = d['ktc_surf']
+                    cname = dict2str('surf.{histfile}.000000')
+                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
+                    if seconds_check is True:
+                        d['ktc_units'] = d['ktc_units']*60
                     write2file('cc.nml', cc_template_5(), mode='w+')
                     if d['machinetype'] == 1:
                         if d['ncmulti'] == 1:
@@ -1367,6 +1427,9 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
+                    ftest_cordex = True
                     ftest = False
 
             # store output
@@ -1382,6 +1445,43 @@ def post_process_output():
 
         hm = hm + 1
         if hm > 12:
+            # create JSON file for DRS if new cordex formatted output was created
+            if (d['drsmode']==1) and (ftest_cordex is True) and (d['ncmulti']==1):
+                dirname = dict2str('{hdir}/drs')
+                if not os.path.isdir(dirname):
+                    os.mkdir(dirname)
+                # check if all files are present    
+                ctest = True
+                tm = 1
+                while (tm<=12) and (ctest is True):    
+                    d['histmonth'] = mon_2digit(tm)
+                    fname = dict2str('{hdir}/daily/pr_surf.{name}.{histyear}{histmonth}.nc')
+                    if not os.path.exists(fname):
+                        ctest = False
+                    tm = tm + 1
+                if ctest is True:
+                    hres = d['gridres']
+                    payload = dict(
+                        input_files=dict2str('{hdir}/daily/*surf*nc'),
+                        output_dir=dict2str('{hdir}/drs/'),
+                        start_year=hy, end_year=hy,
+                        output_frequency='1M',
+                        project='CORDEX',
+                        model=dict2str('{drshost}'),
+                        variables=[ '' ],
+                        domains=[ dict2str('{drsdomain}') ],
+                        cordex=True,
+                        input_resolution=hres
+                    )
+                    f = open(dict2str('{hdir}/daily/payload.json.{histyear}'), 'w', encoding='utf-8')
+                    json.dump(
+                        payload,
+                        f,
+                        ensure_ascii=False,
+                        indent=4
+                    )
+                    f.close()
+            # Advace year
             hm = 1
             hy = hy + 1
         if (hy>d['iye']) and (ftest==True):
@@ -1593,7 +1693,7 @@ def input_template_1():
      epsp=0.1 epsu=0.1 epsh=1.
      precon=-10000 restol=2.e-7 nh=5 knh=9
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0
-     mh_bs={mh_bs}
+     mh_bs={mh_bs} ntvd=3
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
@@ -2092,6 +2192,10 @@ if __name__ == '__main__':
 
     parser.add_argument("--machinetype", type=int, choices=[0, 1], help=" Machine type (0=generic, 1=cray)")
     parser.add_argument("--bcsoil", type=int, choices=[0, 1, 2], help=" Initial soil moisture (0=constant, 1=climatology)")
+    
+    parser.add_argument("--drsmode", type=int, choices=[0, 1], help=" DRS output (0=off, 1=on)")
+    parser.add_argument("--drshost", type=str, help=" Host GCM for DRS output")
+    parser.add_argument("--drsdomain", type=str, help=" DRS domain")
 
     ###############################################################
     # Specify directories, datasets and executables
