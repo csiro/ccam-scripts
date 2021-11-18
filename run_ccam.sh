@@ -42,15 +42,16 @@ if [[ $gridres = "-999." ]]; then
   name=`echo $name | sed "s/$gridres/$gridtxt"/g`
 fi
 
-drsmode=0                                    # DRS output (0=off, 1=on)
-drshost=none                                 # Host GCM for DRS otput (e.g., ACCESS1-0)
-drsdomain=none                               # DRS domain (e.g., AUS-50)
-ncsurf=3                                     # high-freq output (0=none, 1=lat/lon, 3=CORDEX)
-ncout=0                                      # standard output format (0=none, 1=CCAM, 2=CORDEX, 4=Nearest, 5=CTM, 6=CORDEX-surface)
-ncmulti=1                                    # multiple output per variable (0=off, 1=on)
+# Note that turning off output should be done with ktc, ktc_surf and ktc_high
+# Otherwise output will be saved but not post-processed
+ncout=0                                      # standard output format (0=none, 1=all, 5=CTM, 7=basic)
+ncsurf=3                                     # CORDEX output (0=none, 3=CORDEX)
+nchigh=1                                     # high-frequency output (0=none, 1=lat/lon)
 nctar=0                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
-ktc_surf=60                                  # high-freq file output period (mins) (0=off)
 ktc=360                                      # standard output period (mins)
+ktc_surf=60                                  # CORDEX file output period (mins) (0=off)
+ktc_high=10                                  # high-frequency output period (mins)
+
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
 maxlat=-999.                                 # output max latitude (degrees) (-999.=automatic)
 minlon=-999.                                 # output min longitude (degrees) (-999.=automatic)
@@ -60,6 +61,9 @@ outlevmode=0                                 # output mode for levels (0=pressur
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
+drsmode=0                                    # DRS output (0=off, 1=on)
+drshost=none                                 # Host GCM for DRS otput (e.g., ACCESS1-0)
+drsdomain=none                               # DRS domain (e.g., AUS-50)
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5=postprocess-only, 6=Spectral(GCM)+SST )
 cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
@@ -121,7 +125,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
 		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --rad $rad --bmix $bmix --mlo $mlo \
-                   --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf --ncmulti $ncmulti \
+                   --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf  \
+		   --nchigh $nchigh --ktc_high $ktc_high \
                    --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
                    --bcsoilfile $bcsoilfile \
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
@@ -129,12 +134,13 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
                    --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield \
 		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
-		   --uservegfile $uservegfile --userlaifile $userlaifile
+		   --uservegfile $uservegfile --userlaifile $userlaifile \
+		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain
 
 if [ $dmode -eq 5 ]; then
-  restname = restart5.qm
+  restname=restart5.qm
 else
-  restname = restar.qm
+  restname=restart.qm
 fi
 
 if [ "`cat $hdir/$restname`" == "True" ]; then

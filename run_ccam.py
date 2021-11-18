@@ -66,11 +66,11 @@ def check_inargs():
                   'iys', 'ims', 'iye', 'ime', 'leap', 'ncountmax', 'ktc', 'minlat', 'maxlat',
                   'minlon', 'maxlon', 'reqres', 'outlevmode', 'plevs', 'mlevs', 'dlevs', 'dmode',
                   'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix', 'mlo', 'casa',
-                  'ncout', 'nctar', 'ncsurf', 'ncmulti', 'ktc_surf', 'machinetype', 'bcdom', 'bcsoil',
+                  'ncout', 'nctar', 'ncsurf', 'ktc_surf', 'machinetype', 'bcdom', 'bcsoil',
                   'sstfile', 'sstinit', 'cmip', 'insdir', 'hdir', 'wdir', 'bcdir', 'sstdir',
                   'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg', 'sibveg',
                   'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex', 'soilparm',
-                  'uservegfile', 'userlaifile', 'bcsoilfile']
+                  'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high']
 
     for i in args2check:
         if not i in d.keys():
@@ -132,9 +132,15 @@ def create_directories():
 
     os.chdir(dirname)
 
-    for dirname in ['daily', 'OUTPUT', 'RESTART', 'vegdata']:
+    for dirname in ['daily', 'cordex', 'highfreq', 'OUTPUT', 'RESTART', 'vegdata']:
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
+	    
+    if d['drsmode']==1:
+        for dirname in ['drs_daily', 'drs_cordex', 'drs_highfreq']:
+            if not os.path.isdir(dirname):
+                os.mkdir(dirname)
+
 
     if d['dmode'] == 5:
         run_cmdline('rm -f {hdir}/restart5.qm')    
@@ -152,11 +158,10 @@ def create_directories():
 def calc_dt_out():
     "Calculate model output timestep"
 
-    d['dtout'] = 360  # raw cc output frequency (mins)
-
     if d['ncout'] == 5:
         d['dtout'] = 60 # need hourly output for CTM
 
+    d['dtout'] = 360  # raw cc output frequency (mins)
     if d['ktc'] < d['dtout']:
         d['dtout'] = d['ktc']
 
@@ -467,9 +472,17 @@ def calc_dt_mod():
               250:5, 200:4, 150:3, 100:2, 50:1}
 
     # determine dt based on dx, dtout and ktc_surf
-    if d['ktc_surf'] > 0:
+    if (d['ktc_surf'] > 0) and (d['ktc_high'] > 0):
+        for dx in sorted(d_dxdt):
+            if (d['gridres_m'] >= dx) and (60 * d['dtout'] % d_dxdt[dx] == 0) and (60 * d['ktc_surf'] % d_dxdt[dx] == 0) and (60 * d['ktc_high'] % d_dxdt[dx] == 0):
+                d['dt'] = d_dxdt[dx]
+    elif d['ktc_surf'] > 0:
         for dx in sorted(d_dxdt):
             if (d['gridres_m'] >= dx) and (60 * d['dtout'] % d_dxdt[dx] == 0) and (60 * d['ktc_surf'] % d_dxdt[dx] == 0):
+                d['dt'] = d_dxdt[dx]
+    elif d['ktc_high'] > 0:
+        for dx in sorted(d_dxdt):
+            if (d['gridres_m'] >= dx) and (60 * d['dtout'] % d_dxdt[dx] == 0) and (60 * d['ktc_high'] % d_dxdt[dx] == 0):
                 d['dt'] = d_dxdt[dx]
     else:
         for dx in sorted(d_dxdt):
@@ -486,6 +499,10 @@ def calc_dt_mod():
     if d['ktc_surf'] > 0:
         if d['dtout'] % d['ktc_surf'] != 0: # This order is different to original code
             raise ValueError("dtout must be a multiple of ktc_surf")
+
+    if d['ktc_high'] > 0:
+        if d['dtout'] % d['ktc_high'] != 0: # This order is different to original code
+            raise ValueError("dtout must be a multiple of ktc_high")
 
 
 def prep_iofiles():
@@ -852,6 +869,7 @@ def set_atmos():
     elif d['conv'] == 5:
         d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
 
+
 def set_surfc():
     "Prepare surface files"
 
@@ -859,6 +877,12 @@ def set_surfc():
         d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
     else:
         d.update({'tbave': 0})	
+
+    if d['ktc_high'] > 0:
+        d.update({'tbave10': int(d['ktc_high']*60/d['dt'])})
+    else:
+        d.update({'tbave10': 0})	
+
 
 def set_aeros():
     "Prepare aerosol files"
@@ -1184,10 +1208,7 @@ def post_process_output():
             ftest = False
 
         if d['ncout'] == 1:
-            if d['numulti'] == 1:
-                fname = dict2str('{hdir}/daily/rnd_{histfile}.nc')
-            else:
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
+            fname = dict2str('{hdir}/daily/{histfile}.nc')
             if not os.path.exists(fname):
                 tarflag = False
                 cname = dict2str('{histfile}.000000')
@@ -1199,19 +1220,11 @@ def post_process_output():
                 if os.path.exists(cname):
                     write2file('cc.nml', cc_template_1(), mode='w+')
                     if d['machinetype'] == 1:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --multioutput > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1219,43 +1232,6 @@ def post_process_output():
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
-
-        if d['ncout'] == 2:
-            if d['ncmulti'] == 1:
-                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
-            else:
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)    
-                if os.path.exists(cname):
-                    write2file('cc.nml', cc_template_1(), mode='w+')
-                    if d['machinetype'] == 1:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                    else:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured while running pcc2hist. Check pcc2hist.log"))
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False		
 
         if d['ncout'] == 5:
             histndays = monthrange(histear, histmonth)[1]
@@ -1290,10 +1266,7 @@ def post_process_output():
                     ftest = False
 
         if d['ncout'] == 7:
-            if d['ncmulti'] == 1:
-                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
-            else:
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
+            fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
             if not os.path.exists(fname):
                 tarflag = False
                 cname = dict2str('{histfile}.000000')
@@ -1305,19 +1278,11 @@ def post_process_output():
                 if os.path.exists(cname):
                     write2file('cc.nml', cc_template_6(), mode='w+')
                     if d['machinetype'] == 1:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                            run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1347,58 +1312,13 @@ def post_process_output():
         if d['ncsurf'] == 0:
             ftest = False
 
-        if d['ncsurf'] == 1:
-            if d['ncmulti'] == 1:
-                fname = dict2str('{hdir}/daily/rnd_surf.{histfile}.nc')
-            else:
-                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)    
-                if os.path.exists(cname):
-                    d['ktc_units'] = d['ktc_surf']
-                    cname = dict2str('surf.{histfile}.000000')
-                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
-                    if seconds_check is True:
-                        d['ktc_units'] = d['ktc_units']*60
-                    write2file('cc.nml', cc_template_3(), mode='w+')
-                    if d['machinetype'] == 1:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --multioutput > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('srun -n {nproc} {pcc2hist} > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
-                    else:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --multioutput > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-
         if d['ncsurf'] == 3:
-            if d['ncmulti'] == 1:
-                fname = dict2str('{hdir}/daily/pr_surf.{histfile}.nc')
-            else:
-                fname = dict2str('{hdir}/daily/surf.{histfile}.nc')
+            fname = dict2str('{hdir}/cordex/pr_surf.{histfile}.nc')
             if not os.path.exists(fname):
                 tarflag = False
-                cname = dict2str('{histfile}.000000')
+                cname = dict2str('surf.{histfile}.000000')
                 if not os.path.exists(cname):
-                    tname = dict2str('{histfile}.tar')
+                    tname = dict2str('surf.{histfile}.tar')
                     if os.path.exists(tname):
                         tarflag = True
                         run_cmdline('tar xvf '+tname)    
@@ -1410,19 +1330,11 @@ def post_process_output():
                         d['ktc_units'] = d['ktc_units']*60
                     write2file('cc.nml', cc_template_5(), mode='w+')
                     if d['machinetype'] == 1:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                        run_cmdline('mv *surf.{histfile}.nc {hdir}/cordex')
                     else:
-                        if d['ncmulti'] == 1:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
-                            run_cmdline('mv *surf.{histfile}.nc {hdir}/daily')
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                        run_cmdline('mv *surf.{histfile}.nc {hdir}/cordex')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -1432,55 +1344,108 @@ def post_process_output():
                     ftest_cordex = True
                     ftest = False
 
-            # store output
-            if (d['nctar']==0) and (d['dmode']!=5):
-                run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
+        # store output
+        if (d['nctar']==0) and (d['dmode']!=5):
+            run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
 
-            if d['nctar'] == 1:
-                run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
-                run_cmdline('rm surf.{histfile}.??????')
+        if d['nctar'] == 1:
+            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
+            run_cmdline('rm surf.{histfile}.??????')
 
-            if d['nctar'] == 2:
-                run_cmdline('rm surf.{histfile}.??????')
+        if d['nctar'] == 2:
+            run_cmdline('rm surf.{histfile}.??????')
+
+        # high-frequency files
+        if d['nchigh'] == 0:
+            ftest = False
+
+        if d['nchigh'] == 1:
+            fname = dict2str('{hdir}/highfreq/rnd_freq.{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('freq.{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('freq.{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)    
+                if os.path.exists(cname):
+                    d['ktc_units'] = d['ktc_high']
+                    cname = dict2str('freq.{histfile}.000000')
+                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
+                    if seconds_check is True:
+                        d['ktc_units'] = d['ktc_units']*60
+                    write2file('cc.nml', cc_template_3(), mode='w+')
+                    if d['machinetype'] == 1:
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
+                        run_cmdline('mv *freq.{histfile}.nc {hdir}/highfreq')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
+                        run_cmdline('mv *freq.{histfile}.nc {hdir}/highfreq')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" freq.pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured running pcc2hist. Check freq.pcc2hist.log"))
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
+                    ftest = False
+
+
+        # store output
+        if (d['nctar']==0) and (d['dmode']!=5):
+            run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
+
+        if d['nctar'] == 1:
+            run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
+            run_cmdline('rm freq.{histfile}.??????')
+
+        if d['nctar'] == 2:
+            run_cmdline('rm freq.{histfile}.??????')
 
         hm = hm + 1
         if hm > 12:
             # create JSON file for DRS if new cordex formatted output was created
-            if (d['drsmode']==1) and (ftest_cordex is True) and (d['ncmulti']==1):
-                dirname = dict2str('{hdir}/drs')
-                if not os.path.isdir(dirname):
-                    os.mkdir(dirname)
-                # check if all files are present    
-                ctest = True
-                tm = 1
-                while (tm<=12) and (ctest is True):    
-                    d['histmonth'] = mon_2digit(tm)
-                    fname = dict2str('{hdir}/daily/pr_surf.{name}.{histyear}{histmonth}.nc')
-                    if not os.path.exists(fname):
-                        ctest = False
-                    tm = tm + 1
-                if ctest is True:
-                    hres = d['gridres']
-                    payload = dict(
-                        input_files=dict2str('{hdir}/daily/*surf*nc'),
-                        output_dir=dict2str('{hdir}/drs/'),
-                        start_year=hy, end_year=hy,
-                        output_frequency='1M',
-                        project='CORDEX',
-                        model=dict2str('{drshost}'),
-                        variables=[ '' ],
-                        domains=[ dict2str('{drsdomain}') ],
-                        cordex=True,
-                        input_resolution=hres
-                    )
-                    f = open(dict2str('{hdir}/daily/payload.json.{histyear}'), 'w', encoding='utf-8')
-                    json.dump(
-                        payload,
-                        f,
-                        ensure_ascii=False,
-                        indent=4
-                    )
-                    f.close()
+            if (d['drsmode']==1) and (ftest_cordex is True):
+                for dirname in ['daily', 'cordex', 'highfreq']:		    
+                    d['drsdirname'] = dirname
+                    # check if all files are present    
+                    ctest = True
+                    tm = 1
+                    while (tm<=12) and (ctest is True):    
+                        d['histmonth'] = mon_2digit(tm)
+                        tm = tm + 1
+                        if dirname == "daily":
+                            fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
+                        elif dirname == "cordex":
+                            fname = dict2str('{hdir}/{drsdirname}/pr_surf.{name}.{histyear}{histmonth}.nc')
+                        elif dirname == "highfreq":
+                            fname = dict2str('{hdir}/{drsdirname}/pr_freq.{name}.{histyear}{histmonth}.nc')
+                        else:
+                            raise ValueError("An internal error occured for DRS processing")
+                        if not os.path.exists(fname):
+                            ctest = False
+                    if ctest is True:
+                        hres = d['gridres']
+                        payload = dict(
+                            input_files=dict2str('{hdir}/{drsdirname}/*nc'),
+                            output_dir=dict2str('{hdir}/drs_{drsdirname}/'),
+                            start_year=hy, end_year=hy,
+                            output_frequency='1M',
+                            project='CORDEX',
+                            model=dict2str('{drshost}'),
+                            variables=[ '' ],
+                            domains=[ dict2str('{drsdomain}') ],
+                            cordex=True,
+                            input_resolution=hres
+                        )
+                        f = open(dict2str('{hdir}/{drsdirname}/payload.json.{histyear}'), 'w', encoding='utf-8')
+                        json.dump(
+                            payload,
+                            f,
+                            ensure_ascii=False,
+                            indent=4
+                        )
+                        f.close()
             # Advace year
             hm = 1
             hy = hy + 1
@@ -1725,7 +1690,7 @@ def input_template_1():
 
      COMMENT='file'
      localhist=.true. unlimitedhist=.false. synchist=.false.
-     compression=1 tbave={tbave} procmode=12 fnproc_bcast_max=24
+     compression=1 tbave={tbave} tbave10={tbave10} procmode=12 fnproc_bcast_max=24
     &end
     &skyin
      mins_rad=-1 qgmin=2.E-7
@@ -1761,7 +1726,7 @@ def input_template_1():
      phenfile=   '{stdat}/modis_phenology_csiro.nc'
      casapftfile='{stdat}/pftlookup.csv'
      surf_00    ='{bcsoilfile}'
-     surf_cordex=1
+     surf_cordex=1 surf_windfarm=1
      """
 
     template2 = """
@@ -1769,13 +1734,21 @@ def input_template_1():
      """
 
     template3 = """
+     freqfile=   'freq.{ofile}'
+     """
+
+    template4 = """
     &end
     """
 
-    if d['ktc_surf'] == 0:
-        template = template1 + template3
+    if (d['ktc_surf'] == 0) and (d['ktc_high'] == 0):
+        template = template1 + template4    
+    elif d['ktc_high'] == 0:
+        template = template1 + template2 + template4
+    elif d['ktc_surf'] == 0:
+        template = template1 + template3 + template4
     else:
-        template = template1 + template2 + template3
+        template = template1 + template2 + template3 + template4
 
     return template
 
@@ -1938,7 +1911,7 @@ def input_template_6():
     &end
     &mlonml
      mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
-     usetide=0 mlosigma=6 nodrift=1 oclosure=0
+     usetide=0 mlosigma=6 nodrift=1 oclosure=1
      ocnsmag=1. zomode=0 ocneps=0.2 omaxl=1000.
      rivermd=1
     &end
@@ -2029,26 +2002,20 @@ def cc_template_3():
 
     template1 = """\
     &input
-     ifile = "surf.{histfile}"
-    """
-
-    template2 = """\
-     ofile = "surf.{histfile}.nc"
-    """
-
-    template3 = """\
+     ifile = "freq.{histfile}"
+     ofile = "freq.{histfile}.nc"
      hres  = {res}
      kta={ktc_units}   ktb=2999999  ktc={ktc_units}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
     &end
     &histnl
      htype="inst"
-     hnames= "uas","vas","tscrn","tdew","rhscrn","psl","ps","rnd","sno","grpl","d10","u10","dni","sgdn_ave","rgdn_ave","eg_ave","fg_ave","sgn_ave","rgn_ave","epot_ave","tsu","pblh","taux","tauy","runoff","mrros","snd","snm","rtu_ave","sint_ave","sot_ave"
+     hnames= "uas","vas","tas","hurs","ps","pr","clt","dni","rsds","ua150m","va150m","ua250m","va250m","tdew"
      hfreq = 1
     &end
     """
 
-    template = template1 + template2 + template3
+    template = template1
 
     return template
 
@@ -2058,25 +2025,19 @@ def cc_template_5():
     template1 = """\
     &input
      ifile = "surf.{histfile}"
-    """
-
-    template2 = """\
      ofile = "surf.{histfile}.nc"
-    """
-
-    template3 = """\
      hres  = {res}
      kta={ktc_units}   ktb=2999999  ktc={ktc_units}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
     &end
     &histnl
      htype="inst"
-     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rlds","hfls","hfss","rsus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua850","va850","ta850","hus850","ua500","va500","ta500","zg500","ua200","va200","ta200","zg200","clh","clm","cll","snc","snd","sic","prsn","orog","sftlf"
+     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rlds","hfls","hfss","rsus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","ua925","va925","ta925","zg925","hus925","ua850","va850","ta850","zg850","hus850","ua700","va700","ta700","zg700","hus700","ua600","va600","ta600","zg600","hus600","ua500","va500","ta500","zg500","hus500","ua400","va400","ta400","zg400","hus400","ua300","va300","ta300","zg300","hus300","ua250","va250","ta250","zg250","hus250","ua200","va200","ta200","zg200","hus200","ua150","va150","ta150","zg150","hus150","ua100","va100","ta100","zg100","hus100","ua70","va70","ta70","zg70","hus70","ua50","va50","ta50","zg50","hus50","ua30","va30","ta30","zg30","hus30","ua20","va20","ta20","zg20","hus20","ua10","va10","ta10","zg10","hus10","clh","clm","cll","snc","snd","sic","prsn","orog","sftlf","ua100m","va100m","sftlaf","sfturf","z0"
      hfreq = 1
     &end
     """
 
-    template = template1 + template2 + template3
+    template = template1
 
     return template
 
@@ -2177,12 +2138,13 @@ if __name__ == '__main__':
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
-    parser.add_argument("--ncout", type=int, choices=[0, 1, 2, 5, 7], help=" standard output format (0=none, 1=CCAM, 2=CORDEX, 5=CTM, 7=basic)")
+    parser.add_argument("--ncout", type=int, choices=[0, 1, 5, 7], help=" standard output format (0=none, 1=CCAM, 5=CTM, 7=basic)")
     parser.add_argument("--nctar", type=int, choices=[0, 1, 2], help=" TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)")
-    parser.add_argument("--ncsurf", type=int, choices=[0, 1, 3], help=" High-freq output (0=none, 1=lat/lon, 3=cordex)")
-    parser.add_argument("--ncmulti", type=int, choices=[0, 1], help=" Multiple output per variable (0=off, 1=on)")
-    parser.add_argument("--ktc_surf", type=int, help=" High-freq file output period (mins) (0=off)")
-
+    parser.add_argument("--ncsurf", type=int, choices=[0, 3], help=" CORDEX output (0=none, 1=lat/lon, 3=cordex)")
+    parser.add_argument("--ktc_surf", type=int, help=" CORDEX file output period (mins) (0=off)")
+    parser.add_argument("--nchigh", type=int, choices=[0, 1], help=" High-freq output (0=none, 1=lat/lon)")
+    parser.add_argument("--ktc_high", type=int, help=" High-freq file output period (mins) (0=off)")
+    
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
     parser.add_argument("--cableparm", type=str, help=" User defined CABLE vegetation parameter file (default for standard values)")
     parser.add_argument("--soilparm", type=str, help=" User defined soil parameter file (default for standard values)")
