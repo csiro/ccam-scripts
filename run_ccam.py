@@ -63,14 +63,14 @@ def check_inargs():
     "Check all inargs are specified and are internally consistent"
 
     args2check = ['name', 'nproc', 'nnode', 'midlon', 'midlat', 'gridres', 'gridsize', 'mlev',
-                  'iys', 'ims', 'iye', 'ime', 'leap', 'ncountmax', 'ktc', 'minlat', 'maxlat',
-                  'minlon', 'maxlon', 'reqres', 'outlevmode', 'plevs', 'mlevs', 'dlevs', 'dmode',
-                  'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix', 'mlo', 'casa',
-                  'ncout', 'nctar', 'ncsurf', 'ktc_surf', 'machinetype', 'bcdom', 'bcsoil',
-                  'sstfile', 'sstinit', 'cmip', 'insdir', 'hdir', 'wdir', 'bcdir', 'sstdir',
-                  'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg', 'sibveg',
-                  'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex', 'soilparm',
-                  'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high']
+                  'iys', 'ims', 'ids', 'iye', 'ime', 'ide', 'leap', 'ncountmax', 'ktc', 'minlat',
+		  'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode', 'plevs', 'mlevs',
+		  'dlevs', 'dmode', 'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix', 'mlo',
+		  'casa', 'ncout', 'nctar', 'ncsurf', 'ktc_surf', 'machinetype', 'bcdom',
+		  'bcsoil', 'sstfile', 'sstinit', 'cmip', 'insdir', 'hdir', 'wdir', 'bcdir',
+		  'sstdir', 'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg',
+		  'sibveg', 'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex',
+		  'soilparm', 'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high']
 
     for i in args2check:
         if not i in d.keys():
@@ -175,6 +175,7 @@ def get_datetime():
         yyyydd = open(fname).read()
         d['iyr'] = int(yyyydd[0:4])
         d['imth'] = int(yyyydd[4:6])
+        d['iday'] = 1
         print("ATTENTION:")
         print(dict2str("Simulation start date taken from {hdir}/year.qm"))
         print("Start date: "+str(d['iyr'])+mon_2digit(d['imth'])+'01')
@@ -182,6 +183,7 @@ def get_datetime():
     else:
         d['iyr'] = d['iys']
         d['imth'] = d['ims']
+        d['iday'] = d['ids']
 
     # Abort run at finish year:
     sdate = d['iyr']*100 +d['imth']
@@ -192,10 +194,6 @@ def get_datetime():
 
     iyr = d['iyr']
     imth = d['imth']
-
-    #if iyr < 2010:
-    #    print("Changing emission scenario to historic")
-    #    d['rcp'] = 'historic'
 
     # Decade start and end:
     d['ddyear'] = int(int(iyr/10)*10)
@@ -217,6 +215,18 @@ def get_datetime():
 
     if (imth == 2) and (d['leap'] == 0):
         d['ndays'] = 28 #leap year turned off
+	
+    d['eday'] = d['ndays']
+    
+    if (d['iyr'] == d['iye']) and (d['imth'] == d['ime']):
+        if d['ide'] > d['ndays']:
+            raise ValueError("End day ide is invalid.")
+        d['eday'] = d['ide']
+
+    if d['iday'] > d['ndays']:
+        raise ValueError("Start day ids is invalid.")
+
+    d['ndays'] = d['eday'] - d['iday'] + 1
 
 
 def check_surface_files():
@@ -1031,7 +1041,7 @@ def create_input_file():
     d['ntau'] = int(d['ndays']*86400/d['dt'])
 
     # Start date string:
-    d['kdates'] = str(d['iyr']*10000 + d['imth']*100 + 1)
+    d['kdates'] = str(d['iyr']*10000 + d['imth']*100 + d['iday'])
 
     write2file('input', input_template_1(), mode='w+')
 
@@ -1182,15 +1192,18 @@ def run_model():
     if os.path.exists(fname):
         run_cmdline('rm {mesonest}')
 
-    fname = dict2str('{hdir}/daily/{ofile}.nc')
+    fname = dict2str('{hdir}/daily/pr_{ofile}.nc')
     if os.path.exists(fname):
-        run_cmdline('rm {hdir}/daily/{ofile}.nc')
-    fname = dict2str('{hdir}/daily/surf.{ofile}.nc')
-    if os.path.exists(fname):
-        run_cmdline('rm {hdir}/daily/surf.{ofile}.nc')
+        run_cmdline('rm {hdir}/daily/*_{ofile}.nc')
     fname = dict2str('{hdir}/daily/ccam_{iyr}{imth_2digit}01.nc')
     if os.path.exists(fname):
         run_cmdline('rm {hdir}/daily/ccam_{iyr}{imth_2digit}??.nc')
+    fname = dict2str('{hdir}/cordex/pr_surf.{ofile}.nc')
+    if os.path.exists(fname):
+        run_cmdline('rm {hdir}/cordex/*_surf.{ofile}.nc')
+    fname = dict2str('{hdir}/highfreq/pr_freq.{ofile}.nc')
+    if os.path.exists(fname):
+        run_cmdline('rm {hdir}/highfreq/*_freq.{ofile}.nc')	
 
 def post_process_output():
     "Post-process the CCAM model output"
@@ -2113,8 +2126,10 @@ if __name__ == '__main__':
 
     parser.add_argument("--iys", type=int, help=" start year [YYYY]")
     parser.add_argument("--ims", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" start month [MM]")
+    parser.add_argument("--ids", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" start day [DD]")    
     parser.add_argument("--iye", type=int, help=" end year [YYYY]")
     parser.add_argument("--ime", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" end month [MM]")
+    parser.add_argument("--ide", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" end day [DD]")    
     parser.add_argument("--leap", type=int, choices=[0, 1], help=" Use leap days (0=off, 1=on)")
     parser.add_argument("--ncountmax", type=int, help=" Number of months before resubmit")
 

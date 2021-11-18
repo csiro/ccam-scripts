@@ -31,8 +31,10 @@ gridres=-999.                                # required resolution (km) of domai
 gridsize=96                                  # cubic grid size (e.g., 48, 72, 96, 144, 192, 288, 384, 576, 768, etc)
 iys=2000                                     # start year
 ims=1                                        # start month
+ids=1                                        # start day
 iye=2000                                     # end year
 ime=12                                       # end month
+ide=31                                       # end day
 leap=1                                       # use leap days (0=off, 1=on)
 ncountmax=12                                 # number of months before resubmit
 
@@ -120,7 +122,7 @@ pcc2hist=$insdir/src/bin/pcc2hist
 ###############################################################
 
 python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon " $midlon" --midlat " $midlat" --gridres " $gridres" \
-                   --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --iye $iye --ime $ime --leap $leap \
+                   --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --ids $ids --iye $iye --ime $ime --ide $ide --leap $leap \
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
 		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
