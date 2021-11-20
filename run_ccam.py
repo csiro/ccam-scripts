@@ -135,12 +135,6 @@ def create_directories():
     for dirname in ['daily', 'cordex', 'highfreq', 'OUTPUT', 'RESTART', 'vegdata']:
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
-	    
-    if d['drsmode']==1:
-        for dirname in ['drs_daily', 'drs_cordex', 'drs_highfreq']:
-            if not os.path.isdir(dirname):
-                os.mkdir(dirname)
-
 
     if d['dmode'] == 5:
         run_cmdline('rm -f {hdir}/restart5.qm')    
@@ -1216,6 +1210,12 @@ def post_process_output():
         d['histmonth'] = mon_2digit(hm)
         d['histyear'] = hy
         d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
+        idaystart = 1
+        idayend = monthrange(hy,hm)[1]
+        if (d['histyear'] == d['iys']) and (d['histmonth'] == d['ims']):
+            idaystart = d['ids']
+        if (d['histyear'] == d['iye']) and (d['histmonth'] == d['ime']):
+            idayend = d['ide']
 	
         if d['ncout'] == 0:
             ftest = False
@@ -1247,8 +1247,7 @@ def post_process_output():
                     ftest = False
 
         if d['ncout'] == 5:
-            histndays = monthrange(histear, histmonth)[1]
-            d['cday'] = mon_2digit(histndays)
+            d['cday'] = mon_2digit(idayend)
             fname = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
             if not os.path.exists(fname):
                 tarflag = False
@@ -1259,10 +1258,10 @@ def post_process_output():
                         tarflag = True
                         run_cmdline('tar xvf '+tname)    
                 if os.path.exists(cname):
-                    for iday in range(1, histndays+1):
+                    for iday in range(idaystart, idayend+1):
                         d['cday'] = mon_2digit(iday)
                         d['iend'] = iday*1440
-                        d['istart'] = (iday*1440)-1440
+                        d['istart'] = d['iend']-1440
                         d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
                         write2file('cc.nml', cc_template_2(), mode='w+')
                         if d['machinetype'] == 1:
@@ -1358,19 +1357,20 @@ def post_process_output():
                     ftest = False
 
         # store output
-        if (d['nctar']==0) and (d['dmode']!=5):
-            run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
+        if d[ktc_surf]>0:
+            if (d['nctar']==0) and (d['dmode']!=5):
+                run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
 
-        if d['nctar'] == 1:
-            run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
-            run_cmdline('rm surf.{histfile}.??????')
+            if d['nctar'] == 1:
+                run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
+                run_cmdline('rm surf.{histfile}.??????')
 
-        if d['nctar'] == 2:
-            run_cmdline('rm surf.{histfile}.??????')
+            if d['nctar'] == 2:
+                run_cmdline('rm surf.{histfile}.??????')
 
-        # high-frequency files
-        if d['nchigh'] == 0:
-            ftest = False
+            # high-frequency files
+            if d['nchigh'] == 0:
+                ftest = False
 
         if d['nchigh'] == 1:
             fname = dict2str('{hdir}/highfreq/rnd_freq.{histfile}.nc')
@@ -1405,15 +1405,16 @@ def post_process_output():
 
 
         # store output
-        if (d['nctar']==0) and (d['dmode']!=5):
-            run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
+        if d['ktc_high']>0:
+           if (d['nctar']==0) and (d['dmode']!=5):
+               run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
 
-        if d['nctar'] == 1:
-            run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
-            run_cmdline('rm freq.{histfile}.??????')
+            if d['nctar'] == 1:
+                run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
+                run_cmdline('rm freq.{histfile}.??????')
 
-        if d['nctar'] == 2:
-            run_cmdline('rm freq.{histfile}.??????')
+            if d['nctar'] == 2:
+                run_cmdline('rm freq.{histfile}.??????')
 
         hm = hm + 1
         if hm > 12:
