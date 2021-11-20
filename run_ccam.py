@@ -1406,8 +1406,8 @@ def post_process_output():
 
         # store output
         if d['ktc_high']>0:
-           if (d['nctar']==0) and (d['dmode']!=5):
-               run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
+            if (d['nctar']==0) and (d['dmode']!=5):
+                run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
 
             if d['nctar'] == 1:
                 run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
