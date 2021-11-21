@@ -1358,7 +1358,7 @@ def post_process_output():
                     ftest = False
 
         # store output
-        if d[ktc_surf] > 0:
+        if d['ktc_surf'] > 0:
             if (d['nctar']==0) and (d['dmode']!=5):
                 run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
 
