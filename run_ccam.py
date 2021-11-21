@@ -152,13 +152,14 @@ def create_directories():
 def calc_dt_out():
     "Calculate model output timestep"
 
-    if d['ncout'] == 5:
-        d['dtout'] = 60 # need hourly output for CTM
-
     d['dtout'] = 360  # raw cc output frequency (mins)
+
     if d['ktc'] < d['dtout']:
         d['dtout'] = d['ktc']
 
+    if d['ncout'] == 5:
+        if d['dtout'] > 60:
+            d['dtout'] = 60 # need hourly output for CTM
 
 def get_datetime():
     "Determine relevant dates and timesteps for running model"
@@ -1357,7 +1358,7 @@ def post_process_output():
                     ftest = False
 
         # store output
-        if d[ktc_surf]>0:
+        if d[ktc_surf] > 0:
             if (d['nctar']==0) and (d['dmode']!=5):
                 run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
 
@@ -1405,7 +1406,7 @@ def post_process_output():
 
 
         # store output
-        if d['ktc_high']>0:
+        if d['ktc_high'] > 0:
             if (d['nctar']==0) and (d['dmode']!=5):
                 run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
 
