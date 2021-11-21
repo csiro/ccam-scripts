@@ -132,7 +132,17 @@ def create_directories():
 
     os.chdir(dirname)
 
-    for dirname in ['daily', 'cordex', 'highfreq', 'OUTPUT', 'RESTART', 'vegdata']:
+    for dirname in ['daily', 'OUTPUT', 'RESTART', 'vegdata']:
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+
+    if (d['ktc_surf'] > 0) and (d['ncsurf']>0):
+        dirname = 'cordex'
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+
+    if (d['ktc_high'] > 0) and (d['nchigh']>0):
+        dirname = 'highfreq'
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
 
@@ -1205,7 +1215,6 @@ def post_process_output():
     
     hy = d['iys']
     hm = 1
-    ftest_cordex = False
     ftest = True
     while ftest:
         d['histmonth'] = mon_2digit(hm)
@@ -1354,24 +1363,29 @@ def post_process_output():
                         raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
-                    ftest_cordex = True
                     ftest = False
 
         # store output
         if d['ktc_surf'] > 0:
             if (d['nctar']==0) and (d['dmode']!=5):
-                run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
+                cname = dict2str('surf.{histfile}.000000')
+                if os.path.exists(cname):
+                    run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
 
             if d['nctar'] == 1:
-                run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
-                run_cmdline('rm surf.{histfile}.??????')
+                cname = dict2str('surf.{histfile}.000000')
+                if os.path.exists(cname):
+                    run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
+                    run_cmdline('rm surf.{histfile}.??????')
 
             if d['nctar'] == 2:
-                run_cmdline('rm surf.{histfile}.??????')
+                cname = dict2str('surf.{histfile}.000000')
+                if os.path.exists(cname):
+                    run_cmdline('rm surf.{histfile}.??????')
 
-            # high-frequency files
-            if d['nchigh'] == 0:
-                ftest = False
+        # high-frequency files
+        if d['nchigh'] == 0:
+            ftest = False
 
         if d['nchigh'] == 1:
             fname = dict2str('{hdir}/highfreq/rnd_freq.{histfile}.nc')
@@ -1408,19 +1422,25 @@ def post_process_output():
         # store output
         if d['ktc_high'] > 0:
             if (d['nctar']==0) and (d['dmode']!=5):
-                run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
+                cname = dict2str('freq.{histfile}.000000')
+                if os.path.exists(cname):
+                    run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
 
             if d['nctar'] == 1:
-                run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
-                run_cmdline('rm freq.{histfile}.??????')
+                cname = dict2str('freq.{histfile}.000000')
+                if os.path.exists(cname):
+                    run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
+                    run_cmdline('rm freq.{histfile}.??????')
 
             if d['nctar'] == 2:
-                run_cmdline('rm freq.{histfile}.??????')
+                cname = dict2str('freq.{histfile}.000000')
+                if os.path.exists(cname):
+                    run_cmdline('rm freq.{histfile}.??????')
 
         hm = hm + 1
         if hm > 12:
             # create JSON file for DRS if new cordex formatted output was created
-            if (d['drsmode']==1) and (ftest_cordex is True):
+            if (d['drsmode']==1) and ftest is True:
                 for dirname in ['daily', 'cordex', 'highfreq']:		    
                     d['drsdirname'] = dirname
                     # check if all files are present    
@@ -1429,14 +1449,12 @@ def post_process_output():
                     while (tm<=12) and (ctest is True):    
                         d['histmonth'] = mon_2digit(tm)
                         tm = tm + 1
-                        if dirname == "daily":
+                        if (dirname == "daily") and (d['ncout'] > 0):
                             fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
-                        elif dirname == "cordex":
+                        elif (dirname == "cordex") and (d['ncsurf'] > 0):
                             fname = dict2str('{hdir}/{drsdirname}/pr_surf.{name}.{histyear}{histmonth}.nc')
-                        elif dirname == "highfreq":
+                        elif (dirname == "highfreq") and (d['nchigh'] > 0):
                             fname = dict2str('{hdir}/{drsdirname}/pr_freq.{name}.{histyear}{histmonth}.nc')
-                        else:
-                            raise ValueError("An internal error occured for DRS processing")
                         if not os.path.exists(fname):
                             ctest = False
                     if ctest is True:
