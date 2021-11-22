@@ -1197,18 +1197,19 @@ def run_model():
     if os.path.exists(fname):
         run_cmdline('rm {mesonest}')
 
-    fname = dict2str('{hdir}/daily/pr_{ofile}.nc')
-    if os.path.exists(fname):
-        run_cmdline('rm {hdir}/daily/*_{ofile}.nc')
-    fname = dict2str('{hdir}/daily/ccam_{iyr}{imth_2digit}01.nc')
-    if os.path.exists(fname):
-        run_cmdline('rm {hdir}/daily/ccam_{iyr}{imth_2digit}??.nc')
-    fname = dict2str('{hdir}/cordex/pr_surf.{ofile}.nc')
-    if os.path.exists(fname):
-        run_cmdline('rm {hdir}/cordex/*_surf.{ofile}.nc')
-    fname = dict2str('{hdir}/highfreq/pr_freq.{ofile}.nc')
-    if os.path.exists(fname):
-        run_cmdline('rm {hdir}/highfreq/*_freq.{ofile}.nc')	
+    if d['dmode'] != 5:
+        fname = dict2str('{hdir}/daily/pr_{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/daily/*_{ofile}.nc')
+        fname = dict2str('{hdir}/daily/ccam_{iyr}{imth_2digit}01.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/daily/ccam_{iyr}{imth_2digit}??.nc')
+        fname = dict2str('{hdir}/cordex/pr_surf.{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/cordex/*_surf.{ofile}.nc')
+        fname = dict2str('{hdir}/highfreq/pr_freq.{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/highfreq/*_freq.{ofile}.nc')	
 
 def post_process_output():
     "Post-process the CCAM model output"
@@ -1685,12 +1686,12 @@ def input_template_1():
      kdate_s={kdates} ktime_s=0000 leap={leap}
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
-     namip={namip} rescrn=1 zo_clearing=0.05
+     namip={namip} rescrn=1 zo_clearing=1.
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
      precon=-10000 restol=2.e-7 nh=5 knh=9
-     nstagu=1 khor=0 nhorps=-1 nhorjlm=0
+     nstagu=1 khor=0 nhorps=-1 nhorjlm=0 nhor=-151
      mh_bs={mh_bs} ntvd=3
 
      COMMENT='mass fixer'
