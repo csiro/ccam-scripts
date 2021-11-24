@@ -20,7 +20,6 @@ def main(inargs):
         get_datetime()
         d['ofile'] = dict2str('{name}.{iyr}{imth_2digit}')		
         if d['dmode'] != 5:
-            print("Updating land-use")
             check_surface_files()
         if (d['dmode']!=4) and (d['dmode']!=5):
             read_inv_schmidt()
@@ -264,10 +263,12 @@ def check_surface_files():
             testfail = True
         filename.close()
         if testfail is True:
+            print("Process land-use data")
             run_cable_all()
 
     for fname in ['topout', 'bath', 'casa']:
         if not os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}')):
+            print("Process land-use data")
             run_cable_all()
 
     for mon in range(1, 13):
@@ -276,8 +277,10 @@ def check_surface_files():
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
         if not os.path.exists(fname):
+            print("Process land-use data - Updating vegetation")
             run_cable_land()
         if check_correct_landuse(fname) is True:
+            print("Process land-use data - Updating vegetation")
             run_cable_land()
 
 
@@ -355,9 +358,9 @@ def run_land():
     elif d['sib'] == 4:
         write2file('igbpveg.nml', igbpveg_template(), mode='w+')
         if d['machinetype'] == 1:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         else:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         xtest = (subprocess.getoutput('grep -o --text "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
@@ -383,9 +386,9 @@ def run_land():
                 d['change_landuse'] = dict2str('{stdat}/{cmip}/{rcp}/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-{rcplabel}-{rcp}-2-1-f_gn_2015-2100.nc')
         write2file('igbpveg.nml', igbpveg_template(), mode='w+')
         if d['machinetype'] == 1:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         else:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         xtest = (subprocess.getoutput('grep -o --text "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
@@ -397,9 +400,9 @@ def run_ocean():
     print("Processing bathymetry data")
     write2file('ocnbath.nml', ocnbath_template(), mode='w+')
     if d['machinetype'] == 1:
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     else:
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     xtest = (subprocess.getoutput('grep -o --text "ocnbath completed successfully" ocnbath.log')
              == "ocnbath completed successfully")
     if xtest is False:
@@ -1026,9 +1029,9 @@ def create_sulffile_file():
 
         # Create new sulffile:
         if d['machinetype'] == 1:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
         else:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" KMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
 
         xtest = (subprocess.getoutput('grep -o --text "aeroemiss completed successfully" aero.log')
                  == "aeroemiss completed successfully")
@@ -1075,19 +1078,21 @@ def prepare_ccam_infiles():
             run_cmdline('ln -s '+fpath+' .')
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
-        else:
-            check_file_exists(fpath+'.tar')
+        elif os.path_exists(fpath+'.tar'):
             run_cmdline('tar xvf '+fpath+'.tar')
+        else:    
+            raise ValueError(dict2str('Cannot locate file {bcdir}/{mesonest}'))
 
-    if d['dmode'] == 1:
+    if (d['dmode'] == 1) and (d['iyr'] == d['iys']) and (d['imth'] == d['ims']):
         fpath = dict2str('{sstinit}')
         if os.path.exists(fpath):
             run_cmdline('ln -s '+fpath+' .')
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
-        else:
-            check_file_exists(fpath+'.tar')
+        elif os.path.exists(fpath+'.tar'):
             run_cmdline('tar xvf '+fpath+'.tar')
+        else:    
+            raise ValueError(dict2str('Cannot locate file {sstinit}'))	
 
     if not os.path.exists(d['ifile']) and not os.path.exists(d['ifile']+'.000000'):
         raise ValueError(dict2str('Cannot locate {ifile} or {ifile}.000000. ')+
@@ -1217,20 +1222,21 @@ def post_process_output():
     hy = d['iys']
     hm = 1
     ftest = True
+    newoutput = False
+    newcordex = False
+    newhighfreq = False
     while ftest:
         d['histmonth'] = mon_2digit(hm)
         d['histyear'] = hy
         d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
         idaystart = 1
-        idayend = monthrange(hy,hm)[1]
-        if (d['histyear'] == d['iys']) and (d['histmonth'] == d['ims']):
+        idayend = monthrange(hy, hm)[1]
+        if (hy == d['iys']) and (hm == d['ims']):
             idaystart = d['ids']
-        if (d['histyear'] == d['iye']) and (d['histmonth'] == d['ime']):
+        if (hy == d['iye']) and (hm == d['ime']):
             idayend = d['ide']
-	
-        if d['ncout'] == 0:
-            ftest = False
-
+	    
+        # standard output
         if d['ncout'] == 1:
             fname = dict2str('{hdir}/daily/{histfile}.nc')
             if not os.path.exists(fname):
@@ -1256,10 +1262,11 @@ def post_process_output():
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
+                    newoutput = True
 
         if d['ncout'] == 5:
             d['cday'] = mon_2digit(idayend)
-            fname = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
+            fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}{cday}.nc")
             if not os.path.exists(fname):
                 tarflag = False
                 cname = dict2str('{histfile}.000000')
@@ -1271,8 +1278,8 @@ def post_process_output():
                 if os.path.exists(cname):
                     for iday in range(idaystart, idayend+1):
                         d['cday'] = mon_2digit(iday)
-                        d['iend'] = iday*1440
-                        d['istart'] = d['iend']-1440
+                        d['iend'] = (iday-idaystart+1)*1440
+                        d['istart'] = (iday-idaystart)*1440
                         d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
                         write2file('cc.nml', cc_template_2(), mode='w+')
                         if d['machinetype'] == 1:
@@ -1283,10 +1290,12 @@ def post_process_output():
                                  == "pcc2hist completed successfully")
                         if xtest is False:
                             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
-                    run_cmdline('mv ccam_{iyr}{imth_2digit}??.nc {hdir}/daily')
+                    run_cmdline('mv ccam_{histyear}{histmonth}??.nc {hdir}/daily')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
+                    # No DRS output for CTM formatting
+                    newoutput = False
 
         if d['ncout'] == 7:
             fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
@@ -1313,28 +1322,29 @@ def post_process_output():
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
+                    newoutput = True
 
         # store output
         if (d['nctar']==0) and (d['dmode']!=5):
             cname = dict2str('{histfile}.000000')
             if os.path.exists(cname):
                 run_cmdline('mv {histfile}.?????? {hdir}/OUTPUT')
+                ftest = False
 
         if d['nctar'] == 1:
             cname = dict2str('{histfile}.000000')
             if os.path.exists(cname):
                 run_cmdline('tar cvf {hdir}/OUTPUT/{histfile}.tar {histfile}.??????')
                 run_cmdline('rm {histfile}.??????')
+                ftest = False
 
         if d['nctar'] == 2:
             cname = dict2str('{histfile}.000000')
             if os.path.exists(cname):
                 run_cmdline('rm {histfile}.??????')
+                ftest = False
 
         # surface files
-        if d['ncsurf'] == 0:
-            ftest = False
-
         if d['ncsurf'] == 3:
             fname = dict2str('{hdir}/cordex/pr_surf.{histfile}.nc')
             if not os.path.exists(fname):
@@ -1365,6 +1375,7 @@ def post_process_output():
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
+                    newcordex = True
 
         # store output
         if d['ktc_surf'] > 0:
@@ -1372,22 +1383,22 @@ def post_process_output():
                 cname = dict2str('surf.{histfile}.000000')
                 if os.path.exists(cname):
                     run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
+                    ftest = False
 
             if d['nctar'] == 1:
                 cname = dict2str('surf.{histfile}.000000')
                 if os.path.exists(cname):
                     run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
                     run_cmdline('rm surf.{histfile}.??????')
+                    ftest = False
 
             if d['nctar'] == 2:
                 cname = dict2str('surf.{histfile}.000000')
                 if os.path.exists(cname):
                     run_cmdline('rm surf.{histfile}.??????')
+                    ftest = False
 
         # high-frequency files
-        if d['nchigh'] == 0:
-            ftest = False
-
         if d['nchigh'] == 1:
             fname = dict2str('{hdir}/highfreq/rnd_freq.{histfile}.nc')
             if not os.path.exists(fname):
@@ -1418,6 +1429,7 @@ def post_process_output():
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
+                    newhighfreq = True
 
 
         # store output
@@ -1426,22 +1438,25 @@ def post_process_output():
                 cname = dict2str('freq.{histfile}.000000')
                 if os.path.exists(cname):
                     run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
+                    ftest = False
 
             if d['nctar'] == 1:
                 cname = dict2str('freq.{histfile}.000000')
                 if os.path.exists(cname):
                     run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
                     run_cmdline('rm freq.{histfile}.??????')
+                    ftest = False
 
             if d['nctar'] == 2:
                 cname = dict2str('freq.{histfile}.000000')
                 if os.path.exists(cname):
                     run_cmdline('rm freq.{histfile}.??????')
+                    ftest = False
 
         hm = hm + 1
         if hm > 12:
             # create JSON file for DRS if new cordex formatted output was created
-            if (d['drsmode']==1) and ftest is True:
+            if d['drsmode'] == 1:
                 for dirname in ['daily', 'cordex', 'highfreq']:		    
                     d['drsdirname'] = dirname
                     # check if all files are present    
@@ -1450,6 +1465,7 @@ def post_process_output():
                     while (tm<=12) and (ctest is True):    
                         d['histmonth'] = mon_2digit(tm)
                         tm = tm + 1
+                        fname = "error"
                         if (dirname == "daily") and (d['ncout'] > 0):
                             fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
                         elif (dirname == "cordex") and (d['ncsurf'] > 0):
@@ -1458,7 +1474,15 @@ def post_process_output():
                             fname = dict2str('{hdir}/{drsdirname}/pr_freq.{name}.{histyear}{histmonth}.nc')
                         if not os.path.exists(fname):
                             ctest = False
-                    if ctest is True:
+                    newtest = False
+                    if dirname == "daily":
+                        newtest = newoutput
+                    elif dirname == "cordex":
+                        newtest = newcordex
+                    elif dirname == "highfreq":
+                        newtest = newhighfreq	
+                    # all files exist (ctest) and a new file was created (newtest)		    
+                    if (ctest is True) and (newtest is True):
                         hres = d['gridres']
                         payload = dict(
                             input_files=dict2str('{hdir}/{drsdirname}/*nc'),
@@ -1484,6 +1508,7 @@ def post_process_output():
             hm = 1
             hy = hy + 1
         if (hy>d['iye']) and (ftest==True):
+            ftest = False
             if d['dmode'] == 5:
                 print("CCAM post-processing is complete")
                 write2file(d['hdir']+'/restart5.qm', "Complete", mode='w+')
