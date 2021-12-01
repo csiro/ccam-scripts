@@ -1029,9 +1029,9 @@ def create_sulffile_file():
 
         # Create new sulffile:
         if d['machinetype'] == 1:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log')
         else:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log || exit')
+            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log')
 
         xtest = (subprocess.getoutput('grep -o --text "aeroemiss completed successfully" aero.log')
                  == "aeroemiss completed successfully")
@@ -1251,14 +1251,13 @@ def post_process_output():
                     write2file('cc.nml', cc_template_1(), mode='w+')
                     if d['machinetype'] == 1:
                         run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
                         run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+                    run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
@@ -1311,14 +1310,13 @@ def post_process_output():
                     write2file('cc.nml', cc_template_6(), mode='w+')
                     if d['machinetype'] == 1:
                         run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     else:
                         run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                    run_cmdline('mv *{histfile}.nc {hdir}/daily')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
@@ -1364,14 +1362,13 @@ def post_process_output():
                     write2file('cc.nml', cc_template_5(), mode='w+')
                     if d['machinetype'] == 1:
                         run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
-                        run_cmdline('mv *surf.{histfile}.nc {hdir}/cordex')
                     else:
                         run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
-                        run_cmdline('mv *surf.{histfile}.nc {hdir}/cordex')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+                    run_cmdline('mv *surf.{histfile}.nc {hdir}/cordex')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
@@ -1418,14 +1415,13 @@ def post_process_output():
                     write2file('cc.nml', cc_template_3(), mode='w+')
                     if d['machinetype'] == 1:
                         run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
-                        run_cmdline('mv *freq.{histfile}.nc {hdir}/highfreq')
                     else:
                         run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
-                        run_cmdline('mv *freq.{histfile}.nc {hdir}/highfreq')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" freq.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check freq.pcc2hist.log"))
+                    run_cmdline('mv *freq.{histfile}.nc {hdir}/highfreq')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
