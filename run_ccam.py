@@ -51,9 +51,8 @@ def main(inargs):
             post_process_output()
         if d['dmode'] != 5:
             update_monthyear()
-
-        print("Update simulation date and time")
-        update_yearqm()
+            print("Update simulation date and time")
+            update_yearqm()
 
     restart_flag()
 
@@ -1078,7 +1077,7 @@ def prepare_ccam_infiles():
             run_cmdline('ln -s '+fpath+' .')
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
-        elif os.path_exists(fpath+'.tar'):
+        elif os.path.exists(fpath+'.tar'):
             run_cmdline('tar xvf '+fpath+'.tar')
         else:    
             raise ValueError(dict2str('Cannot locate file {bcdir}/{mesonest}'))
@@ -1257,7 +1256,7 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-                    run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                    run_cmdline('mv *_{histfile}.nc {hdir}/daily')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
@@ -1368,7 +1367,7 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
-                    run_cmdline('mv *surf.{histfile}.nc {hdir}/cordex')
+                    run_cmdline('mv *_surf.{histfile}.nc {hdir}/cordex')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
@@ -1421,7 +1420,7 @@ def post_process_output():
                              == "pcc2hist completed successfully")
                     if xtest is False:
                         raise ValueError(dict2str("An error occured running pcc2hist. Check freq.pcc2hist.log"))
-                    run_cmdline('mv *freq.{histfile}.nc {hdir}/highfreq')
+                    run_cmdline('mv *_freq.{histfile}.nc {hdir}/highfreq')
                     if tarflag is True:
                         run_cmdline('rm {histfile}.??????')
                     ftest = False
