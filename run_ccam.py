@@ -204,7 +204,7 @@ def get_datetime():
 
     # Calculate previous month:
     if imth == 1:
-        d['imthlst'] = '12'
+        d['imthlst'] = 12
         d['iyrlst'] = iyr-1
     else:
         d['imthlst'] = imth-1
@@ -215,20 +215,15 @@ def get_datetime():
 
     # Calculate number of days in current month:
     d['ndays'] = monthrange(iyr, imth)[1]
-
     if (imth == 2) and (d['leap'] == 0):
         d['ndays'] = 28 #leap year turned off
-	
     d['eday'] = d['ndays']
-    
     if (d['iyr'] == d['iye']) and (d['imth'] == d['ime']):
-        if d['ide'] > d['ndays']:
+        if (d['ide'] > d['ndays']) or (d['ide'] < 1):
             raise ValueError("End day ide is invalid.")
         d['eday'] = d['ide']
-
-    if d['iday'] > d['ndays']:
+    if (d['iday'] > d['ndays']) or (d['iday'] < 1):
         raise ValueError("Start day ids is invalid.")
-
     d['ndays'] = d['eday'] - d['iday'] + 1
 
 
@@ -655,7 +650,7 @@ def config_initconds():
 
     d['nrungcm'] = 0
 
-    if d['iyr'] == d['iys'] and d['imth'] == d['ims']:
+    if (d['iyr'] == d['iys']) and (d['imth'] == d['ims']):
 
         if d['dmode'] in [0, 2, 3, 6]:
             d.update({'ifile': d['mesonest']})
@@ -664,12 +659,12 @@ def config_initconds():
 
         if d['bcsoil'] == 0:
             d['nrungcm'] = -1
-        elif d['bcsoil'] == 1:
+        if d['bcsoil'] == 1:
             print("Import soil from climatology")
             d['nrungcm'] = -14
             d.update({'bcsoilfile': dict2str('{insdir}/vegin/sm{imth_2digit}')})
             check_file_exists(d['bcsoilfile']+'.000000')
-        else:
+        elif d['bcsoil'] == 2:
             print("Recycle soil from input file")
             d['nrungcm'] = -4
             check_file_exists(d['bcsoilfile']+'.000000')
@@ -1041,14 +1036,27 @@ def create_sulffile_file():
 def create_input_file():
     "Write arguments to the CCAM 'input' namelist file"
 
+    # check start time
+    d['ihour'] = 0
+    if (d['iyr'] == d['iys']) and (d['imth'] == d['ims']):
+        fname = d['ifile']
+        if not os.path.exists(fname):
+            fname = dict2str('{ifile}.000000')
+        if not os.path.exists(fname):
+            raise ValueError("Cannot locate initial conditions ",fname)
+        d['ihour'] = int(subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | cut -d" " -f6 | cut -d":" -f1'))
+        if (d['ihour'] < 0) or (d['ihour'] > 23):
+            raise ValueError("Start hour ihour is invalid.")
+
     # Number of steps between output:
     d['nwt'] = int(d['dtout']*60/d['dt'])
 
     # Number of steps in run:
-    d['ntau'] = int(d['ndays']*86400/d['dt'])
+    d['ntau'] = int(((d['ndays']-1)*86400+(24-d['ihour'])*3600)/d['dt'])
 
     # Start date string:
     d['kdates'] = str(d['iyr']*10000 + d['imth']*100 + d['iday'])
+    d['ktimes'] = str(d['ihour']*100)
 
     write2file('input', input_template_1(), mode='w+')
 
@@ -1213,7 +1221,17 @@ def run_model():
             run_cmdline('rm {hdir}/cordex/*_surf.{ofile}.nc')
         fname = dict2str('{hdir}/highfreq/pr_freq.{ofile}.nc')
         if os.path.exists(fname):
-            run_cmdline('rm {hdir}/highfreq/*_freq.{ofile}.nc')	
+            run_cmdline('rm {hdir}/highfreq/*_freq.{ofile}.nc')
+
+    if d['ihour'] > 0:
+        print("Incomplete month detected - Removing spin-up output")
+        run_cmdline('rm {ofile}.??????')
+        fname = dict2str('surf.{ofile}.000000')
+        if os.path.exists(fname):
+            run_cmdline('rm surf.{ofile}.??????')
+        fname = dict2str('freq.{ofile}.000000')
+        if os.path.exists(fname):
+            run_cmdline('rm freq.{ofile}.??????')
 
 def post_process_output():
     "Post-process the CCAM model output"
@@ -1703,7 +1721,7 @@ def input_template_1():
     &defaults &end
     &cardin
      COMMENT='date and runlength'
-     kdate_s={kdates} ktime_s=0000 leap={leap}
+     kdate_s={kdates} ktime_s={ktimes} leap={leap}
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
      namip={namip} rescrn=1 zo_clearing=1.
@@ -2100,17 +2118,17 @@ def cc_template_6():
 
     template1 = """\
     &input
-     ifile = "{histfile}"
-     ofile = "{histfile}.nc"
-     hres  = {res}
-     kta={ktc}   ktb=999999  ktc={ktc}
-     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
-     use_plevs = {use_plevs}
-     use_meters = {use_meters}     
-     use_depth = {use_depth}
-     plevs = {plevs}
-     mlevs = {mlevs}
-     dlevs = {dlevs}
+     ifile="{histfile}"
+     ofile="{histfile}.nc"
+     hres={res}
+     kta={ktc}  ktb=999999  ktc={ktc}
+     minlat={minlat}  maxlat={maxlat}  minlon={minlon}  maxlon={maxlon}
+     use_plevs={use_plevs}
+     use_meters={use_meters}     
+     use_depth={use_depth}
+     plevs={plevs}
+     mlevs={mlevs}
+     dlevs={dlevs}
     &end
     &histnl
      htype="inst"
@@ -2185,7 +2203,7 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
-    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr), 4=Veg-only, 5=postprocess-only, 6=spectral(GCM)+SST")
+    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr, 4=Veg-only, 5=postprocess-only, 6=spectral(GCM)+SST)")
     parser.add_argument("--sib", type=int, choices=[1, 2, 3, 4], help=" land surface (1=CABLE+vary, 2=MODIS, 3=CABLE+SLI, 4=CABLE+const)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4, 5], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a, 5=2021)")
@@ -2209,7 +2227,7 @@ if __name__ == '__main__':
     parser.add_argument("--userlaifile", type=str, help=" User defined LAI map (none for no file)")
 
     parser.add_argument("--machinetype", type=int, choices=[0, 1], help=" Machine type (0=generic, 1=cray)")
-    parser.add_argument("--bcsoil", type=int, choices=[0, 1, 2], help=" Initial soil moisture (0=constant, 1=climatology)")
+    parser.add_argument("--bcsoil", type=int, choices=[0, 1, 2], help=" Initial soil moisture (0=const, 1=climatology, 2=recycle)")
     
     parser.add_argument("--drsmode", type=int, choices=[0, 1], help=" DRS output (0=off, 1=on)")
     parser.add_argument("--drshost", type=str, help=" Host GCM for DRS output")

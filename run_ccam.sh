@@ -94,7 +94,7 @@ userlaifile=none                             # User specified LAI map (none for 
 
 bcdom=ccam_eraint_                           # host file prefix for dmode=0, dmode=2 or dmode=3
 bcdir=$HOME/ccaminstall/erai                 # host atmospheric data (dmode=0, dmode=2 or dmode=3)
-bcsoil=0                                     # use climatology for initial soil moisture (0=constant, 1=climatology, 2=recycle)
+bcsoil=1                                     # use climatology for initial soil moisture (1=climatology, 2=recycle)
 bcsoilfile=none                              # soil data for recycling with bcsoil=2
 
 ###############################################################
