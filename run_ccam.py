@@ -61,7 +61,7 @@ def check_inargs():
     "Check all inargs are specified and are internally consistent"
 
     args2check = ['name', 'nproc', 'nnode', 'midlon', 'midlat', 'gridres', 'gridsize', 'mlev',
-                  'iys', 'ims', 'ids', 'iye', 'ime', 'ide', 'leap', 'ncountmax', 'ktc', 'minlat',
+                  'iys', 'ims', 'ids', 'ihs', 'iye', 'ime', 'ide', 'leap', 'ncountmax', 'ktc', 'minlat',
 		  'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode', 'plevs', 'mlevs',
 		  'dlevs', 'dmode', 'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix', 'mlo',
 		  'casa', 'ncout', 'nctar', 'ncsurf', 'ktc_surf', 'machinetype', 'bcdom',
@@ -562,6 +562,16 @@ def prep_iofiles():
     # Define restart file:
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
 
+    # Check for errors
+    if d['cmip'] == "cmip5":
+        if d['rcp'] == "historic":
+            if d['iyr'] >= 2005:
+                raise ValueError(dict2str("Historical period finished at 2004.  Consider selecting a future RCP."))
+    elif d['cmip'] == "cmip6":
+        if d['rcp'] == "historic":
+            if d['iyr'] > 2015:
+                raise ValueError(dict2str("Historical period finished at 2015.  Consider selecting a future SSP."))
+
     # Define ozone infile:
     if d['cmip'] == "cmip5":
         if d['rcp'] == "historic" or d['iyr'] < 2005:
@@ -1039,14 +1049,9 @@ def create_input_file():
     # check start time
     d['ihour'] = 0
     if (d['iyr'] == d['iys']) and (d['imth'] == d['ims']):
-        fname = d['ifile']
-        if not os.path.exists(fname):
-            fname = dict2str('{ifile}.000000')
-        if not os.path.exists(fname):
-            raise ValueError("Cannot locate initial conditions ",fname)
-        d['ihour'] = int(subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | cut -d" " -f6 | cut -d":" -f1'))
-        if (d['ihour'] < 0) or (d['ihour'] > 23):
-            raise ValueError("Start hour ihour is invalid.")
+        d['ihour'] = d['ihs']
+        if (d['ihs'] < 0) or (d['ihs'] > 23):
+            raise ValueError("Start hour ihs is invalid.")
 
     # Number of steps between output:
     d['nwt'] = int(d['dtout']*60/d['dt'])
@@ -2072,7 +2077,7 @@ def cc_template_2():
 def cc_template_3():
     "Third part of template for 'cc.nml' namelist file"
 
-    template1 = """\
+    template = """\
     &input
      ifile = "freq.{histfile}"
      ofile = "freq.{histfile}.nc"
@@ -2104,12 +2109,10 @@ def cc_template_5():
     &end
     &histnl
      htype="inst"
-     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rlds","hfls","hfss","rsus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","ua925","va925","ta925","zg925","hus925","ua850","va850","ta850","zg850","hus850","ua700","va700","ta700","zg700","hus700","ua600","va600","ta600","zg600","hus600","ua500","va500","ta500","zg500","hus500","ua400","va400","ta400","zg400","hus400","ua300","va300","ta300","zg300","hus300","ua250","va250","ta250","zg250","hus250","ua200","va200","ta200","zg200","hus200","ua150","va150","ta150","zg150","hus150","ua100","va100","ta100","zg100","hus100","ua70","va70","ta70","zg70","hus70","ua50","va50","ta50","zg50","hus50","ua30","va30","ta30","zg30","hus30","ua20","va20","ta20","zg20","hus20","ua10","va10","ta10","zg10","hus10","clh","clm","cll","snc","snd","sic","prsn","orog","sftlf","ua100m","va100m","sftlaf","sfturf","z0"
+     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua750","va750","ta750","zg750","hus750","wa750","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","ua150","va150","ta150","zg150","hus150","wa150","ua100","va100","ta100","zg100","hus100","wa100","ua70","va70","ta70","zg70","hus70","wa70","ua50","va50","ta50","zg50","hus50","wa50","ua30","va30","ta30","zg30","hus30","wa30","ua20","va20","ta20","zg20","hus20","wa20","ua10","va10","ta10","zg10","hus10","wa10","clh","clm","cll","snc","snd","sic","prsn","orog","sftlf","ua100m","va100m","sftlaf","sfturf","z0","rsdscs","rldscs","rsuscs","rluscs","rsutcs","rlutcs","wsgsmax","tsl","mrsol","mrfsol"
      hfreq = 1
     &end
     """
-
-    template = template1
 
     return template
 
@@ -2186,6 +2189,7 @@ if __name__ == '__main__':
     parser.add_argument("--iys", type=int, help=" start year [YYYY]")
     parser.add_argument("--ims", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" start month [MM]")
     parser.add_argument("--ids", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" start day [DD]")    
+    parser.add_argument("--ihs", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], help=" start hour [HH]")
     parser.add_argument("--iye", type=int, help=" end year [YYYY]")
     parser.add_argument("--ime", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" end month [MM]")
     parser.add_argument("--ide", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" end day [DD]")    

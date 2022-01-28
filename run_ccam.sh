@@ -32,6 +32,7 @@ gridsize=96                                  # cubic grid size (e.g., 48, 72, 96
 iys=2000                                     # start year
 ims=1                                        # start month
 ids=1                                        # start day
+ihs=0                                        # start hour
 iye=2000                                     # end year
 ime=12                                       # end month
 ide=31                                       # end day
@@ -122,7 +123,7 @@ pcc2hist=$insdir/src/bin/pcc2hist
 ###############################################################
 
 python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon " $midlon" --midlat " $midlat" --gridres " $gridres" \
-                   --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --ids $ids --iye $iye --ime $ime --ide $ide --leap $leap \
+                   --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --ids $ids --ihs $ihs --iye $iye --ime $ime --ide $ide --leap $leap \
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
 		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
