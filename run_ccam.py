@@ -2099,7 +2099,7 @@ def cc_template_3():
 def cc_template_5():
     "Fifth part of template for 'cc.nml' namelist file"
 
-    template1 = """\
+    template = """\
     &input
      ifile = "surf.{histfile}"
      ofile = "surf.{histfile}.nc"
