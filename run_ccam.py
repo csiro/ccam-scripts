@@ -1475,53 +1475,56 @@ def post_process_output():
         if hm > 12:
             # create JSON file for DRS if new cordex formatted output was created
             if d['drsmode'] == 1:
-                for dirname in ['daily', 'cordex', 'highfreq']:		    
+                for dirname in ['daily', 'cordex', 'highfreq']:
                     d['drsdirname'] = dirname
-                    # check if all files are present    
-                    ctest = True
-                    tm = 1
-                    while (tm<=12) and (ctest is True):    
-                        d['histmonth'] = mon_2digit(tm)
-                        tm = tm + 1
-                        fname = "error"
-                        if (dirname == "daily") and (d['ncout'] > 0):
-                            fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
-                        elif (dirname == "cordex") and (d['ncsurf'] > 0):
-                            fname = dict2str('{hdir}/{drsdirname}/pr_surf.{name}.{histyear}{histmonth}.nc')
-                        elif (dirname == "highfreq") and (d['nchigh'] > 0):
-                            fname = dict2str('{hdir}/{drsdirname}/pr_freq.{name}.{histyear}{histmonth}.nc')
-                        if not os.path.exists(fname):
-                            ctest = False
+                    # check if new file has been created
                     newtest = False
                     if dirname == "daily":
                         newtest = newoutput
                     elif dirname == "cordex":
                         newtest = newcordex
                     elif dirname == "highfreq":
-                        newtest = newhighfreq	
-                    # all files exist (ctest) and a new file was created (newtest)		    
-                    if (ctest is True) and (newtest is True):
-                        hres = d['gridres']
-                        payload = dict(
-                            input_files=dict2str('{hdir}/{drsdirname}/*nc'),
-                            output_dir=dict2str('{hdir}/drs_{drsdirname}/'),
-                            start_year=hy, end_year=hy,
-                            output_frequency='1M',
-                            project='CORDEX',
-                            model=dict2str('{drshost}'),
-                            variables=[ '' ],
-                            domains=[ dict2str('{drsdomain}') ],
-                            cordex=True,
-                            input_resolution=hres
-                        )
-                        f = open(dict2str('{hdir}/{drsdirname}/payload.json.{histyear}'), 'w', encoding='utf-8')
-                        json.dump(
-                            payload,
-                            f,
-                            ensure_ascii=False,
-                            indent=4
-                        )
+                        newtest = newhighfreq
+                    if newtest is True:         
+                        # check if all files are present    
+                        ctest = True
+                        tm = 1
+                        while (tm<=12) and (ctest is True):    
+                            d['histmonth'] = mon_2digit(tm)
+                            tm = tm + 1
+                            fname = "error"
+                            if (dirname == "daily") and (d['ncout'] > 0):
+                                fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
+                            elif (dirname == "cordex") and (d['ncsurf'] > 0):
+                                fname = dict2str('{hdir}/{drsdirname}/pr_surf.{name}.{histyear}{histmonth}.nc')
+                            elif (dirname == "highfreq") and (d['nchigh'] > 0):
+                                fname = dict2str('{hdir}/{drsdirname}/pr_freq.{name}.{histyear}{histmonth}.nc')
+                            if not os.path.exists(fname):
+                                ctest = False
+                        # all files exist (ctest) and a new file was created (newtest)
+                        if ctest is True:
+                            hres = d['gridres']
+                            payload = dict(
+                                input_files=dict2str('{hdir}/{drsdirname}/*nc'),
+                                output_dir=dict2str('{hdir}/drs_{drsdirname}/'),
+                                start_year=hy, end_year=hy,
+                                output_frequency='1M',
+                                project='CORDEX',
+                                model=dict2str('{drshost}'),
+                                variables=[ '' ],
+                                domains=[ dict2str('{drsdomain}') ],
+                                cordex=True,
+                                input_resolution=hres
+                            )
+                            f = open(dict2str('{hdir}/{drsdirname}/payload.json.{histyear}'), 'w', encoding='utf-8')
+                            json.dump(
+                                payload,
+                                f,
+                                ensure_ascii=False,
+                                indent=4
+                            )
                         f.close()
+                        
             # Advace year
             hm = 1
             hy = hy + 1
