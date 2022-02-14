@@ -66,6 +66,7 @@ mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outl
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 drsmode=0                                    # DRS output (0=off, 1=on)
 drshost=none                                 # Host GCM for DRS otput (e.g., ACCESS1-0)
+drsensemble=none                             # Host GCM ensemble number for DRS output (e.g., r1i1p1f1)
 drsdomain=none                               # DRS domain (e.g., AUS-50)
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5=postprocess-only, 6=Spectral(GCM)+SST )
@@ -138,7 +139,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield \
 		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
 		   --uservegfile $uservegfile --userlaifile $userlaifile \
-		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain
+		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \
+		   --drsensemble $drsensemble
 
 if [ $dmode -eq 5 ]; then
   restname=restart5.qm

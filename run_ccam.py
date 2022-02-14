@@ -68,7 +68,8 @@ def check_inargs():
 		  'bcsoil', 'sstfile', 'sstinit', 'cmip', 'insdir', 'hdir', 'wdir', 'bcdir',
 		  'sstdir', 'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg',
 		  'sibveg', 'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex',
-		  'soilparm', 'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high']
+		  'soilparm', 'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high',
+                  'drsmode', 'drshost', 'drsensemble', 'drsdomain']
 
     for i in args2check:
         if not i in d.keys():
@@ -1511,6 +1512,7 @@ def post_process_output():
                                 output_frequency='1M',
                                 project='CORDEX',
                                 model=dict2str('{drshost}'),
+                                ensemble=dict2str('{drsensemble'}),
                                 variables=[ '' ],
                                 domains=[ dict2str('{drsdomain}') ],
                                 cordex=True,
@@ -2238,6 +2240,7 @@ if __name__ == '__main__':
     
     parser.add_argument("--drsmode", type=int, choices=[0, 1], help=" DRS output (0=off, 1=on)")
     parser.add_argument("--drshost", type=str, help=" Host GCM for DRS output")
+    parser.add_argument("--drsensemble", type=str, help=" Host GCM ensemble number for DRS output")
     parser.add_argument("--drsdomain", type=str, help=" DRS domain")
 
     ###############################################################
