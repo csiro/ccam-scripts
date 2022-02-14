@@ -1512,7 +1512,7 @@ def post_process_output():
                                 output_frequency='1M',
                                 project='CORDEX',
                                 model=dict2str('{drshost}'),
-                                ensemble=dict2str('{drsensemble'}),
+                                ensemble=dict2str('{drsensemble}'),
                                 variables=[ '' ],
                                 domains=[ dict2str('{drsdomain}') ],
                                 cordex=True,
