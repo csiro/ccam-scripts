@@ -2141,14 +2141,26 @@ def cc_template_6():
     """
     template2 = """\
     hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
-"tasmax","tasmin","sfcWind","zg","hus"
+"tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega", \
+"cfrac","prw","clwvi","clivi","rldscs","rsdscs","rluscs","rsuscs","zmla", \
+"clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund", \
+"rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
+"evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
+"snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
+"alb","sftlf"
      hfreq = 1
     &end
     """
     
     template3 = """\
     hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
-"tasmax","tasmin","sfcWind","zg","hus","tos","sos","uos","vos"
+"tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega", \
+"cfrac","prw","clwvi","clivi","rldscs","rsdscs","rluscs","rsuscs","zmla", \
+"clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn", "sund", \
+"rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
+"evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
+"snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
+"alb","sftlf","tos","sos","uos","vos"
      hfreq = 1
     &end
     """
