@@ -1525,7 +1525,7 @@ def post_process_output():
                                 ensure_ascii=False,
                                 indent=4
                             )
-                        f.close()
+                            f.close()
                         
             # Advace year
             hm = 1
