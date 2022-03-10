@@ -47,7 +47,7 @@ fi
 
 # Note that turning off output should be done with ktc, ktc_surf and ktc_high
 # Otherwise output will be saved but not post-processed
-ncout=0                                      # standard output format (0=none, 1=all, 5=CTM, 7=basic)
+ncout=0                                      # standard output (0=none, 1=all, 5=CTM, 7=basic)
 ncsurf=3                                     # CORDEX output (0=none, 3=CORDEX)
 nchigh=1                                     # high-frequency output (0=none, 1=lat/lon)
 nctar=0                                      # TAR output files in OUTPUT directory (0=off, 1=on, 2=delete)
@@ -60,14 +60,16 @@ maxlat=-999.                                 # output max latitude (degrees) (-9
 minlon=-999.                                 # output min longitude (degrees) (-999.=automatic)
 maxlon=-999.                                 # output max longitude (degrees) (-999.=automatic)
 reqres=-999.                                 # required output resolution (degrees) (-999.=automatic)
-outlevmode=0                                 # output mode for levels (0=pressure, 1=meters)
-plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa) for outlevmode=0
-mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m) for outlevmode=1
+outlevmode=0                                 # output mode for levels (0=pressure, 1=meters, 2=both)
+plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa)
+mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m)
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 drsmode=0                                    # DRS output (0=off, 1=on)
 drshost=none                                 # Host GCM for DRS otput (e.g., ACCESS1-0)
 drsensemble=none                             # Host GCM ensemble number for DRS output (e.g., r1i1p1f1)
 drsdomain=none                               # DRS domain (e.g., AUS-50)
+model_id="CSIRO-CCAM-2203"                   # CCAM version name
+contact="ccam@csiro.au"                      # contact email details
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5=postprocess-only, 6=Spectral(GCM)+SST )
 cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
@@ -140,7 +142,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
 		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
 		   --uservegfile $uservegfile --userlaifile $userlaifile \
 		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \
-		   --drsensemble $drsensemble
+		   --drsensemble $drsensemble --model_id "$model_id" --contact "$contact"
 
 if [ $dmode -eq 5 ]; then
   restname=restart5.qm

@@ -69,7 +69,7 @@ def check_inargs():
 		  'sstdir', 'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg',
 		  'sibveg', 'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex',
 		  'soilparm', 'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high',
-                  'drsmode', 'drshost', 'drsensemble', 'drsdomain']
+                  'drsmode', 'drshost', 'drsensemble', 'drsdomain', 'model_id', 'contact' ]
 
     for i in args2check:
         if not i in d.keys():
@@ -79,14 +79,6 @@ def check_inargs():
     d['plevs'] = d['plevs'].replace(',', ', ')
     d['mlevs'] = d['mlevs'].replace(',', ', ')
     d['dlevs'] = d['dlevs'].replace(',', ', ')
-    if d['outlevmode'] == 0:
-        d['use_plevs'] = 'T'
-        d['use_meters'] = 'F'
-    elif d['outlevmode'] == 1:
-        d['use_plevs'] = 'F'
-        d['use_meters'] = 'T'
-    else:
-        raise ValueError("Invalid choice for outlevmode")
 
     if d['mlo'] == 0:
         d['use_depth'] = 'F'
@@ -131,7 +123,17 @@ def create_directories():
 
     os.chdir(dirname)
 
-    for dirname in ['daily', 'OUTPUT', 'RESTART', 'vegdata']:
+    for dirname in ['OUTPUT', 'RESTART', 'vegdata']:
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+
+    if (d['outlevmode']==0) or (d['outlevmode']==2):
+        dirname = 'daily'
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+
+    if (d['outlevmode']==1) or (d['outlevmode']==2):
+        dirname = 'daily_h'
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
 
@@ -1222,6 +1224,9 @@ def run_model():
         fname = dict2str('{hdir}/daily/ccam_{iyr}{imth_2digit}01.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/daily/ccam_{iyr}{imth_2digit}??.nc')
+        fname = dict2str('{hdir}/daily_h/pr_{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/daily_h/*_{ofile}.nc')
         fname = dict2str('{hdir}/cordex/pr_surf.{ofile}.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/cordex/*_surf.{ofile}.nc')
@@ -1246,6 +1251,7 @@ def post_process_output():
     hm = 1
     ftest = True
     newoutput = False
+    newoutput_h = False
     newcordex = False
     newhighfreq = False
     while ftest:
@@ -1259,92 +1265,156 @@ def post_process_output():
         if (hy == d['iye']) and (hm == d['ime']):
             idayend = d['ide']
 	    
-        # standard output
-        if d['ncout'] == 1:
-            fname = dict2str('{hdir}/daily/{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)    
-                if os.path.exists(cname):
-                    write2file('cc.nml', cc_template_1(), mode='w+')
-                    if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                    else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-                    run_cmdline('mv *_{histfile}.nc {hdir}/daily')
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-                    newoutput = True
+        # standard output for pressure levels
+        if (d['outlevmode']==0) or (d['outlevmode']==1):
+            d['use_plevs'] = 'T'
+            d['use_meters'] = 'F'
 
-        if d['ncout'] == 5:
-            d['cday'] = mon_2digit(idayend)
-            fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}{cday}.nc")
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)    
-                if os.path.exists(cname):
-                    for iday in range(idaystart, idayend+1):
-                        d['cday'] = mon_2digit(iday)
-                        d['iend'] = (iday-idaystart+1)*1440
-                        d['istart'] = (iday-idaystart)*1440
-                        d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
-                        write2file('cc.nml', cc_template_2(), mode='w+')
+            if d['ncout'] == 1:
+                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                if not os.path.exists(fname):
+                    tarflag = False
+                    cname = dict2str('{histfile}.000000')
+                    if not os.path.exists(cname):
+                        tname = dict2str('{histfile}.tar')
+                        if os.path.exists(tname):
+                            tarflag = True
+                            run_cmdline('tar xvf '+tname)    
+                    if os.path.exists(cname):
+                        write2file('cc.nml', cc_template_1(), mode='w+')
                         if d['machinetype'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
                         else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist_ctm.log')
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                                  == "pcc2hist completed successfully")
                         if xtest is False:
-                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
-                    run_cmdline('mv ccam_{histyear}{histmonth}??.nc {hdir}/daily')
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-                    # No DRS output for CTM formatting
-                    newoutput = False
+                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+                        run_cmdline('mv *_{histfile}.nc {hdir}/daily')
+                        if tarflag is True:
+                            run_cmdline('rm {histfile}.??????')
+                        ftest = False
+                        newoutput = True
 
-        if d['ncout'] == 7:
-            fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)    
-                if os.path.exists(cname):
-                    write2file('cc.nml', cc_template_6(), mode='w+')
-                    if d['machinetype'] == 1:
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                    else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
-                    run_cmdline('mv *{histfile}.nc {hdir}/daily')
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-                    newoutput = True
+            if d['ncout'] == 5:
+                d['cday'] = mon_2digit(idayend)
+                fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}{cday}.nc")
+                if not os.path.exists(fname):
+                    tarflag = False
+                    cname = dict2str('{histfile}.000000')
+                    if not os.path.exists(cname):
+                        tname = dict2str('{histfile}.tar')
+                        if os.path.exists(tname):
+                            tarflag = True
+                            run_cmdline('tar xvf '+tname)    
+                    if os.path.exists(cname):
+                        for iday in range(idaystart, idayend+1):
+                            d['cday'] = mon_2digit(iday)
+                            d['iend'] = (iday-idaystart+1)*1440
+                            d['istart'] = (iday-idaystart)*1440
+                            d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
+                            write2file('cc.nml', cc_template_2(), mode='w+')
+                            if d['machinetype'] == 1:
+                                run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                            else:
+                                run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                            xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist_ctm.log')
+                                     == "pcc2hist completed successfully")
+                            if xtest is False:
+                                raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
+                        run_cmdline('mv ccam_{histyear}{histmonth}??.nc {hdir}/daily')
+                        if tarflag is True:
+                            run_cmdline('rm {histfile}.??????')
+                        ftest = False
+                        # No DRS output for CTM formatting
+                        newoutput = False
 
+            if d['ncout'] == 7:
+                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
+                if not os.path.exists(fname):
+                    tarflag = False
+                    cname = dict2str('{histfile}.000000')
+                    if not os.path.exists(cname):
+                        tname = dict2str('{histfile}.tar')
+                        if os.path.exists(tname):
+                            tarflag = True
+                            run_cmdline('tar xvf '+tname)    
+                    if os.path.exists(cname):
+                        write2file('cc.nml', cc_template_6(), mode='w+')
+                        if d['machinetype'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                                 == "pcc2hist completed successfully")
+                        if xtest is False:
+                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        if tarflag is True:
+                            run_cmdline('rm {histfile}.??????')
+                        ftest = False
+                        newoutput = True
+
+        # standard output for pressure levels
+        if (d['outlevmode']==0) or (d['outlevmode']==2):
+            d['use_plevs'] = 'F'
+            d['use_meters'] = 'T'        
+
+            if d['ncout'] == 1:
+                fname = dict2str('{hdir}/daily_h/{histfile}.nc')
+                if not os.path.exists(fname):
+                    tarflag = False
+                    cname = dict2str('{histfile}.000000')
+                    if not os.path.exists(cname):
+                        tname = dict2str('{histfile}.tar')
+                        if os.path.exists(tname):
+                            tarflag = True
+                            run_cmdline('tar xvf '+tname)
+                    if os.path.exists(cname):
+                        write2file('cc.nml', cc_template_1(), mode='w+')
+                        if d['machinetype'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                                 == "pcc2hist completed successfully")
+                        if xtest is False:
+                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+                        run_cmdline('mv *_{histfile}.nc {hdir}/daily_h')
+                        if tarflag is True:
+                            run_cmdline('rm {histfile}.??????')
+                        ftest = False
+                        newoutput_h = True
+
+            if d['ncout'] == 5:
+                raise ValueError("ncout=5 requires pressure levels.  Please use outlevmode=0.")
+
+            if d['ncout'] == 7:
+                fname = dict2str('{hdir}/daily_h/pr_{histfile}.nc')
+                if not os.path.exists(fname):
+                    tarflag = False
+                    cname = dict2str('{histfile}.000000')
+                    if not os.path.exists(cname):
+                        tname = dict2str('{histfile}.tar')
+                        if os.path.exists(tname):
+                            tarflag = True
+                            run_cmdline('tar xvf '+tname)
+                    if os.path.exists(cname):
+                        write2file('cc.nml', cc_template_6(), mode='w+')
+                        if d['machinetype'] == 1:
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                                 == "pcc2hist completed successfully")
+                        if xtest is False:
+                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily_h')
+                        if tarflag is True:
+                            run_cmdline('rm {histfile}.??????')
+                        ftest = False
+                        newoutput_h = True
+                    
         # store output
         if (d['nctar']==0) and (d['dmode']!=5):
             cname = dict2str('{histfile}.000000')
@@ -1363,7 +1433,7 @@ def post_process_output():
             cname = dict2str('{histfile}.000000')
             if os.path.exists(cname):
                 run_cmdline('rm {histfile}.??????')
-                ftest = False
+                ftest = False                    
 
         # surface files
         if d['ncsurf'] == 3:
@@ -1476,12 +1546,14 @@ def post_process_output():
         if hm > 12:
             # create JSON file for DRS if new cordex formatted output was created
             if d['drsmode'] == 1:
-                for dirname in ['daily', 'cordex', 'highfreq']:
+                for dirname in ['daily', 'daily_h', 'cordex', 'highfreq']:
                     d['drsdirname'] = dirname
                     # check if new file has been created
                     newtest = False
                     if dirname == "daily":
                         newtest = newoutput
+                    elif dirname == "daily_h":
+                        newtest = newoutput_h
                     elif dirname == "cordex":
                         newtest = newcordex
                     elif dirname == "highfreq":
@@ -1494,7 +1566,9 @@ def post_process_output():
                             d['histmonth'] = mon_2digit(tm)
                             tm = tm + 1
                             fname = "error"
-                            if (dirname == "daily") and (d['ncout'] > 0):
+                            if (dirname == "daily") and (d['outlevmode']==0 or d['outlevmode']==2):
+                                fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
+                            elif (dirname == "daily_h") and (d['outlevmode']==1 or d['outlevmode']==2):
                                 fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
                             elif (dirname == "cordex") and (d['ncsurf'] > 0):
                                 fname = dict2str('{hdir}/{drsdirname}/pr_surf.{name}.{histyear}{histmonth}.nc')
@@ -1505,18 +1579,36 @@ def post_process_output():
                         # all files exist (ctest) and a new file was created (newtest)
                         if ctest is True:
                             hres = d['gridres']
+                            if d['cmip'] == "cmip5":
+                                if hy <= 2005:
+                                    cmip_scenario="historical"
+                                    project="CORDEX-CMIP5"
+                                else:
+                                    cmip_scenario=dict2str('{rcp}')
+                                    project="CORDEX-CMIP5"
+                            elif d['cmip'] == 'cmip6':
+                                if hy <= 2014:
+                                    cmip_scenario="historical"
+                                    project="CORDEX-CMIP6"  
+                                else:
+                                    cmip_scenario=dict2str('{rcp}')
+                                    project="CORDEX-CMIP6"
                             payload = dict(
                                 input_files=dict2str('{hdir}/{drsdirname}/*nc'),
-                                output_dir=dict2str('{hdir}/drs_{drsdirname}/'),
+                                output_directory=dict2str('{hdir}/drs_{drsdirname}/'),
                                 start_year=hy, end_year=hy,
                                 output_frequency='1M',
-                                project='CORDEX',
+                                project=project,
                                 model=dict2str('{drshost}'),
                                 ensemble=dict2str('{drsensemble}'),
-                                variables=[ '' ],
-                                domains=[ dict2str('{drsdomain}') ],
+                                variables=[],
+                                domain=dict2str('{drsdomain}'),
                                 cordex=True,
-                                input_resolution=hres
+                                input_resolution=hres,
+                                model_id=dict2str('{model_id}'),
+                                driving_experiment_name=cmip_scenario,
+                                contact=dict2str('{contact}'),
+                                rcm_version_id='v1'
                             )
                             f = open(dict2str('{hdir}/{drsdirname}/payload.json.{histyear}'), 'w', encoding='utf-8')
                             json.dump(
@@ -2217,7 +2309,7 @@ if __name__ == '__main__':
     parser.add_argument("--minlon", type=float, help=" output min longitude (degrees)")
     parser.add_argument("--maxlon", type=float, help=" output max longitude (degrees)")
     parser.add_argument("--reqres", type=float, help=" required output resolution (degrees) (-1.=automatic)")
-    parser.add_argument("--outlevmode", type=int, choices=[0, 1], help=" Output level mode (0=pressure, 1=meters)")
+    parser.add_argument("--outlevmode", type=int, choices=[0, 1, 2], help=" Output level mode (0=pressure, 1=meters, 2=both)")
     parser.add_argument("--plevs", type=str, help=" output pressure levels (hPa)")
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
@@ -2252,6 +2344,8 @@ if __name__ == '__main__':
     parser.add_argument("--drshost", type=str, help=" Host GCM for DRS output")
     parser.add_argument("--drsensemble", type=str, help=" Host GCM ensemble number for DRS output")
     parser.add_argument("--drsdomain", type=str, help=" DRS domain")
+    parser.add_argument("--model_id", type=str, help=" CCAM version name")
+    parser.add_argument("--contact", type=str, help=" CCAM contact email")
 
     ###############################################################
     # Specify directories, datasets and executables
