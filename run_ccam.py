@@ -1266,7 +1266,7 @@ def post_process_output():
             idayend = d['ide']
 	    
         # standard output for pressure levels
-        if (d['outlevmode']==0) or (d['outlevmode']==1):
+        if (d['outlevmode']==0) or (d['outlevmode']==2):
             d['use_plevs'] = 'T'
             d['use_meters'] = 'F'
 
@@ -1356,7 +1356,7 @@ def post_process_output():
                         newoutput = True
 
         # standard output for pressure levels
-        if (d['outlevmode']==0) or (d['outlevmode']==2):
+        if (d['outlevmode']==1) or (d['outlevmode']==2):
             d['use_plevs'] = 'F'
             d['use_meters'] = 'T'        
 
@@ -1373,13 +1373,13 @@ def post_process_output():
                     if os.path.exists(cname):
                         write2file('cc.nml', cc_template_1(), mode='w+')
                         if d['machinetype'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
                         else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" h.pcc2hist.log')
                                  == "pcc2hist completed successfully")
                         if xtest is False:
-                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
+                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check h.pcc2hist.log for details"))
                         run_cmdline('mv *_{histfile}.nc {hdir}/daily_h')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
@@ -1402,13 +1402,13 @@ def post_process_output():
                     if os.path.exists(cname):
                         write2file('cc.nml', cc_template_6(), mode='w+')
                         if d['machinetype'] == 1:
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
                         else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" h.pcc2hist.log')
                                  == "pcc2hist completed successfully")
                         if xtest is False:
-                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                            raise ValueError(dict2str("An error occured running pcc2hist. Check h.pcc2hist.log"))
                         run_cmdline('mv *{histfile}.nc {hdir}/daily_h')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
@@ -2239,7 +2239,7 @@ def cc_template_6():
 "rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
 "snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
-"alb","sftlf"
+"alb","sftlf","sdischarge"
      hfreq = 1
     &end
     """
@@ -2252,7 +2252,7 @@ def cc_template_6():
 "rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
 "snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
-"alb","sftlf","tos","sos","uos","vos"
+"alb","sftlf","sdischarge","tos","sos","uos","vos"
      hfreq = 1
     &end
     """
