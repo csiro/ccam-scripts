@@ -17,9 +17,9 @@ def main(inargs):
 
     for mth in range(0, d['ncountmax']):
         print("Reading date and time")
-        get_datetime()
-        d['ofile'] = dict2str('{name}.{iyr}{imth_2digit}')		
         if d['dmode'] != 5:
+            get_datetime()
+            d['ofile'] = dict2str('{name}.{iyr}{imth_2digit}')		
             check_surface_files()
         if (d['dmode']!=4) and (d['dmode']!=5):
             read_inv_schmidt()
@@ -69,7 +69,8 @@ def check_inargs():
 		  'sstdir', 'stdat', 'aeroemiss', 'model', 'pcc2hist', 'terread', 'igbpveg',
 		  'sibveg', 'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex',
 		  'soilparm', 'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high',
-                  'drsmode', 'drshost', 'drsensemble', 'drsdomain', 'model_id', 'contact' ]
+                  'drsmode', 'drshost', 'drsensemble', 'drsdomain', 'model_id', 'contact',
+                  'rcm_version_id' ]
 
     for i in args2check:
         if not i in d.keys():
@@ -711,31 +712,31 @@ def set_downscaling():
 
     if d['dmode'] == 0:
         d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
-                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
                   'mh_bs':3})
 
     elif d['dmode'] == 1:
         d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
-                  'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
                   'mh_bs':3})
 
     elif d['dmode'] == 2:
         d.update({'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
-                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1,
                   'mh_bs':3})
 
     elif d['dmode'] == 3:
         d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
-                  'nud_uv': 0, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
                   'mh_bs':3})
 		  
     if d['dmode'] == 6:
         d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
-                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 1, 'mfix_aero': 1,
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'namip': 14, 'nud_aero': 0,
                   'mh_bs':3})
 
@@ -1281,6 +1282,7 @@ def post_process_output():
                             tarflag = True
                             run_cmdline('tar xvf '+tname)    
                     if os.path.exists(cname):
+                        print("Process pressure (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_1(), mode='w+')
                         if d['machinetype'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
@@ -1308,6 +1310,7 @@ def post_process_output():
                             tarflag = True
                             run_cmdline('tar xvf '+tname)    
                     if os.path.exists(cname):
+                        print("Process CTM output for ",dict2str('{histyear}{histmonth}'))
                         for iday in range(idaystart, idayend+1):
                             d['cday'] = mon_2digit(iday)
                             d['iend'] = (iday-idaystart+1)*1440
@@ -1340,6 +1343,7 @@ def post_process_output():
                             tarflag = True
                             run_cmdline('tar xvf '+tname)    
                     if os.path.exists(cname):
+                        print("Process pressure (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_6(), mode='w+')
                         if d['machinetype'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
@@ -1371,6 +1375,7 @@ def post_process_output():
                             tarflag = True
                             run_cmdline('tar xvf '+tname)
                     if os.path.exists(cname):
+                        print("Process height (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_1(), mode='w+')
                         if d['machinetype'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
@@ -1400,6 +1405,7 @@ def post_process_output():
                             tarflag = True
                             run_cmdline('tar xvf '+tname)
                     if os.path.exists(cname):
+                        print("Process height (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_6(), mode='w+')
                         if d['machinetype'] == 1:
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
@@ -1447,6 +1453,7 @@ def post_process_output():
                         tarflag = True
                         run_cmdline('tar xvf '+tname)    
                 if os.path.exists(cname):
+                    print("Process CORDEX output for ",dict2str('{histyear}{histmonth}'))
                     d['ktc_units'] = d['ktc_surf']
                     cname = dict2str('surf.{histfile}.000000')
                     seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
@@ -1500,6 +1507,7 @@ def post_process_output():
                         tarflag = True
                         run_cmdline('tar xvf '+tname)    
                 if os.path.exists(cname):
+                    print("Process high-frequency output for ",dict2str('{histyear}{histmonth}'))
                     d['ktc_units'] = d['ktc_high']
                     cname = dict2str('freq.{histfile}.000000')
                     seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
@@ -1608,7 +1616,9 @@ def post_process_output():
                                 model_id=dict2str('{model_id}'),
                                 driving_experiment_name=cmip_scenario,
                                 contact=dict2str('{contact}'),
-                                rcm_version_id='v1'
+                                rcm_version_id=('{rcm_version_id}'),
+                                preprocessor="ccam",
+                                postprocessor="ccam"
                             )
                             f = open(dict2str('{hdir}/{drsdirname}/payload.json.{histyear}'), 'w', encoding='utf-8')
                             json.dump(
@@ -1657,13 +1667,11 @@ def update_yearqm():
 def restart_flag():
     "Create restart.qm containing flag for restart. This flag signifies that CCAM completed previous month"
 
-    # Abort run at finish year:
-    sdate = d['iyr']*100 +d['imth']
-    edate = d['iye']*100 +d['ime']
-
     if d['dmode'] == 5:
         write2file(d['hdir']+'/restart5.qm', "True", mode='w+')
     else:	
+        sdate = d['iyr']*100 +d['imth']
+        edate = d['iye']*100 +d['ime']
         if sdate > edate:
             write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
             sys.exit(0)
@@ -2252,7 +2260,7 @@ def cc_template_6():
 "rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
 "snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
-"alb","sftlf","sdischarge","tos","sos","uos","vos"
+"alb","sftlf","sdischarge","tos","sos","uos","vos","ssh"
      hfreq = 1
     &end
     """
@@ -2314,7 +2322,7 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
-    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5, 6], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr, 4=Veg-only, 5=postprocess-only, 6=spectral(GCM)+SST)")
+    parser.add_argument("--dmode", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7], help=" downscaling (0=spectral(GCM), 1=SST-only, 2=spectral(CCAM), 3=SST-6hr, 4=Veg-only, 5=postprocess-only, 6=spectral(GCM)+SST), 7=Spin-up")
     parser.add_argument("--sib", type=int, choices=[1, 2, 3, 4], help=" land surface (1=CABLE+vary, 2=MODIS, 3=CABLE+SLI, 4=CABLE+const)")
     parser.add_argument("--aero", type=int, choices=[0, 1], help=" aerosols (0=off, 1=prognostic)")
     parser.add_argument("--conv", type=int, choices=[0, 1, 2, 3, 4, 5], help=" convection (0=2014, 1=2015a, 2=2015b, 3=2017, 4=Mod2015a, 5=2021)")
@@ -2346,6 +2354,7 @@ if __name__ == '__main__':
     parser.add_argument("--drsdomain", type=str, help=" DRS domain")
     parser.add_argument("--model_id", type=str, help=" CCAM version name")
     parser.add_argument("--contact", type=str, help=" CCAM contact email")
+    parser.add_argument("--rcm_version_id", type=str, help=" CCAM version number")
 
     ###############################################################
     # Specify directories, datasets and executables

@@ -70,6 +70,7 @@ drsensemble=none                             # Host GCM ensemble number for DRS 
 drsdomain=none                               # DRS domain (e.g., AUS-50)
 model_id="CSIRO-CCAM-2203"                   # CCAM version name
 contact="ccam@csiro.au"                      # contact email details
+rcm_version_id="v1"                          # CCAM version number
 
 dmode=0                                      # simulation type (0=downscale spectral(GCM), 1=SST-only, 2=downscale spectral(CCAM), 3=SST-6hr, 4=veg-only, 5=postprocess-only, 6=Spectral(GCM)+SST )
 cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
@@ -142,7 +143,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
 		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
 		   --uservegfile $uservegfile --userlaifile $userlaifile \
 		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \
-		   --drsensemble $drsensemble --model_id "$model_id" --contact "$contact"
+		   --drsensemble $drsensemble --model_id "$model_id" --contact "$contact" \
+		   --rcm_version_id "$rcm_version_id"
 
 if [ $dmode -eq 5 ]; then
   restname=restart5.qm
