@@ -93,6 +93,11 @@ vegindex=default                             # Define vegetation indices for use
 uservegfile=none                             # User specified vegetation map (none for no user file)
 userlaifile=none                             # User specified LAI map (none for no user file)
 
+# Special options
+tke_timeave_length=0.                        # Averaging period for TKE-eps boundary layer mixing
+wg_tau=3.                                    # wg_tau parameter for wind gusts
+wg_prob=0.5                                  # wg_prob parameter for wind gusts
+
 ###############################################################
 # Host atmosphere for dmode=0, dmode=2, dmode=3 or dmode=6
 # and soil data options
@@ -144,7 +149,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
 		   --uservegfile $uservegfile --userlaifile $userlaifile \
 		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \
 		   --drsensemble $drsensemble --model_id "$model_id" --contact "$contact" \
-		   --rcm_version_id "$rcm_version_id"
+		   --rcm_version_id "$rcm_version_id" --tke_timeave_length $tke_timeave_length \
+		   --wg_tau $wg_tau --wg_prob $wg_prob
 
 if [ $dmode -eq 5 ]; then
   restname=restart5.qm

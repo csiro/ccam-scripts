@@ -70,7 +70,7 @@ def check_inargs():
 		  'sibveg', 'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex',
 		  'soilparm', 'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high',
                   'drsmode', 'drshost', 'drsensemble', 'drsdomain', 'model_id', 'contact',
-                  'rcm_version_id' ]
+                  'rcm_version_id', 'tke_timeave_length', 'wg_tau', 'wg_prob' ]
 
     for i in args2check:
         if not i in d.keys():
@@ -2077,6 +2077,8 @@ def input_template_6():
      qcmf=1.e-4 ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
      be=1. b1=1. b2=2. m0=0.1
+     tke_timeave_length={tke_timeave_length}
+     wg_tau={wg_tau} wg_prob={wg_prob}
      dvmodmin=0.01 amxlsq={amxlsq}
      ngwd={ngwd} helim={helim} fc2={fc2}
      sigbot_gwd={sigbot_gwd} alphaj={alphaj}
@@ -2329,6 +2331,9 @@ if __name__ == '__main__':
     parser.add_argument("--cloud", type=int, choices=[0, 1, 2], help=" cloud microphysics (0=liq+ice, 1=liq+ice+rain, 2=liq+ice+rain+snow+graupel)")
     parser.add_argument("--rad", type=int, choices=[0, 1], help=" radiation (0=SE3, 1=SE4)")
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
+    parser.add_argument("--tke_timeave_length", type=float, help=" Averaging time period for TKE")
+    parser.add_argument("--wg_tau", type=float, help=" wg_tau parameter for wind gusts")
+    parser.add_argument("--wg_prob", type=float, help=" wg_prob parameter for wind gusts")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
     parser.add_argument("--ncout", type=int, choices=[0, 1, 5, 7], help=" standard output format (0=none, 1=CCAM, 5=CTM, 7=basic)")
