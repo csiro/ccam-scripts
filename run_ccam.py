@@ -1616,7 +1616,7 @@ def post_process_output():
                                 model_id=dict2str('{model_id}'),
                                 driving_experiment_name=cmip_scenario,
                                 contact=dict2str('{contact}'),
-                                rcm_version_id=('{rcm_version_id}'),
+                                rcm_version_id=dict2str('{rcm_version_id}'),
                                 preprocessor="ccam",
                                 postprocessor="ccam"
                             )
