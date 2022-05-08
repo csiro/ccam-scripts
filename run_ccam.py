@@ -218,9 +218,15 @@ def get_datetime():
     d['imth_2digit'] = mon_2digit(d['imth'])
 
     # Calculate number of days in current month:
-    d['ndays'] = monthrange(iyr, imth)[1]
-    if (imth == 2) and (d['leap'] == 0):
-        d['ndays'] = 28 #leap year turned off
+    if d['leap'] == 0:
+        d['ndays'] = monthrange(iyr, imth)[1]
+        if imth == 2:
+            d['ndays'] = 28 #leap year turned off
+    elif d['leap'] == 1:
+        d['ndays'] = monthrange(iyr, imth)[1]
+    else:    
+        d['ndays'] = 30
+
     d['eday'] = d['ndays']
     if (d['iyr'] == d['iye']) and (d['imth'] == d['ime']):
         if (d['ide'] > d['ndays']) or (d['ide'] < 1):
@@ -1260,7 +1266,14 @@ def post_process_output():
         d['histyear'] = hy
         d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
         idaystart = 1
-        idayend = monthrange(hy, hm)[1]
+        if d['leap'] == 0:
+            idayend = monthrange(hy, hm)[1]
+            if hm == 2:
+                idayend=28
+        elif d['leap'] == 1:
+            idayend = monthrange(hy, hm)[1]
+        else:
+            idayend = 30
         if (hy == d['iys']) and (hm == d['ims']):
             idaystart = d['ids']
         if (hy == d['iye']) and (hm == d['ime']):
@@ -2310,7 +2323,7 @@ if __name__ == '__main__':
     parser.add_argument("--iye", type=int, help=" end year [YYYY]")
     parser.add_argument("--ime", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" end month [MM]")
     parser.add_argument("--ide", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" end day [DD]")    
-    parser.add_argument("--leap", type=int, choices=[0, 1], help=" Use leap days (0=off, 1=on)")
+    parser.add_argument("--leap", type=int, choices=[0, 1, 2], help=" Define calendar (0=365, 1=365/366, 2=360)")
     parser.add_argument("--ncountmax", type=int, help=" Number of months before resubmit")
 
     parser.add_argument("--ktc", type=int, help=" standard output period (mins)")
