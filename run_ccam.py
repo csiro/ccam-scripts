@@ -1612,11 +1612,10 @@ def post_process_output():
                                     cmip_scenario="historical"
                                     project="CORDEX-CMIP6"  
                                 else:
-                                    if d['model'] == 'ECMWF-ERA5':
-                                        cmip_scenario="historical"
-                                    else:    
-                                        cmip_scenario=dict2str('{rcp}')
+                                    cmip_scenario=dict2str('{rcp}')
                                     project="CORDEX-CMIP6"
+                            if d['model'] == 'ECMWF-ERA5':
+                                    cmip_scenario="evaluation"
                             payload = dict(
                                 input_files=dict2str('{hdir}/{drsdirname}/*nc'),
                                 output_directory=dict2str('{hdir}/drs_{drsdirname}/'),
