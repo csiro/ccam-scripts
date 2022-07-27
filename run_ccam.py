@@ -70,7 +70,7 @@ def check_inargs():
 		  'sibveg', 'ocnbath', 'casafield', 'uclemparm', 'cableparm', 'vegindex',
 		  'soilparm', 'uservegfile', 'userlaifile', 'bcsoilfile', 'nchigh', 'ktc_high',
                   'drsmode', 'drshost', 'drsensemble', 'drsdomain', 'model_id', 'contact',
-                  'rcm_version_id', 'tke_timeave_length', 'wg_tau', 'wg_prob' ]
+                  'rcm_version_id', 'tke_timeave_length' ]
 
     for i in args2check:
         if not i in d.keys():
@@ -879,16 +879,20 @@ def set_atmos():
                   'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}')})
 
     if d['bmix'] == 0:
-        d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100.})
+        d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100., 'wg_tau': 3.,
+                  'wg_prob': 0.5})
 
     elif d['bmix'] == 1:
         if d['mlo'] == 1:
-            d.update({'nvmix': 9, 'nlocal': 7, 'amxlsq': 9.})
+            d.update({'nvmix': 9, 'nlocal': 7, 'amxlsq': 9., 'wg_tau': 3.,
+                      'wg_prob': 0.5})
         else:
-            d.update({'nvmix': 6, 'nlocal': 7, 'amxlsq': 9.})
+            d.update({'nvmix': 6, 'nlocal': 7, 'amxlsq': 9., 'wg_tau': 3.,
+                      'wg_prob': 0.5})
 
     elif d['bmix'] == 2:
-        d.update({'nvmix': 7, 'nlocal': 6, 'amxlsq': 9.})
+        d.update({'nvmix': 7, 'nlocal': 6, 'amxlsq': 9., 'wg_tau': 3.,
+                  'wg_prob': 0.5})
 
     d.update({'ngwd': -5, 'helim': 800., 'fc2': 1., 'sigbot_gwd': 0., 'alphaj': '0.000001'})
 
@@ -1778,6 +1782,7 @@ def igbpveg_template():
      user_veginput="{uservegfile}"
      user_laiinput="{userlaifile}"
      natural_maxtile=4
+     alb3939=.false.
     &end
     """
 
@@ -1877,7 +1882,7 @@ def input_template_1():
      nsib={nsib} nurban=1 vmodmin=0.1 nsigmf=0 jalbfix=0
 
      COMMENT='radiation and aerosols'
-     nrad=5 iaero={iaero}
+     nrad=5 iaero={iaero} 
 
      COMMENT='boundary layer'
      nvmix={nvmix} nlocal={nlocal}
@@ -1891,7 +1896,7 @@ def input_template_1():
     &end
     &skyin
      mins_rad=-1 qgmin=2.E-7
-     ch_dust=3.E-10
+     ch_dust=3.E-10 aerosol_u10=1 aero_split=1
      siglow=0.76 sigmid=0.44
      linecatalog_form='{linecatalog_form}'
      continuum_form='{continuum_form}' 
@@ -2091,7 +2096,7 @@ def input_template_6():
      mintke=1.5e-4 mineps=1.e-6 minl=5. maxl=500.
      qcmf=1.e-4 ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
-     be=1. b1=1. b2=2. m0=0.1
+     be=1. b1=2. b2=0.3333 m0=0.1
      tke_timeave_length={tke_timeave_length}
      wg_tau={wg_tau} wg_prob={wg_prob}
      dvmodmin=0.01 amxlsq={amxlsq}
@@ -2110,6 +2115,8 @@ def input_template_6():
      mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
      ocnsmag=1. zomode=0 ocneps=0.2 omaxl=1000.
+     alphavis_seaice=0.95 alphanir_seaice=0.7
+     alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
     &end
     &tin &end
@@ -2229,7 +2236,7 @@ def cc_template_5():
     &end
     &histnl
      htype="inst"
-     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","ua150","va150","ta150","zg150","hus150","wa150","ua100","va100","ta100","zg100","hus100","wa100","ua70","va70","ta70","zg70","hus70","wa70","ua50","va50","ta50","zg50","hus50","wa50","ua30","va30","ta30","zg30","hus30","wa30","ua20","va20","ta20","zg20","hus20","wa20","ua10","va10","ta10","zg10","hus10","wa10","clh","clm","cll","snc","snd","sic","prsn","orog","sftlf","ua50m","va50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","rsdscs","rldscs","rsuscs","rluscs","rsutcs","rlutcs","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos"
+     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","ua150","va150","ta150","zg150","hus150","wa150","ua100","va100","ta100","zg100","hus100","wa100","ua70","va70","ta70","zg70","hus70","wa70","ua50","va50","ta50","zg50","hus50","wa50","ua30","va30","ta30","zg30","hus30","wa30","ua20","va20","ta20","zg20","hus20","wa20","ua10","va10","ta10","zg10","hus10","wa10","clh","clm","cll","snc","snd","sic","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","rsdscs","rldscs","rsuscs","rluscs","rsutcs","rlutcs","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos","od550aer"
      hfreq = 1
     &end
     """
@@ -2347,8 +2354,6 @@ if __name__ == '__main__':
     parser.add_argument("--rad", type=int, choices=[0, 1], help=" radiation (0=SE3, 1=SE4)")
     parser.add_argument("--bmix", type=int, choices=[0, 1, 2], help=" boundary layer (0=Ri, 1=TKE-eps, 2=HBG)")
     parser.add_argument("--tke_timeave_length", type=float, help=" Averaging time period for TKE")
-    parser.add_argument("--wg_tau", type=float, help=" wg_tau parameter for wind gusts")
-    parser.add_argument("--wg_prob", type=float, help=" wg_prob parameter for wind gusts")
     parser.add_argument("--mlo", type=int, choices=[0, 1], help=" ocean (0=Interpolated SSTs, 1=Dynamical ocean)")
     parser.add_argument("--casa", type=int, choices=[0, 1, 2, 3], help=" CASA-CNP carbon cycle with prognostic LAI (0=off, 1=CASA-CNP, 2=CASA-CN+POP, 3=CASA-CN+POP+CLIM)")
     parser.add_argument("--ncout", type=int, choices=[0, 1, 5, 7], help=" standard output format (0=none, 1=CCAM, 5=CTM, 7=basic)")
