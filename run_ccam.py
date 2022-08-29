@@ -565,15 +565,15 @@ def check_surface_files():
         run_cable_land()
 
 
-    d['vegin'] = d['hdir']+'/vegdata'
+    d['vegin'] = dict2str('{hdir}/vegdata')
     if d['sib'] == "cable_const":
-        d['vegfile'] = 'veg'+d['domain']+'.'+d['imth_2digit']
+        d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
     else:
         # Use same year as LAI will not change.  Only the area fraction
         if d['cmip'] == "cmip5":
-            d['vegfile'] = 'veg'+d['domain']+'.'+d['imth_2digit']
+            d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
         else:
-            d['vegfile'] = 'veg'+d['domain']+'.'+d['iyr']+'.'+d['imth_2digit']
+            d['vegfile'] = dict2str('veg{domain}.{iyr}.{imth_2digit}')
 
 
 def run_cable_all():
