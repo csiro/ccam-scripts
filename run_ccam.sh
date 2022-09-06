@@ -46,7 +46,7 @@ fi
 
 # Note that turning off output should be done with ktc, ktc_surf and ktc_high
 # Otherwise output will be saved but not post-processed
-ncout=off                                    # standard output (off, all, ctm, basic)
+ncout=off                                    # standard output (off, all, ctm, basic, tracer)
 ncsurf=cordex                                # CORDEX output (off, cordex)
 nchigh=latlon                                # high-frequency output (off, latlon)
 nctar=off                                    # TAR output files in OUTPUT directory (off, tar, delete)
@@ -86,6 +86,7 @@ bmix=tke_eps                                 # boundary layer (ri, tke_eps, hbg)
 tke_timeave_length=0                         # time averaging of TKE source terms (seconds with 0=off)
 mlo=prescribed                               # ocean (prescribed, dynamical)
 casa=off                                     # CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)
+tracer=off                                   # Tracer emission directory (off=disabled)
 
 # User defined parameters.  Delete $hdir/vegdata to update.
 uclemparm=default                            # urban parameter file (default for standard values)
@@ -147,7 +148,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
 		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \
 		   --drsensemble $drsensemble --model_id "$model_id" --contact "$contact" \
 		   --rcm_version_id "$rcm_version_id" --drsproject "$drsproject" \
-		   --tke_timeave_length $tke_timeave_length
+		   --tke_timeave_length $tke_timeave_length --tracer "$tracer"
+
 
 if [ $dmode == "postprocess" ]; then
   restname=restart5.qm

@@ -60,9 +60,8 @@ def main(inargs):
             set_aeros()
 
             # Create emission datasets
-            print("Create aerosol emissions")
             create_aeroemiss_file()
-            create_sulffile_file()
+            locate_tracer_emissions()
 
             # Create CCAM namelist and system checks
             print("Create CCAM namelist and perform system checks")
@@ -133,7 +132,7 @@ def convert_old_settings():
     bcsoil_dict = { 0:"constant", 1:"climatology", 2:"recycle" }
     find_mode(d['bcsoil'],bcsoil_dict,"bcsoil")
 
-    ncout_dict = { 0:"off", 1:"all", 5:"ctm", 7:"basic" }
+    ncout_dict = { 0:"off", 1:"all", 5:"ctm", 7:"basic", 8:"tracer" }
     find_mode(d['ncout'],ncout_dict,"ncout")
 
     ncsurf_dict = { 0:"off", 3:"cordex" }
@@ -186,7 +185,7 @@ def check_inargs():
                       'mlo', 'casa' ]
 
     args2simulation = ['bcdom', 'bcsoil', 'sstfile', 'sstinit', 'bcdir', 'sstdir', 'stdat',
-                       'aeroemiss', 'model' ]
+                       'aeroemiss', 'model', 'tracer' ]
 
     args2postprocess = ['minlat', 'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode',
                         'plevs', 'mlevs', 'dlevs', 'drsmode', 'drsdomain', 'model_id',
@@ -935,31 +934,31 @@ def set_downscaling():
     if d['dmode'] == "nudging_gcm":
         d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
-                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
                   'mh_bs':3})
 
     if d['dmode'] == "sst_only":
         d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                   'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
-                  'nbd': 0, 'mbd': 0, 'namip': 14, 'nud_aero': 0,
+                  'nbd': 0, 'mbd': 0, 'nud_aero': 0,
                   'mh_bs':3})
 
     if d['dmode'] == "nudging_ccam":
         d.update({'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
-                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 1,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 1,
                   'mh_bs':3})
 
     if d['dmode'] == "sst_6hour":
         d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                   'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
-                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 0, 'nud_aero': 0,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
                   'mh_bs':3})
 		  
     if d['dmode'] == "nudging_gcm_with_sst":
         d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
-                  'nbd': 0, 'mbd': d['mbd_base'], 'namip': 14, 'nud_aero': 0,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
                   'mh_bs':3})
 
 def set_cloud():
@@ -1237,13 +1236,8 @@ def create_aeroemiss_file():
     "Write arguments to 'aeroemiss' namelist file"
 
     if d['aero'] != "off":
+        print("Create aerosol emissions")
         write2file('aeroemiss.nml', aeroemiss_template(), mode='w+')
-
-
-def create_sulffile_file():
-    "Create the aerosol forcing file"
-
-    if d['aero'] != "off":
 
         # Remove any existing sulffile:
         run_cmdline('rm -rf {sulffile}')
@@ -1258,6 +1252,19 @@ def create_sulffile_file():
                  == "aeroemiss completed successfully")
         if xtest is False:
             raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
+
+
+def locate_tracer_emissions():
+    "Locate tracer emissions"
+
+    d['mfix_tr'] = 0
+    if d['tracer'] != "off":
+        d['mfix_tr'] = 1
+        filename = dict2str('{tracer}/tracer.txt')
+        if not os.path.exists(filename):
+            raise ValueError(dict2str("Cannot locate tracer.txt in {tracer}"))
+
+        run_cmdline('ln -s {tracer}/* .')
 
 
 def create_input_file():
@@ -1283,19 +1290,22 @@ def create_input_file():
     write2file('input', input_template_1(), mode='w+')
 
     if d['conv'] == "2014":
-        write2file('input', input_template_2())
+        write2file('input', input_template_2a())
     if d['conv'] == "2015a":
-        write2file('input', input_template_3())
+        write2file('input', input_template_2c())
     if d['conv'] == "2015b":
-        write2file('input', input_template_4())
+        write2file('input', input_template_2d())
     if d['conv'] == "2017":
-        write2file('input', input_template_5())
+        write2file('input', input_template_2e())
     if d['conv'] == "Mod2015a":
-        write2file('input', input_template_3a())
+        write2file('input', input_template_2f())
     if d['conv'] == "2021":
         write2file('input', input_template_2b())
 
-    write2file('input', input_template_6())
+    if d['tracer'] != "off":
+        write2file('input', input_template_3())
+
+    write2file('input', input_template_4())
 
 
 def prepare_ccam_infiles():
@@ -1318,11 +1328,20 @@ def prepare_ccam_infiles():
     if d['aero']!="off" and not os.path.exists(d['sulffile']):
         raise ValueError('Cannot locate '+d['sulffile'])
 
-    if (d['dmode']=="sst_only") and not os.path.exists(dict2str('{sstdir}/{sstfile}')):
-        raise ValueError(dict2str('Cannot locate {sstdir}/{sstfile}'))
-
-    if (d['dmode']=="nudging_gcm_with_sst") and not os.path.exists(dict2str('{sstdir}/{sstfile}')):
-        raise ValueError(dict2str('Cannot locate {sstdir}/{sstfile}'))
+    d['namip'] = 0
+    if d['dmode'] in ['sst_only', 'nudging_gcm_with_sst']:
+        fname = dict2str('{sstdir}/{sstfile}')
+        if not os.path.exists(fname):
+            raise ValueError('Cannot locate '+fname)
+        testrealheader = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text real_header') == "real_header")
+        if testrealheader is False:
+            raise ValueError('Invalid sstfile '+fname+'.  Must use a cubic grid.')
+        # check if sea-ice is present in sstfile
+        sictest = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text sic') == "sic")
+        if sictest is True:
+            d['nmaip'] = 14
+        else:
+            d['namip'] = 11
 
 
 def check_correct_host():
@@ -1563,6 +1582,35 @@ def post_process_output():
                         ftest = False
                         newoutput = True
 
+            if d['ncout'] == "tracer":
+                fname = dict2str('{hdir}/daily/trav0001_{histfile}.nc')
+                if not os.path.exists(fname):
+                    tarflag = False
+                    cname = dict2str('{histfile}.000000')
+                    if not os.path.exists(cname):
+                        tname = dict2str('{histfile}.tar')
+                        if os.path.exists(tname):
+                            tarflag = True
+                            run_cmdline('tar xvf '+tname)
+                    if os.path.exists(cname):
+                        calc_drs_host(cname)
+                        print("Process pressure (daily) output for ",dict2str('{histyear}{histmonth}'))
+                        write2file('cc.nml', cc_template_7(), mode='w+')
+                        if d['machinetype'] == "srun":
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
+                                 == "pcc2hist completed successfully")
+                        if xtest is False:
+                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        if tarflag is True:
+                            run_cmdline('rm {histfile}.??????')
+                        ftest = False
+                        newoutput = True
+
+
         # standard output for pressure levels
         if (d['outlevmode']=="height") or (d['outlevmode']=="pressure_height"):
             d['use_plevs'] = 'F'
@@ -1626,6 +1674,35 @@ def post_process_output():
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
                         newoutput_h = True
+
+            if d['ncout'] == "tracer":
+                fname = dict2str('{hdir}/daily_h/trav0001_{histfile}.nc')
+                if not os.path.exists(fname):
+                    tarflag = False
+                    cname = dict2str('{histfile}.000000')
+                    if not os.path.exists(cname):
+                        tname = dict2str('{histfile}.tar')
+                        if os.path.exists(tname):
+                            tarflag = True
+                            run_cmdline('tar xvf '+tname)
+                    if os.path.exists(cname):
+                        calc_drs_host(cname)
+                        print("Process height (daily) output for ",dict2str('{histyear}{histmonth}'))
+                        write2file('cc.nml', cc_template_7(), mode='w+')
+                        if d['machinetype'] == "srun":
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
+                        else:
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" h.pcc2hist.log')
+                                 == "pcc2hist completed successfully")
+                        if xtest is False:
+                            raise ValueError(dict2str("An error occured running pcc2hist. Check h.pcc2hist.log"))
+                        run_cmdline('mv *{histfile}.nc {hdir}/daily_h')
+                        if tarflag is True:
+                            run_cmdline('rm {histfile}.??????')
+                        ftest = False
+                        newoutput_h = True
+
                     
         # store output
         if (d['nctar']=="off") and (d['dmode']!="postprocess"):
@@ -2104,6 +2181,7 @@ def input_template_1():
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
+     mfix_tr={mfix_tr}
 
      COMMENT='nudging'
      nbd={nbd} mbd={mbd} mbd_maxscale={mbd_maxscale} mbd_maxgrid={mbd_maxgrid}
@@ -2192,7 +2270,7 @@ def input_template_1():
 
     return template
 
-def input_template_2():
+def input_template_2a():
     "Second part of template for 'input' namelist file"
 
     return """
@@ -2215,7 +2293,7 @@ def input_template_2():
     &end
     """
 
-def input_template_3():
+def input_template_2c():
     "Third part of template for 'input' namelist file"
 
     return """
@@ -2240,7 +2318,7 @@ def input_template_3():
     &end
     """
 
-def input_template_3a():
+def input_template_2f():
     "Third part (mod) of template for 'input' namelist file"
 
     return """
@@ -2265,7 +2343,7 @@ def input_template_3a():
     &end
     """
 
-def input_template_4():
+def input_template_2d():
     "Fourth part of template for 'input' namelist file"
 
     return """
@@ -2283,7 +2361,7 @@ def input_template_4():
     &end
     """
 
-def input_template_5():
+def input_template_2e():
     "Fifth part of template for 'input' namelist file"
 
     return """
@@ -2326,8 +2404,17 @@ def input_template_2b():
     &end
     """
 
+def input_template_3():
+    "Tracer emissions part of templat for 'input' namelist file"
 
-def input_template_6():
+    return """
+    &trfiles
+      tracerlist='tracer.txt'
+    &end
+    """
+
+
+def input_template_4():
     "Sixth part of template for 'input' namelist file"
 
     return """
@@ -2362,6 +2449,7 @@ def input_template_6():
     &tin &end
     &soilin &end
     """
+
 
 def cc_template_1():
     "First part of template for 'cc.nml' namelist file"
@@ -2533,6 +2621,32 @@ def cc_template_6():
     return template
 
 
+def cc_template_7():
+    "Tracer part of template for 'cc.nml' namelist file"
+
+    template = """\
+    &input
+     ifile = "{histfile}"
+     ofile = "{histfile}.nc"
+     hres  = {res}
+     kta={ktc}   ktb=999999  ktc={ktc}
+     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
+     use_plevs = {use_plevs}
+     use_meters = {use_meters}
+     use_depth = {use_depth}
+     plevs = {plevs}
+     mlevs = {mlevs}
+     dlevs = {dlevs}
+    &end
+    &histnl
+     htype="inst"
+     hnames= "tracer"  hfreq = 1
+    &end
+    """
+
+    return template
+
+
 if __name__ == '__main__':
 
     extra_info = """
@@ -2594,6 +2708,7 @@ if __name__ == '__main__':
     parser.add_argument("--tke_timeave_length", type=float, help=" Averaging time period for TKE")
     parser.add_argument("--mlo", type=str, help=" ocean (prescribed, dynamical)")
     parser.add_argument("--casa", type=str, help=" CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)")
+    parser.add_argument("--tracer", type=str, help=" Tracer emission directory (off=disabled)")
 
     parser.add_argument("--ncout", type=str, help=" standard output format (off, all, ctm, basic)")
     parser.add_argument("--ncsurf", type=str, help=" CORDEX output (off, cordex)")
