@@ -2631,12 +2631,9 @@ def cc_template_7():
      hres  = {res}
      kta={ktc}   ktb=999999  ktc={ktc}
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
-     use_plevs = {use_plevs}
-     use_meters = {use_meters}
-     use_depth = {use_depth}
-     plevs = {plevs}
-     mlevs = {mlevs}
-     dlevs = {dlevs}
+     use_plevs = F
+     use_meters = F
+     use_depth = F
     &end
     &histnl
      htype="inst"
