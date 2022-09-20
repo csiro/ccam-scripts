@@ -1492,7 +1492,7 @@ def post_process_output():
             d['use_meters'] = 'F'
 
             if d['ncout'] == "all":
-                fname = dict2str('{hdir}/daily/{histfile}.nc')
+                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
@@ -1617,7 +1617,7 @@ def post_process_output():
             d['use_meters'] = 'T'        
 
             if d['ncout'] == "all":
-                fname = dict2str('{hdir}/daily_h/{histfile}.nc')
+                fname = dict2str('{hdir}/daily_h/pr_{histfile}.nc')
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
