@@ -849,7 +849,7 @@ def config_initconds():
 
     if (d['iyr']==d['iys']) and (d['imth']==d['ims']):
 
-        if d['dmode'] in ["nudging_gcm", "nudging_sst", "sst_6hour", "nudging_gcm_with_sst"]:
+        if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
             d.update({'ifile': d['mesonest']})
         else:
             d.update({'ifile': d['sstinit']})
