@@ -553,7 +553,7 @@ def check_surface_files():
 
     testfail = False
     for mon in range(1, 13):
-        if (d['cmip']=="cmip5") or (d['sib']=="cable_const"):
+        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=="modis"):
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
@@ -566,6 +566,8 @@ def check_surface_files():
 
     d['vegin'] = dict2str('{hdir}/vegdata')
     if d['sib'] == "cable_const":
+        d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
+    elif d['sib'] == "modis":
         d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
     else:
         # Use same year as LAI will not change.  Only the area fraction
@@ -1071,6 +1073,9 @@ def set_atmos():
         #              'cable_climate': 1})
 
     if d['sib'] == "cable_const":
+        d.update({'vegin': dict2str('{hdir}/vegdata'),
+                  'vegfile': dict2str('veg{domain}.{imth_2digit}')})
+    elif d['sib'] == "modis":
         d.update({'vegin': dict2str('{hdir}/vegdata'),
                   'vegfile': dict2str('veg{domain}.{imth_2digit}')})
     else:
