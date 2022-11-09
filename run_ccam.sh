@@ -12,9 +12,9 @@
 ###############################################################
 # MODULES
 
-module load openmpi/3.1.4-ofed45      # MPI
-module load netcdf/4.3.3.1            # NetCDF
-module load python/3.7.2              # Python
+module load openmpi      # MPI
+module load netcdf       # NetCDF
+module load python       # Python
 
 ###############################################################
 # Specify parameters
