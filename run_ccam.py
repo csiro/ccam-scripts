@@ -2444,7 +2444,7 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
+     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
      ocnsmag=1. zomode=0 ocneps=0.2 omaxl=1000.
      alphavis_seaice=0.95 alphanir_seaice=0.7
@@ -2520,8 +2520,8 @@ def cc_template_2():
     &end
     """
 
-    fname = d['histfile']
-    rsmin_test = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text rsmin') == "rsmin")
+    fname = dict2str('{histfile}.000000')
+    rsmin_test = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text rsmin') != "")
     if rsmin_test is True:
         template = template1 + template2
     else:
