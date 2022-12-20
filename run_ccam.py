@@ -2214,8 +2214,8 @@ def input_template_1():
      mstn=0 nstn=0
 
      COMMENT='file'
-     localhist=.true. unlimitedhist=.false. synchist=.false.
-     compression=1 tbave={tbave} tbave10={tbave10} procmode=12 fnproc_bcast_max=24
+     synchist=.false. compression=1
+     tbave={tbave} tbave10={tbave10} procmode=12 fnproc_bcast_max=24
     &end
     &skyin
      mins_rad=-1 qgmin=2.E-7
@@ -2444,9 +2444,9 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
+     mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=1. zomode=0 ocneps=0.2 omaxl=1000.
+     ocnsmag=0. zomode=0 ocneps=0.9 omaxl=1000.
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
@@ -2610,7 +2610,7 @@ def cc_template_6():
 "clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn", "sund", \
 "rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
-"snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
+"snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol", \
 "alb","sftlf","sdischarge","tos","sos","uos","vos","ssh"
      hfreq = 1
     &end
