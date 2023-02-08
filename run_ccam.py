@@ -97,58 +97,58 @@ def convert_old_settings():
 
     dmode_dict = { 0:"nudging_gcm", 1:"sst_only", 2:"nudging_ccam", 3:"sst_6hour",
                    4:"generate_veg", 5:"postprocess", 6:"nudging_gcm_with_sst" }
-    find_mode(d['dmode'],dmode_dict,"dmode")
+    d['dmode'] = find_mode(d['dmode'],dmode_dict,"dmode")
 
     machinetype_dict = { 0:"mpirun", 1:"srun" }
-    find_mode(d['machinetype'],machinetype_dict,"machinetype")
+    d['machinetype'] = find_mode(d['machinetype'],machinetype_dict,"machinetype")
 
     leap_dict = { 0:"noleap", 1:"leap", 2:"360" }
-    find_mode(d['leap'],leap_dict,"leap")
+    d['leap'] = find_mode(d['leap'],leap_dict,"leap")
 
     sib_dict = { 1:"cable_vary", 2:"modis", 3:"cable_sli", 4:"cable_const" }
-    find_mode(d['sib'],sib_dict,"sib")
+    d['sib'] = find_mode(d['sib'],sib_dict,"sib")
 
     aero_dict = { 0:"off", 1:"prognostic" }
-    find_mode(d['aero'],aero_dict,"aero")
+    d['aero'] = find_mode(d['aero'],aero_dict,"aero")
 
     conv_dict = { 0:"2014", 1:"2015a", 2:"2015b", 3:"2017", 4:"Mod2015a", 5:"2021" }
-    find_mode(d['conv'],conv_dict,"conv")
+    d['conv'] = find_mode(d['conv'],conv_dict,"conv")
 
-    cloud_dict = { 0:"liq_ice", 1:"liq_ice_rain", 3:"liq_ice_rain_snow_graupel" }
-    find_mode(d['cloud'],cloud_dict,"cloud")
+    cloud_dict = { 0:"liq_ice", 1:"liq_ice_rain", 2:"liq_ice_rain_snow_graupel" }
+    d['cloud'] = find_mode(d['cloud'],cloud_dict,"cloud")
 
     rad_dict = { 0:"SE3", 1:"SE4" }
-    find_mode(d['rad'],rad_dict,"rad")
+    d['rad'] = find_mode(d['rad'],rad_dict,"rad")
 
     bmix_dict = { 0:"ri", 1:"tke_eps", 2:"hbg" }
-    find_mode(d['bmix'],bmix_dict,"bmix")
+    d['bmix'] = find_mode(d['bmix'],bmix_dict,"bmix")
 
     mlo_dict = { 0:"prescribed", 1:"dynamical" }
-    find_mode(d['mlo'],mlo_dict,"mlo")
+    d['mlo'] = find_mode(d['mlo'],mlo_dict,"mlo")
 
     casa_dict = { 0:"off", 1:"casa_cnp", 2:"casa_cnp_pop" }
-    find_mode(d['casa'],casa_dict,"casa")
+    d['casa'] = find_mode(d['casa'],casa_dict,"casa")
 
     bcsoil_dict = { 0:"constant", 1:"climatology", 2:"recycle" }
-    find_mode(d['bcsoil'],bcsoil_dict,"bcsoil")
+    d['bcsoil'] = find_mode(d['bcsoil'],bcsoil_dict,"bcsoil")
 
     ncout_dict = { 0:"off", 1:"all", 5:"ctm", 7:"basic", 8:"tracer" }
-    find_mode(d['ncout'],ncout_dict,"ncout")
+    d['ncout'] = find_mode(d['ncout'],ncout_dict,"ncout")
 
     ncsurf_dict = { 0:"off", 3:"cordex" }
-    find_mode(d['ncsurf'],ncsurf_dict,"ncsurf")
+    d['ncsurf'] = find_mode(d['ncsurf'],ncsurf_dict,"ncsurf")
 
     nchigh_dict = { 0:"off", 1:"latlon" }
-    find_mode(d['nchigh'],nchigh_dict,"nchigh")
+    d['nchigh'] = find_mode(d['nchigh'],nchigh_dict,"nchigh")
 
     nctar_dict = { 0:"off", 1:"tar", 2:"delete" }
-    find_mode(d['nctar'],nctar_dict,"nctar")
+    d['nctar'] = find_mode(d['nctar'],nctar_dict,"nctar")
 
     outlevmode_dict = { 0:"pressure", 1:"height", 2:"pressure_height" }
-    find_mode(d['outlevmode'],outlevmode_dict,"outlevmode")
+    d['outlevmode'] = find_mode(d['outlevmode'],outlevmode_dict,"outlevmode")
 
     drsmode_dict = { 0:"off", 1:"on" }
-    find_mode(d['drsmode'],drsmode_dict,"drsmode")
+    d['drsmode'] = find_mode(d['drsmode'],drsmode_dict,"drsmode")
 
 
 def find_mode(nt, nt_dict, nt_name):
@@ -156,13 +156,14 @@ def find_mode(nt, nt_dict, nt_name):
 
     itest = False
     for ct in nt_dict:
-        if nt == ct:
+        if nt == str(ct):
             nt = nt_dict[ct]
         if nt == nt_dict[ct]:
             itest = True
     if itest is False:
         print("Invalid option for "+nt_name)
         sys.exit(1)
+    return nt
 
 
 def check_inargs():
@@ -2224,6 +2225,8 @@ def input_template_1():
      linecatalog_form='{linecatalog_form}'
      continuum_form='{continuum_form}' 
      do_co2_10um={do_co2_10um}
+     do_quench=.false.
+     remain_rayleigh_bug=.false.     
     &end
     &datafile
      ifile=      '{ifile}'
