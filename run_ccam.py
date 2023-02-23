@@ -114,7 +114,7 @@ def convert_old_settings():
     conv_dict = { 0:"2014", 1:"2015a", 2:"2015b", 3:"2017", 4:"Mod2015a", 5:"2021" }
     d['conv'] = find_mode(d['conv'],conv_dict,"conv")
 
-    cloud_dict = { 0:"liq_ice", 1:"liq_ice_rain", 2:"liq_ice_rain_snow_graupel" }
+    cloud_dict = { 0:"liq_ice", 1:"liq_ice_rain", 2:"liq_ice_rain_snow_graupel", 3:"lin" }
     d['cloud'] = find_mode(d['cloud'],cloud_dict,"cloud")
 
     rad_dict = { 0:"SE3", 1:"SE4" }
@@ -186,7 +186,7 @@ def check_inargs():
                       'mlo', 'casa' ]
 
     args2simulation = ['bcdom', 'bcsoil', 'sstfile', 'sstinit', 'bcdir', 'sstdir', 'stdat',
-                       'aeroemiss', 'model', 'tracer' ]
+                       'aeroemiss', 'model', 'tracer', 'rad_year' ]
 
     args2postprocess = ['minlat', 'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode',
                         'plevs', 'mlevs', 'dlevs', 'drsmode', 'drsdomain', 'model_id',
@@ -478,10 +478,6 @@ def get_datetime():
     iyr = d['iyr']
     imth = d['imth']
 
-    # Decade start and end:
-    d['ddyear'] = int(int(iyr/10)*10)
-    d['deyear'] = int(d['ddyear'] + 9)
-
     # Calculate previous month:
     if imth == 1:
         d['imthlst'] = 12
@@ -514,6 +510,13 @@ def get_datetime():
     if (d['iday']>d['ndays']) or (d['iday']<1):
         raise ValueError("Start day ids is invalid.")
     d['ndays'] = d['eday'] - d['iday'] + 1
+
+    # radiation year
+    if d['rad_year'] == 0:
+        d['use_rad_year'] = .false.
+        d['rad_year'] = d['iyr']
+    else:
+        d['use_rad_year'] = .true.
 
 
 def check_surface_files():
@@ -761,6 +764,10 @@ def prep_iofiles():
             if d['iyr'] >= 2015:
                 raise ValueError(dict2str("Historical period finished at 2014.  Consider selecting a future SSP."))
 
+    # Decade start and end:
+    d['ddyear'] = int(int(d['rad_year']/10)*10)
+    d['deyear'] = int(d['ddyear'] + 9)
+
     # Define ozone infile:
     if d['cmip'] == "cmip5":
         if (d['rcp']=="historic") or (d['iyr']<2005):
@@ -973,6 +980,8 @@ def set_cloud():
         d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
     if d['cloud'] == "liq_ice_rain_snow_graupel":
         d.update({'ncloud': 3, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
+    if d['cloud'] == "lin":
+        d.update({'ncloud': 100, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
 
 def set_radiation():
     "Radiation settings"
@@ -985,6 +994,7 @@ def set_radiation():
         d.update({'linecatalog_form': 'hitran_2012',
                   'continuum_form': 'mt_ckd2.5',
                   'do_co2_10um': '.true.'})
+
 
 def set_ocean():
     "Ocean physics settings"
@@ -1130,6 +1140,10 @@ def set_surfc():
 
 def set_aeros():
     "Prepare aerosol files"
+
+    # Decade start and end:
+    d['ddyear'] = int(int(d['rad_year']/10)*10)
+    d['deyear'] = int(d['ddyear'] + 9)
 
     if d['aero'] == "off":
         # Aerosols turned off
@@ -2227,6 +2241,8 @@ def input_template_1():
      do_co2_10um={do_co2_10um}
      do_quench=.false.
      remain_rayleigh_bug=.false.     
+     use_rad_year={use_rad_year}
+     rad_year={rad_year}
     &end
     &datafile
      ifile=      '{ifile}'
@@ -2709,6 +2725,7 @@ if __name__ == '__main__':
     parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021)")
     parser.add_argument("--cloud", type=str, help=" cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel)")
     parser.add_argument("--rad", type=str, help=" radiation (SE3, SE4)")
+    parser.add_argument("--rad_year", type=int, help=" radiation year (0=off)")
     parser.add_argument("--bmix", type=str, help=" boundary layer (ri, tke_eps, hbg)")
     parser.add_argument("--tke_timeave_length", type=float, help=" Averaging time period for TKE")
     parser.add_argument("--mlo", type=str, help=" ocean (prescribed, dynamical)")
