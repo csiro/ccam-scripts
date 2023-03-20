@@ -105,7 +105,8 @@ def convert_old_settings():
     leap_dict = { 0:"noleap", 1:"leap", 2:"360" }
     d['leap'] = find_mode(d['leap'],leap_dict,"leap")
 
-    sib_dict = { 1:"cable_vary", 2:"modis", 3:"cable_sli", 4:"cable_const" }
+    sib_dict = { 1:"cable_vary", 2:"modis", 3:"cable_sli", 4:"cable_const",
+                 5:"cable_modis2020", 6:"cable_sli_modis2020"}
     d['sib'] = find_mode(d['sib'],sib_dict,"sib")
 
     aero_dict = { 0:"off", 1:"prognostic" }
@@ -117,7 +118,7 @@ def convert_old_settings():
     cloud_dict = { 0:"liq_ice", 1:"liq_ice_rain", 2:"liq_ice_rain_snow_graupel", 3:"lin" }
     d['cloud'] = find_mode(d['cloud'],cloud_dict,"cloud")
 
-    rad_dict = { 0:"SE3", 1:"SE4" }
+    rad_dict = { 0:"SE3", 1:"SE4", 2:"SE4lin" }
     d['rad'] = find_mode(d['rad'],rad_dict,"rad")
 
     bmix_dict = { 0:"ri", 1:"tke_eps", 2:"hbg" }
@@ -678,7 +679,10 @@ def run_land():
             print("-> Generating CABLE land-use data (varying)")
         else:
             print("-> Generating CABLE land-use data (constant)")
-        write2file('igbpveg.nml', igbpveg_template(), mode='w+')
+        if d['sib'] == "cable_modis2020" or d['sib'] == "cable_sli_modis2020":
+            write2file('igbpveg.nml', igbpveg_template2(), mode='w+'
+        else:
+            write2file('igbpveg.nml', igbpveg_template(), mode='w+')
         if d['machinetype'] == "srun":
             run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
         else:
@@ -989,11 +993,18 @@ def set_radiation():
     if d['rad'] == "SE3":
         d.update({'linecatalog_form': 'hitran_2000',
                   'continuum_form': 'ckd2.4',
-                  'do_co2_10um': '.false.'})
+                  'do_co2_10um': '.false.',
+                  'liqradmethod': 0, 'iceradmethod': 1})
     if d['rad'] == "SE4":
         d.update({'linecatalog_form': 'hitran_2012',
                   'continuum_form': 'mt_ckd2.5',
-                  'do_co2_10um': '.true.'})
+                  'do_co2_10um': '.true.'},
+                  'liqradmethod': 0, 'iceradmethod': 1})
+    if d['rad'] == "SE4lin":
+        d.update({'linecatalog_form': 'hitran_2012',
+                  'continuum_form': 'mt_ckd2.5',
+                  'do_co2_10um': '.true.'},
+                  'liqradmethod': 6, 'iceradmethod': 4})
 
 
 def set_ocean():
@@ -2090,6 +2101,39 @@ def top_template():
     &end
     """
 
+def igbpveg_template2():
+    "Template for writing igbpveg.nml namelist file"
+
+    return """\
+    &vegnml
+     month=0
+     year={iyr}
+     topofile="topout{domain}"
+     newtopofile="topsib{domain}"
+     landtypeout="veg{domain}"
+     veg2input="{insdir}/vegin/landcover_2020.nc"
+     soilinput="{insdir}/vegin/usda4.img"
+     laiinput="{insdir}/vegin"
+     albvisinput="{insdir}/vegin/salbvis_landcover2020.nc"
+     albnirinput="{insdir}/vegin/salbnir_landcover2020.nc"
+     change_landuse="{change_landuse}"
+     fastigbp=t
+     igbplsmask=t
+     ozlaipatch=f
+     binlimit=2
+     tile=t
+     outputmode="cablepft"
+     mapconfig="{vegindex}"
+     pftconfig="{cableparm}"
+     atebconfig="{uclemparm}"
+     soilconfig="{soilparm}"
+     user_veginput="{uservegfile}"
+     user_laiinput="{userlaifile}"
+     natural_maxtile=4
+     alb3939=.false.
+    &end
+    """
+
 def igbpveg_template():
     "Template for writing igbpveg.nml namelist file"
 
@@ -2243,6 +2287,8 @@ def input_template_1():
      remain_rayleigh_bug=.false.     
      use_rad_year={use_rad_year}
      rad_year={rad_year}
+     liqradmethod={liqradmethod}
+     iceradmethod={iceradmethod}
     &end
     &datafile
      ifile=      '{ifile}'
