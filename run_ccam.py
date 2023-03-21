@@ -514,13 +514,13 @@ def get_datetime():
 
     # radiation year
     if d['rad_year'] == 0:
-        d['use_rad_year'] = .false.
+        d['use_rad_year'] = False
         d['rad_year'] = d['iyr']
     else:
-        d['use_rad_year'] = .true.
+        d['use_rad_year'] = True
 
 
-def check_surface_files():
+
     "Ensure surface datasets exist"
 
     testfail = False
