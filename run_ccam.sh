@@ -149,7 +149,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
 		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \
 		   --drsensemble $drsensemble --model_id "$model_id" --contact "$contact" \
 		   --rcm_version_id "$rcm_version_id" --drsproject "$drsproject" \
-		   --tke_timeave_length $tke_timeave_length --tracer "$tracer"
+		   --tke_timeave_length $tke_timeave_length --tracer "$tracer" --rad_year $rad_year
 
 
 if [ $dmode == "postprocess" ]; then
