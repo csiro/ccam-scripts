@@ -520,7 +520,7 @@ def get_datetime():
         d['use_rad_year'] = True
 
 
-
+def check_surface_files():
     "Ensure surface datasets exist"
 
     testfail = False
