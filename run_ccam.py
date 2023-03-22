@@ -680,7 +680,7 @@ def run_land():
         else:
             print("-> Generating CABLE land-use data (constant)")
         if d['sib'] == "cable_modis2020" or d['sib'] == "cable_sli_modis2020":
-            write2file('igbpveg.nml', igbpveg_template2(), mode='w+'
+            write2file('igbpveg.nml', igbpveg_template2(), mode='w+')
         else:
             write2file('igbpveg.nml', igbpveg_template(), mode='w+')
         if d['machinetype'] == "srun":
