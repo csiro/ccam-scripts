@@ -998,12 +998,12 @@ def set_radiation():
     if d['rad'] == "SE4":
         d.update({'linecatalog_form': 'hitran_2012',
                   'continuum_form': 'mt_ckd2.5',
-                  'do_co2_10um': '.true.'},
+                  'do_co2_10um': '.true.',
                   'liqradmethod': 0, 'iceradmethod': 1})
     if d['rad'] == "SE4lin":
         d.update({'linecatalog_form': 'hitran_2012',
                   'continuum_form': 'mt_ckd2.5',
-                  'do_co2_10um': '.true.'},
+                  'do_co2_10um': '.true.',
                   'liqradmethod': 6, 'iceradmethod': 4})
 
 
