@@ -205,16 +205,8 @@ def check_inargs():
         d['simulation_test'] = True
 
     d['postprocess_test'] = False
-    if d['dmode'] == "postprocess":
+    if d['dmode'] != "generate_veg":
         d['postprocess_test'] = True
-    if d['ncout'] != "off":
-        d['postprocess_test'] = True
-    if d['nctar'] != "off":
-        d['postprocess_test'] = True
-    if d['ncsurf'] != "off":
-        d['postprocess_test'] = True
-    if d['nchigh'] != "off":
-        d['postprocess_test'] = True 
 
     # check arguments
 
@@ -979,13 +971,13 @@ def set_cloud():
     "Cloud microphysics settings"
 
     if d['cloud'] == "liq_ice":
-        d.update({'ncloud': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
+        d.update({'ncloud': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "liq_ice_rain":
-        d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85})
+        d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "liq_ice_rain_snow_graupel":
-        d.update({'ncloud': 3, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
+        d.update({'ncloud': 3, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
     if d['cloud'] == "lin":
-        d.update({'ncloud': 100, 'rcrit_l': 0.8, 'rcrit_s': 0.8})
+        d.update({'ncloud': 100, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
 
 def set_radiation():
     "Radiation settings"
@@ -1192,11 +1184,11 @@ def set_aeros():
 
     if d['aero'] == "off":
         # Aerosols turned off
-        d.update({'iaero': 0, 'sulffile' : 'none'})
+        d.update({'iaero': 0, 'sulffile' : 'none', 'lin_aerosolmode' : 0})
 
     if d['aero'] == "prognostic":
         # Prognostic aerosols
-        d.update({'iaero': 2, 'sulffile': 'aero.nc'})
+        d.update({'iaero': 2, 'sulffile': 'aero.nc', 'lin_aerosolmode' : 1})
 
         if d['cmip'] == "cmip5":
             if d['rcp'] == "historic" or d['iyr'] < 2010:
@@ -2401,9 +2393,10 @@ def input_template_2a():
      nevapcc=0 entrain=0.1
      nuvconv=-3
      rhcv=0.1 rhmois=0. tied_over=-26.
-     nmr={nmr}
+     nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2425,10 +2418,10 @@ def input_template_2c():
      nuvconv=-3
      rhmois=0. rhcv=0.1
      tied_con=0. tied_over=2626.
-     nclddia=12
-     nmr={nmr}
+     nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2450,10 +2443,10 @@ def input_template_2f():
      nuvconv=-3
      rhmois=0. rhcv=0.1
      tied_con=0. tied_over=2626. tied_rh=0.
-     nclddia=12
-     nmr={nmr}
+     nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2468,10 +2461,11 @@ def input_template_2d():
      mbase=4 mdelay=0 methprec=5 nbase=-10 detrain=0.1 entrain=-0.5
      methdetr=-1 detrainx=0. dsig2=0.1 dsig4=1.
      ksc=0 kscsea=0 sigkscb=0.95 sigksct=0.8 tied_con=0. tied_over=2626.
-     ldr=1 nclddia=12 nstab_cld=0 nrhcrit=10 sigcll=0.95
-     nmr={nmr}
+     ldr=1 nstab_cld=0 nrhcrit=10 sigcll=0.95
+     nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2488,9 +2482,10 @@ def input_template_2e():
      rhcv=0. rhmois=0. tied_con=0. tied_over=2626.
      ldr=1 nclddia=12 nstab_cld=0 nrhcrit=10 sigcll=0.95
      dsig2=0.1 kscmom=0 sig_ct=1. sigkscb=0.95 sigksct=0.8 tied_rh=0.
-     nmr={nmr}
+     nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2512,9 +2507,10 @@ def input_template_2b():
      nevapcc=0 entrain=-0.5
      nuvconv=-3
      rhcv=0. rhmois=0. tied_over=1026.
-     nmr={nmr} nclddia=12
+     nmr={nmr} nclddia={nclddia}
      nevapls=-4 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
