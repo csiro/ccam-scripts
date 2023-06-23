@@ -2310,7 +2310,7 @@ def input_template_1():
 
      COMMENT='file'
      synchist=.false. compression=1
-     tbave={tbave} tbave10={tbave10} procmode=12 fnproc_bcast_max=24
+     tbave={tbave} tbave10={tbave10} procmode=16 fnproc_bcast_max=24
     &end
     &skyin
      mins_rad=-1 qgmin=2.E-7
@@ -2551,7 +2551,7 @@ def input_template_4():
     &mlonml
      mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=0. zomode=0 ocneps=0.9 omaxl=1000.
+     ocnsmag=1. zomode=0 ocneps=0.2 omaxl=1000.
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
