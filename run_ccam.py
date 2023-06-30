@@ -1416,15 +1416,15 @@ def check_correct_host():
         if ccam_host is True and (d['dmode']=="nudging_gcm_with_sst"):
             raise ValueError('CCAM is the host model. Use dmode=nudging_ccam')
 
-    if d['dmode'] == "nudging_gcm":
-        if d['inv_schmidt'] < 0.2:
-            raise ValueError('CCAM grid stretching is too high for dmode=0.  Try reducing grid resolution or increasing grid size')
+#    if d['dmode'] == "nudging_gcm":
+#        if d['inv_schmidt'] < 0.2:
+#            raise ValueError('CCAM grid stretching is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
 
     if d['dmode'] == "sst_only":
         if d['inv_schmidt'] < 0.2:
-            raise ValueError('CCAM grid stretching is too high for dmode=1.  Try reducing grid resolution or increasing grid size')
+            raise ValueError('CCAM grid stretching is too high for dmode=sst_only.  Try reducing grid resolution or increasing grid size')
 
-    if d['dmode'] == "nudging_ccam":
+    if (d['dmode'] == "nudging_ccam") or (d['dmode'] == "nudging_gcm"):
         fname = d['mesonest']+'.000000'
         if os.path.exists(fname):
             host_inv_schmidt = float(subprocess.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | cut -d";" -f1 | sed "s/f//g" | sed "s/ //g"'))
