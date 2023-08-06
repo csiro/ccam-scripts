@@ -2396,7 +2396,7 @@ def input_template_2a():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode} maxlintime=1200.
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2421,7 +2421,7 @@ def input_template_2c():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode} maxlintime=1200
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2446,7 +2446,7 @@ def input_template_2f():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode} maxlintime=1200
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2465,7 +2465,7 @@ def input_template_2d():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode} maxlintime=1200
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2485,7 +2485,7 @@ def input_template_2e():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode} maxlintime=1200
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
@@ -2510,7 +2510,7 @@ def input_template_2b():
      nmr={nmr} nclddia={nclddia}
      nevapls=-4 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode} maxlintime=1200
+     lin_aerosolmode={lin_aerosolmode}
     &end
     """
 
