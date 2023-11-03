@@ -115,6 +115,9 @@ def convert_old_settings():
     conv_dict = { 0:"2014", 1:"2015a", 2:"2015b", 3:"2017", 4:"Mod2015a", 5:"2021" }
     d['conv'] = find_mode(d['conv'],conv_dict,"conv")
 
+    cldfrac_dict = { 0:"smith", 1:"mcgregor" }
+    d['cldfrac'] = find_mode(d['cldfrac'],cldfrac_dict,"cldfrac")
+
     cloud_dict = { 0:"liq_ice", 1:"liq_ice_rain", 2:"liq_ice_rain_snow_graupel", 3:"lin" }
     d['cloud'] = find_mode(d['cloud'],cloud_dict,"cloud")
 
@@ -133,13 +136,13 @@ def convert_old_settings():
     bcsoil_dict = { 0:"constant", 1:"climatology", 2:"recycle" }
     d['bcsoil'] = find_mode(d['bcsoil'],bcsoil_dict,"bcsoil")
 
-    ncout_dict = { 0:"off", 1:"all", 5:"ctm", 7:"basic", 8:"tracer" }
+    ncout_dict = { 0:"off", 1:"all", 5:"ctm", 7:"basic", 8:"tracer", 9:"all_s", 10:"basic_s" }
     d['ncout'] = find_mode(d['ncout'],ncout_dict,"ncout")
 
-    ncsurf_dict = { 0:"off", 3:"cordex" }
+    ncsurf_dict = { 0:"off", 3:"cordex", 4:"cordex_s" }
     d['ncsurf'] = find_mode(d['ncsurf'],ncsurf_dict,"ncsurf")
 
-    nchigh_dict = { 0:"off", 1:"latlon" }
+    nchigh_dict = { 0:"off", 1:"latlon", 2:"latlon_s" }
     d['nchigh'] = find_mode(d['nchigh'],nchigh_dict,"nchigh")
 
     nctar_dict = { 0:"off", 1:"tar", 2:"delete" }
@@ -184,7 +187,7 @@ def check_inargs():
                       'igbpveg', 'sibveg', 'ocnbath', 'casafield', 'uclemparm',
                       'cableparm', 'vegindex', 'soilparm', 'uservegfile', 'userlaifile',
                       'bcsoilfile', 'nnode', 'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix',
-                      'mlo', 'casa' ]
+                      'mlo', 'casa', 'cldfrac' ]
 
     args2simulation = ['bcdom', 'bcsoil', 'sstfile', 'sstinit', 'bcdir', 'sstdir', 'stdat',
                        'aeroemiss', 'model', 'tracer', 'rad_year' ]
@@ -274,6 +277,9 @@ def check_inargs():
         d['uservegfile'] = ''
     if d['userlaifile'] == 'none':
         d['userlaifile'] = ''
+
+    # store input rad_year as rad_year_input
+    d['rad_year_input'] = d['rad_year']
 
 
 def create_directories():
@@ -505,11 +511,12 @@ def get_datetime():
     d['ndays'] = d['eday'] - d['iday'] + 1
 
     # radiation year
-    if d['rad_year'] == 0:
-        d['use_rad_year'] = False
+    if d['rad_year_input'] == 0:
+        d['use_rad_year'] = '.false.'
         d['rad_year'] = d['iyr']
     else:
-        d['use_rad_year'] = True
+        d['use_rad_year'] = '.true.'
+        d['rad_year'] = d['rad_year_input']
 
 
 def check_surface_files():
@@ -562,9 +569,8 @@ def check_surface_files():
 
 
     d['vegin'] = dict2str('{hdir}/vegdata')
-    if d['sib'] == "cable_const":
-        d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
-    elif d['sib'] == "modis":
+    if d['sib'] == "cable_const" or d['sib'] == "modis":
+        # Fixed land-use
         d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
     else:
         # Use same year as LAI will not change.  Only the area fraction
@@ -979,6 +985,9 @@ def set_cloud():
     if d['cloud'] == "lin":
         d.update({'ncloud': 100, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
 
+    if d['cldfrac'] == "mcgregor":
+        d.update({'rcrit_l': 0.85, 'rcrit_s': 0.85, 'nclddia': 3})
+
 def set_radiation():
     "Radiation settings"
 
@@ -1082,9 +1091,6 @@ def set_atmos():
         if d['casa'] == "casa_cnp_pop":
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
                       'cable_climate': 0})
-        #if d['casa'] == "casa_cnp_pop_clim":
-        #    d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-        #              'cable_climate': 1})
 
     if d['sib'] == "cable_modis2020":
         d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3, 'cable_litter': 0,
@@ -1099,9 +1105,6 @@ def set_atmos():
         if d['casa'] == "casa_cnp_pop":
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
                       'cable_climate': 0})
-        #if d['casa'] == "casa_cnp_pop_clim":
-        #    d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-        #              'cable_climate': 1})
 
     if d['sib'] == "cable_sli_modis2020":
         d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1,
@@ -1116,9 +1119,6 @@ def set_atmos():
         if d['casa'] == "casa_cnp_pop":
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
                       'cable_climate': 0})
-        #if d['casa'] == "casa_cnp_pop_clim":
-        #    d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-        #              'cable_climate': 1})
 
     if d['sib'] == "cable_const":
         d.update({'vegin': dict2str('{hdir}/vegdata'),
@@ -1499,12 +1499,18 @@ def run_model():
         fname = dict2str('{hdir}/daily/pr_{ofile}.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/daily/*_{ofile}.nc')
+        fname = dict2str('{hdir}/daily/{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/daily/{ofile}.nc')
         fname = dict2str('{hdir}/daily/ccam_{iyr}{imth_2digit}01.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/daily/ccam_{iyr}{imth_2digit}??.nc')
         fname = dict2str('{hdir}/daily_h/pr_{ofile}.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/daily_h/*_{ofile}.nc')
+        fname = dict2str('{hdir}/daily_h/{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/daily_h/{ofile}.nc')
         fname = dict2str('{hdir}/cordex/pr_surf.{ofile}.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/cordex/*_surf.{ofile}.nc')
@@ -1553,13 +1559,32 @@ def post_process_output():
         if (hy == d['iye']) and (hm == d['ime']):
             idayend = d['ide']
 	    
-        # standard output for pressure levels
-        if d['outlevmode'] in ["pressure", "pressure_height"]:
-            d['use_plevs'] = 'T'
-            d['use_meters'] = 'F'
+        # standard output
+        outlist = [""]
+        if d['outlevmode']=="pressure":
+            outlist = ["pressure"]
+        if d['outlevmode']=="height":
+            outlist = ["height"]
+        if d['outlevmode']=="pressure_height":
+            outlist = ["pressure", "height"]
+        
+        for outindex in range(len(outlist)):
+            d['vertout'] = outlist[outindex]
+
+            if d['vertout']=="pressure":
+                d['use_plevs'] = 'T'
+                d['use_meters'] = 'F'
+                d['dailydir'] = 'daily'
+            elif d['vertout']=="height":
+                d['use_plevs'] = 'F'
+                d['use_meters'] = 'T'
+                d['dailydir'] = 'daily_h'
+            else:
+                raise ValueError('Unknown option for vertical levels')
+
 
             if d['ncout'] == "all":
-                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
+                fname = dict2str('{hdir}/{dailydir}/pr_{histfile}.nc')
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
@@ -1570,7 +1595,7 @@ def post_process_output():
                             run_cmdline('tar xvf '+tname)    
                     if os.path.exists(cname):
                         calc_drs_host(cname)
-                        print("Process pressure (daily) output for ",dict2str('{histyear}{histmonth}'))
+                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_1(), mode='w+')
                         if d['machinetype'] == "srun":
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
@@ -1580,13 +1605,18 @@ def post_process_output():
                                  == "pcc2hist completed successfully")
                         if xtest is False:
                             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-                        run_cmdline('mv *_{histfile}.nc {hdir}/daily')
+                        run_cmdline('mv *_{histfile}.nc {hdir}/{dailydir}')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
-                        newoutput = True
+                        if d['vertout'] == "pressure":
+                            newoutput = True
+                        if d['vertout'] == "height":
+                            newoutput_h = True
 
             if d['ncout'] == "ctm":
+                if not (d['vertout']=="pressure"):
+                    raise ValueError("CTM output requires pressure levels")
                 d['cday'] = mon_2digit(idayend)
                 fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}{cday}.nc")
                 if not os.path.exists(fname):
@@ -1622,7 +1652,7 @@ def post_process_output():
                         newoutput = False
 
             if d['ncout'] == "basic":
-                fname = dict2str('{hdir}/daily/pr_{histfile}.nc')
+                fname = dict2str('{hdir}/{dailydir}/pr_{histfile}.nc')
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
@@ -1633,7 +1663,7 @@ def post_process_output():
                             run_cmdline('tar xvf '+tname)    
                     if os.path.exists(cname):
                         calc_drs_host(cname)
-                        print("Process pressure (daily) output for ",dict2str('{histyear}{histmonth}'))
+                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_6(), mode='w+')
                         if d['machinetype'] == "srun":
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
@@ -1643,14 +1673,17 @@ def post_process_output():
                                  == "pcc2hist completed successfully")
                         if xtest is False:
                             raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        run_cmdline('mv *{histfile}.nc {hdir}/{dailydir}')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
-                        newoutput = True
+                        if d['vertout'] == "pressure":
+                            newoutput = True
+                        if d['vertout'] == "height":
+                            newoutput_h = True
 
             if d['ncout'] == "tracer":
-                fname = dict2str('{hdir}/daily/trav0001_{histfile}.nc')
+                fname = dict2str('{hdir}/{dailydir}/trav0001_{histfile}.nc')
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
@@ -1661,7 +1694,7 @@ def post_process_output():
                             run_cmdline('tar xvf '+tname)
                     if os.path.exists(cname):
                         calc_drs_host(cname)
-                        print("Process pressure (daily) output for ",dict2str('{histyear}{histmonth}'))
+                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_7(), mode='w+')
                         if d['machinetype'] == "srun":
                             run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
@@ -1671,20 +1704,17 @@ def post_process_output():
                                  == "pcc2hist completed successfully")
                         if xtest is False:
                             raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily')
+                        run_cmdline('mv *{histfile}.nc {hdir}/{dailydir}')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
-                        newoutput = True
+                        if d['vertout'] == "pressure":
+                            newoutput = True
+                        if d['vertout'] == "height":
+                            newoutput_h = True
 
-
-        # standard output for pressure levels
-        if (d['outlevmode']=="height") or (d['outlevmode']=="pressure_height"):
-            d['use_plevs'] = 'F'
-            d['use_meters'] = 'T'        
-
-            if d['ncout'] == "all":
-                fname = dict2str('{hdir}/daily_h/pr_{histfile}.nc')
+            if d['ncout'] == "all_s":
+                fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
@@ -1695,27 +1725,27 @@ def post_process_output():
                             run_cmdline('tar xvf '+tname)
                     if os.path.exists(cname):
                         calc_drs_host(cname)
-                        print("Process height (daily) output for ",dict2str('{histyear}{histmonth}'))
+                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_1(), mode='w+')
                         if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
                         else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" h.pcc2hist.log')
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                                  == "pcc2hist completed successfully")
                         if xtest is False:
-                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check h.pcc2hist.log for details"))
-                        run_cmdline('mv *_{histfile}.nc {hdir}/daily_h')
+                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details."))
+                        run_cmdline('mv *_{histfile}.nc {hdir}/{dailydir}')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
-                        newoutput_h = True
+                        if d['vertout'] == "pressure":
+                            newoutput = True
+                        if d['vertout'] == "height":
+                            newoutput_h = True
 
-            if d['ncout'] == "ctm":
-                raise ValueError("ncout=ctm requires pressure levels.  Please use outlevmode=pressure.")
-
-            if d['ncout'] == "basic":
-                fname = dict2str('{hdir}/daily_h/pr_{histfile}.nc')
+            if d['ncout'] == "basic_s":
+                fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
@@ -1726,50 +1756,24 @@ def post_process_output():
                             run_cmdline('tar xvf '+tname)
                     if os.path.exists(cname):
                         calc_drs_host(cname)
-                        print("Process height (daily) output for ",dict2str('{histyear}{histmonth}'))
+                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
                         write2file('cc.nml', cc_template_6(), mode='w+')
                         if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
+                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
                         else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" h.pcc2hist.log')
+                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
                                  == "pcc2hist completed successfully")
                         if xtest is False:
-                            raise ValueError(dict2str("An error occured running pcc2hist. Check h.pcc2hist.log"))
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily_h')
+                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
+                        run_cmdline('mv *{histfile}.nc {hdir}/{dailydir}')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
-                        newoutput_h = True
-
-            if d['ncout'] == "tracer":
-                fname = dict2str('{hdir}/daily_h/trav0001_{histfile}.nc')
-                if not os.path.exists(fname):
-                    tarflag = False
-                    cname = dict2str('{histfile}.000000')
-                    if not os.path.exists(cname):
-                        tname = dict2str('{histfile}.tar')
-                        if os.path.exists(tname):
-                            tarflag = True
-                            run_cmdline('tar xvf '+tname)
-                    if os.path.exists(cname):
-                        calc_drs_host(cname)
-                        print("Process height (daily) output for ",dict2str('{histyear}{histmonth}'))
-                        write2file('cc.nml', cc_template_7(), mode='w+')
-                        if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > h.pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" h.pcc2hist.log')
-                                 == "pcc2hist completed successfully")
-                        if xtest is False:
-                            raise ValueError(dict2str("An error occured running pcc2hist. Check h.pcc2hist.log"))
-                        run_cmdline('mv *{histfile}.nc {hdir}/daily_h')
-                        if tarflag is True:
-                            run_cmdline('rm {histfile}.??????')
-                        ftest = False
-                        newoutput_h = True
-
+                        if d['vertout'] == "pressure":
+                            newoutput = True
+                        if d['vertout'] == "height":
+                            newoutput_h = True
                     
         # store output
         if (d['nctar']=="off") and (d['dmode']!="postprocess"):
@@ -1825,6 +1829,39 @@ def post_process_output():
                     ftest = False
                     newcordex = True
 
+        if d['ncsurf'] == "cordex_s":
+            fname = dict2str('{hdir}/cordex/surf.{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('surf.{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('surf.{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)
+                if os.path.exists(cname):
+                    calc_drs_host(cname)
+                    print("Process CORDEX output for ",dict2str('{histyear}{histmonth}'))
+                    d['ktc_units'] = d['ktc_surf']
+                    cname = dict2str('surf.{histfile}.000000')
+                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
+                    if seconds_check is True:
+                        d['ktc_units'] = d['ktc_units']*60
+                    write2file('cc.nml', cc_template_5(), mode='w+')
+                    if d['machinetype'] == "srun":
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
+                    run_cmdline('mv *_surf.{histfile}.nc {hdir}/cordex')
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
+                    ftest = False
+                    newcordex = True
+
         # store output
         if d['ktc_surf'] > 0:
             if (d['nctar']=="off") and (d['dmode']!="postprocess"):
@@ -1870,6 +1907,39 @@ def post_process_output():
                         run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
                     else:
                         run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
+                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" freq.pcc2hist.log')
+                             == "pcc2hist completed successfully")
+                    if xtest is False:
+                        raise ValueError(dict2str("An error occured running pcc2hist. Check freq.pcc2hist.log"))
+                    run_cmdline('mv *_freq.{histfile}.nc {hdir}/highfreq')
+                    if tarflag is True:
+                        run_cmdline('rm {histfile}.??????')
+                    ftest = False
+                    newhighfreq = True
+
+        if d['nchigh'] == "latlon_s":
+            fname = dict2str('{hdir}/highfreq/freq.{histfile}.nc')
+            if not os.path.exists(fname):
+                tarflag = False
+                cname = dict2str('freq.{histfile}.000000')
+                if not os.path.exists(cname):
+                    tname = dict2str('freq.{histfile}.tar')
+                    if os.path.exists(tname):
+                        tarflag = True
+                        run_cmdline('tar xvf '+tname)
+                if os.path.exists(cname):
+                    calc_drs_host(cname)
+                    print("Process high-frequency output for ",dict2str('{histyear}{histmonth}'))
+                    d['ktc_units'] = d['ktc_high']
+                    cname = dict2str('freq.{histfile}.000000')
+                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
+                    if seconds_check is True:
+                        d['ktc_units'] = d['ktc_units']*60
+                    write2file('cc.nml', cc_template_3(), mode='w+')
+                    if d['machinetype'] == "srun":
+                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
+                    else:
+                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
                     xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" freq.pcc2hist.log')
                              == "pcc2hist completed successfully")
                     if xtest is False:
@@ -2549,9 +2619,10 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=2
+     mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=1. zomode=0 ocneps=0.2 omaxl=1000.
+     ocnsmag=0.1 ocnlap=0. zomode=0 ocneps=0.1 omaxl=1000.
+     mlodiff_numits=6 mlo_adjeta=0 mstagf=30 mlodps=0 mlo_limitsal=0
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
@@ -2698,11 +2769,11 @@ def cc_template_6():
     template2 = """\
     hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
 "tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega", \
-"cfrac","prw","clwvi","clivi","rldscs","rsdscs","rluscs","rsuscs","zmla", \
+"cfrac","prw","clwvi","clivi","zmla","ustar", \
 "clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund", \
-"rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
+"rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
-"snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
+"snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
 "alb","sftlf","sdischarge"
      hfreq = 1
     &end
@@ -2711,18 +2782,20 @@ def cc_template_6():
     template3 = """\
     hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
 "tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega", \
-"cfrac","prw","clwvi","clivi","rldscs","rsdscs","rluscs","rsuscs","zmla", \
+"cfrac","prw","clwvi","clivi","zmla","ustar", \
 "clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn", "sund", \
-"rsut","rlut","rsdt","rsutcs","rlutcs","hfls","hfss","CAPE","CIN","prc", \
+"rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
-"snc","snd","sic","z0","evspsblpot","tdew","tsl","mrsol","mrfsol", \
-"alb","sftlf","sdischarge","tos","sos","uos","vos","ssh"
+"snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol", \
+"alb","sftlf","sdischarge","tos","sos","uos","vos","ssh","ocndepth"
      hfreq = 1
     &end
     """
 
     fname = d['histfile']
-    mlo_test = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text uos') == "uos")
+    mlo_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text thetao | head -1') == "thetao")
+    print("fname ",fname)
+    print("mlo_test ",mlo_test)
     if mlo_test is True:
         template = template1 + template3
     else:
@@ -2809,6 +2882,7 @@ if __name__ == '__main__':
     parser.add_argument("--sib", type=str, help=" land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020)")
     parser.add_argument("--aero", type=str, help=" aerosols (off, prognostic)")
     parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021)")
+    parser.add_argument("--cldfrac", type=str, help=" cloud fraction (smith, mcgregor")
     parser.add_argument("--cloud", type=str, help=" cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel)")
     parser.add_argument("--rad", type=str, help=" radiation (SE3, SE4)")
     parser.add_argument("--rad_year", type=int, help=" radiation year (0=off)")
@@ -2818,9 +2892,9 @@ if __name__ == '__main__':
     parser.add_argument("--casa", type=str, help=" CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)")
     parser.add_argument("--tracer", type=str, help=" Tracer emission directory (off=disabled)")
 
-    parser.add_argument("--ncout", type=str, help=" standard output format (off, all, ctm, basic)")
-    parser.add_argument("--ncsurf", type=str, help=" CORDEX output (off, cordex)")
-    parser.add_argument("--nchigh", type=str, help=" High-freq output (off, latlon)")
+    parser.add_argument("--ncout", type=str, help=" standard output format (off, all, ctm, basic, all_s, basic_s)")
+    parser.add_argument("--ncsurf", type=str, help=" CORDEX output (off, cordex), cordex_s")
+    parser.add_argument("--nchigh", type=str, help=" High-freq output (off, latlon, latlon_s)")
     parser.add_argument("--nctar", type=str, help=" TAR output files in OUTPUT directory (off, tar, delete)")
     parser.add_argument("--ktc", type=int, help=" standard output period (mins)")
     parser.add_argument("--ktc_surf", type=int, help=" CORDEX file output period (mins) (0=off)")

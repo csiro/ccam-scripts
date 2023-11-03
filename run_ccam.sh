@@ -80,6 +80,7 @@ mlev=54                                      # number of model levels (27, 35, 5
 sib=cable_vary                               # land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020)
 aero=prognostic                              # aerosols (off, prognostic)
 conv=Mod2015a                                # convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021)
+cldfrac=smith                                # cloud fraction (smith, mcgregor)
 cloud=liq_ice_rain_snow_graupel              # cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel, lin)
 rad=SE4                                      # radiation (SE3, SE4, SE4lin)
 rad_year=0                                   # radiation year (0=off)
@@ -136,7 +137,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
 		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --rad $rad --bmix $bmix --mlo $mlo \
-                   --casa $casa --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf  \
+                   --casa $casa --cldfrac $cldfrac \
+		   --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf  \
 		   --nchigh $nchigh --ktc_high $ktc_high \
                    --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
                    --bcsoilfile $bcsoilfile \
