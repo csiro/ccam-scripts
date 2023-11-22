@@ -848,7 +848,7 @@ def set_mlev_params():
 
     d_mlev_eigenv = {27:"eigenv27-10.300", 35:"eigenv.35b", 54:"eigenv.54b", 72:"eigenv.72b",
                      108:"eigenv.108b", 144:"eigenv.144b"}
-    d_mlev_modlolvl = {27:20, 35:30, 54:40, 72:60, 108:80, 144:100}
+    d_mlev_modlolvl = {27:24, 35:32, 54:48, 72:64, 108:96, 144:128}
 
     d.update({'nmr': 1, 'acon': 0.00, 'bcon': 0.02, 'eigenv': d_mlev_eigenv[d['mlev']],
               'mlolvl': d_mlev_modlolvl[d['mlev']]})
@@ -858,25 +858,29 @@ def config_initconds():
     "Configure initial condition file"
 
     d['nrungcm'] = 0
+    d['ocneps'] = 0.1
 
-    if (d['iyr']==d['iys']) and (d['imth']==d['ims']):
+    if d['iyr'] == d['iys']:
+        d['ocneps'] = 1.
 
-        if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
-            d.update({'ifile': d['mesonest']})
-        else:
-            d.update({'ifile': d['sstinit']})
+        if d['imth'] == d['ims']:
 
-        if d['bcsoil'] == "constant":
-            d['nrungcm'] = -1
-        if d['bcsoil'] == "climatology":
-            print("Import soil from climatology")
-            d['nrungcm'] = -14
-            d.update({'bcsoilfile': dict2str('{insdir}/vegin/sm{imth_2digit}')})
-            check_file_exists(d['bcsoilfile']+'.000000')
-        elif d['bcsoil'] == "recycle":
-            print("Recycle soil from input file")
-            d['nrungcm'] = -4
-            check_file_exists(d['bcsoilfile']+'.000000')
+            if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
+                d.update({'ifile': d['mesonest']})
+            else:
+                d.update({'ifile': d['sstinit']})
+
+            if d['bcsoil'] == "constant":
+                d['nrungcm'] = -1
+            if d['bcsoil'] == "climatology":
+                print("Import soil from climatology")
+                d['nrungcm'] = -14
+                d.update({'bcsoilfile': dict2str('{insdir}/vegin/sm{imth_2digit}')})
+                check_file_exists(d['bcsoilfile']+'.000000')
+            elif d['bcsoil'] == "recycle":
+                print("Recycle soil from input file")
+                d['nrungcm'] = -4
+                check_file_exists(d['bcsoilfile']+'.000000')
 
 
     # prepare ifile
@@ -976,6 +980,11 @@ def set_downscaling():
 def set_cloud():
     "Cloud microphysics settings"
 
+    d['diaglevel_cloud'] = 0
+    if (d['ncout']=="all") or (d['ncout']=="all_s"):
+        d['diaglevel_cloud'] = 9
+
+
     if d['cloud'] == "liq_ice":
         d.update({'ncloud': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "liq_ice_rain":
@@ -1030,6 +1039,7 @@ def set_ocean():
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
                       'kbotmlo': -40})
+
 
 def set_atmos():
     "Atmospheric physics settings"
@@ -2423,6 +2433,7 @@ def input_template_1():
      casapftfile='{stdat}/pftlookup.csv'
      surf_00    ='{bcsoilfile}'
      surf_cordex=1 surf_windfarm=1
+     diaglevel_cloud={diaglevel_cloud}
      """
 
     template2 = """
@@ -2621,9 +2632,9 @@ def input_template_4():
     &mlonml
      mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=1. ocnlap=0. zomode=0 ocneps=0.1 omaxl=1000.
+     ocnsmag=0. ocnlap=0.1 zomode=0 ocneps={ocneps} omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=30 mlodps=0 mlo_limitsal=0
-     mlo_bs=3
+     mlo_bs=3 minwater=2. mlo_step=1
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
@@ -2775,7 +2786,7 @@ def cc_template_6():
 "rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
 "snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
-"alb","sftlf","sdischarge"
+"alb","sftlf","grid","sdischarge"
      hfreq = 1
     &end
     """
@@ -2787,8 +2798,8 @@ def cc_template_6():
 "clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn", "sund", \
 "rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc", \
 "evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
-"snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol", \
-"alb","sftlf","sdischarge","tos","sos","uos","vos","ssh","ocndepth"
+"snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog" \
+"alb","sftlf","grid","sdischarge","tos","sos","uos","vos","ssh","ocndepth"
      hfreq = 1
     &end
     """
