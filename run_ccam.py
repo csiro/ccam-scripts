@@ -1357,17 +1357,17 @@ def create_input_file():
     write2file('input', input_template_1(), mode='w+')
 
     if d['conv'] == "2014":
-        write2file('input', input_template_2a())
+        write2file('input', input_template_c2014())
     if d['conv'] == "2015a":
-        write2file('input', input_template_2c())
+        write2file('input', input_template_c2015a())
     if d['conv'] == "2015b":
-        write2file('input', input_template_2d())
+        write2file('input', input_template_c2015b())
     if d['conv'] == "2017":
-        write2file('input', input_template_2e())
+        write2file('input', input_template_c2017())
     if d['conv'] == "Mod2015a":
-        write2file('input', input_template_2f())
+        write2file('input', input_template_c2015m())
     if d['conv'] == "2021":
-        write2file('input', input_template_2b())
+        write2file('input', input_template_c2021())
 
     if d['tracer'] != "off":
         write2file('input', input_template_3())
@@ -2457,7 +2457,7 @@ def input_template_1():
 
     return template
 
-def input_template_2a():
+def input_template_c2014():
     "Second part of template for 'input' namelist file"
 
     return """
@@ -2481,7 +2481,7 @@ def input_template_2a():
     &end
     """
 
-def input_template_2c():
+def input_template_c2015a():
     "Third part of template for 'input' namelist file"
 
     return """
@@ -2506,7 +2506,7 @@ def input_template_2c():
     &end
     """
 
-def input_template_2f():
+def input_template_c2015m():
     "Third part (mod) of template for 'input' namelist file"
 
     return """
@@ -2531,7 +2531,7 @@ def input_template_2f():
     &end
     """
 
-def input_template_2d():
+def input_template_c2015b():
     "Fourth part of template for 'input' namelist file"
 
     return """
@@ -2550,7 +2550,7 @@ def input_template_2d():
     &end
     """
 
-def input_template_2e():
+def input_template_c2017():
     "Fifth part of template for 'input' namelist file"
 
     return """
@@ -2570,7 +2570,7 @@ def input_template_2e():
     &end
     """
 
-def input_template_2b():
+def input_template_c2021():
     "Second part of template for 'input' namelist file"
 
     return """
@@ -2634,7 +2634,7 @@ def input_template_4():
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
      ocnsmag=0. ocnlap=0.1 zomode=0 ocneps={ocneps} omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
-     mlo_bs=4 minwater=2. mlo_step=1
+     mlo_bs=3 minwater=2. mlo_step=2
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
