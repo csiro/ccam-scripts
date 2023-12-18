@@ -858,12 +858,10 @@ def config_initconds():
     "Configure initial condition file"
 
     d['nrungcm'] = 0
-    d['ocneps'] = 0.1
 
     if d['iyr'] == d['iys']:
 
         if d['imth'] == d['ims']:
-            d['ocneps'] = 1.
 
             if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
                 d.update({'ifile': d['mesonest']})
@@ -2624,17 +2622,17 @@ def input_template_4():
     &landnml
      proglai={proglai} progvcmax={progvcmax} ccycle={ccycle}
      soil_struc={soil_struc} fwsoil_switch={fwsoil_switch}
-     cable_pop={cable_pop} gs_switch={gs_switch}
+     cable_pop={cable_pop} gs_switch={gs_switch} cable_potev=0
      cable_litter={cable_litter} cable_climate={cable_climate}
      ateb_intairtmeth=1 ateb_intmassmeth=2
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=1
+     mlodiff=10 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=0. ocnlap=0.1 zomode=0 ocneps={ocneps} omaxl=1000.
+     ocnsmag=0. ocnlap=0.01 zomode=0 ocneps=0.1 omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
-     mlo_bs=3 minwater=2. mlo_step=2
+     mlo_bs=3 minwater=2. mlo_step=1
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
