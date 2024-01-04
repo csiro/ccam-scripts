@@ -2630,7 +2630,7 @@ def input_template_4():
     &mlonml
      mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=0. ocnlap=0.01 zomode=0 ocneps=0.1 omaxl=1000.
+     ocnsmag=0. ocnlap=0.01 zomode=0 ocneps=0.1 ocnepr=1. omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
      mlo_bs=3 minwater=2. mlo_step=1
      alphavis_seaice=0.95 alphanir_seaice=0.7
