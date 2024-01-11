@@ -2447,7 +2447,7 @@ def input_template_1():
      phenfile=   '{stdat}/modis_phenology_csiro.nc'
      casapftfile='{stdat}/pftlookup.csv'
      surf_00    ='{bcsoilfile}'
-     surf_cordex=1 surf_windfarm=1
+     surf_cordex=11 surf_windfarm=1
      diaglevel_cloud={diaglevel_cloud}
      """
 
