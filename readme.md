@@ -26,14 +26,6 @@ To read a manual page for **run_ccam.py**, a user can type the following on the 
 
 `python run_ccam.py -h`
 
-```
-    Usage:
-        python run_ccam.py [-h]
-
-    Author:
-        Mitchell Black, mitchell.black@csiro.au
-```
-
 
 ## run_ccam.sh
 ------
