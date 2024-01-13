@@ -106,8 +106,7 @@ def convert_old_settings():
     d['leap'] = find_mode(d['leap'],leap_dict,"leap")
 
     sib_dict = { 1:"cable_vary", 2:"modis", 3:"cable_sli", 4:"cable_const",
-                 5:"cable_modis2020", 6:"cable_sli_modis2020",
-                 7:"cable_modis2020_const" }
+                 5:"cable_modis2020", 6:"cable_sli_modis2020"}
     d['sib'] = find_mode(d['sib'],sib_dict,"sib")
 
     aero_dict = { 0:"off", 1:"prognostic" }
@@ -558,7 +557,7 @@ def check_surface_files():
 
     testfail = False
     for mon in range(1, 13):
-        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=="modis") or (d['sib']=='cable_modis2020_const'):
+        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=="modis"):
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
@@ -656,7 +655,7 @@ def run_land():
     else:
         # CABLE land-use
         # determine if time-varying
-        if (d['sib'] != "cable_const") and (d['sib'] != "cable_modis2020_const"):
+        if d['sib'] != "cable_const":
             if d['cmip'] == "cmip6":
                 if d['iyr'] < 2015:
                     d['change_landuse'] = dict2str('{stdat}/{cmip}/cmip/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-landState-base-2-1-h_gn_0850-2015.nc')
@@ -678,7 +677,7 @@ def run_land():
             print("-> Generating CABLE land-use data (varying)")
         else:
             print("-> Generating CABLE land-use data (constant)")
-        if (d['sib'] == "cable_modis2020") or (d['sib'] == "cable_sli_modis2020") or (d['sib'] == "cable_modis2020_const"):
+        if (d['sib'] == "cable_modis2020") or (d['sib'] == "cable_sli_modis2020"):
             write2file('igbpveg.nml', igbpveg_template2(), mode='w+')
         else:
             write2file('igbpveg.nml', igbpveg_template(), mode='w+')
@@ -1066,9 +1065,9 @@ def set_atmos():
                   'gs_switch': 1, 'cable_litter': 0, 'cable_climate': 0})
 
         if d['casa'] == "casa_cnp":
-            raise ValueError("casa=casa_cnp does not support sib=modis")
+            raise ValueError("casa=casa_cnp requires sib=cable_vary, cable_sli or cable_const")
         if d['casa'] == "casa_cnp_pop":
-            raise ValueError("casa=casa_cnp_pop does not support sib=modis")
+            raise ValueError("casa=casa_cnp_pop requires sib=cable_vary, cable_sli or cable_const")
 
     if d['sib'] == "cable_sli":
         d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1,
@@ -1129,21 +1128,10 @@ def set_atmos():
             d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
                       'cable_climate': 0})
 
-    if d['sib'] == "cable_modis2020_const":
-        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3, 'cable_litter': 0,
-                  'gs_switch': 1})
-
-        if d['casa'] == "off":
-            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp":
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp_pop":
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                      'cable_climate': 0})
-
-    if (d['sib'] == "cable_modis2020_const") or (d['sib'] == "cable_const") or (d['sib'] == "modis"):
+    if d['sib'] == "cable_const":
+        d.update({'vegin': dict2str('{hdir}/vegdata'),
+                  'vegfile': dict2str('veg{domain}.{imth_2digit}')})
+    elif d['sib'] == "modis":
         d.update({'vegin': dict2str('{hdir}/vegdata'),
                   'vegfile': dict2str('veg{domain}.{imth_2digit}')})
     else:
@@ -1487,11 +1475,6 @@ def check_correct_landuse(fname):
             testfail = True            
 
     if d['sib'] == "cable_sli_modis2020":
-        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-        if cable_data is False:
-            testfail = True
-
-    if d['sib'] == "cable_modis2020_const":
         cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
         if cable_data is False:
             testfail = True
@@ -2766,7 +2749,7 @@ def cc_template_5():
     &end
     &histnl
      htype="inst"
-     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos","od550aer","tsroof","tsgree","tspav","mrsofc","anthroheat"
+     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos","od550aer","tsroof","tsgree","tspav",,"tsskin","mrsofc","anthroheat"
      hfreq = 1
     &end
     """
@@ -2906,7 +2889,7 @@ if __name__ == '__main__':
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
     parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, sst_only, nuding_ccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst")
-    parser.add_argument("--sib", type=str, help=" land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, cable_modis2020_const)")
+    parser.add_argument("--sib", type=str, help=" land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020)")
     parser.add_argument("--aero", type=str, help=" aerosols (off, prognostic)")
     parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021)")
     parser.add_argument("--cldfrac", type=str, help=" cloud fraction (smith, mcgregor")
