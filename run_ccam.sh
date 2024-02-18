@@ -69,7 +69,7 @@ drshost=default                              # Host GCM for DRS otput (e.g., ACC
 drsensemble=default                          # Host GCM ensemble number for DRS output (e.g., r1i1p1f1)
 drsdomain=generic                            # DRS domain (e.g., AUS-50)
 drsproject=CORDEX                            # DRS project name (e.g., CORDEX)
-model_id="CSIRO-CCAM-2203"                   # CCAM version name
+model_id="CSIRO-CCAM-2401"                   # CCAM version name
 contact="ccam@csiro.au"                      # contact email details
 rcm_version_id="v1"                          # CCAM version number
 
@@ -122,7 +122,6 @@ excdir=$insdir/scripts/run_ccam              # location of run_ccam.py
 stdat=$insdir/ccamdata                       # eigen and radiation datafiles
 terread=$insdir/src/bin/terread
 igbpveg=$insdir/src/bin/igbpveg
-sibveg=$insdir/src/bin/sibveg
 ocnbath=$insdir/src/bin/ocnbath
 casafield=$insdir/src/bin/casafield
 aeroemiss=$insdir/src/bin/aeroemiss
@@ -145,7 +144,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
                    --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
                    --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
-                   --sibveg $sibveg --ocnbath $ocnbath --casafield $casafield \
+                   --ocnbath $ocnbath --casafield $casafield \
 		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
 		   --uservegfile $uservegfile --userlaifile $userlaifile \
 		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \

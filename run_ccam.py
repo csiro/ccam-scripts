@@ -58,6 +58,7 @@ def main(inargs):
             set_atmos()
             set_surfc()
             set_aeros()
+            set_aquaplanet()
 
             # Create emission datasets
             create_aeroemiss_file()
@@ -96,17 +97,21 @@ def convert_old_settings():
     "Convert dmode for new format"
 
     dmode_dict = { 0:"nudging_gcm", 1:"sst_only", 2:"nudging_ccam", 3:"sst_6hour",
-                   4:"generate_veg", 5:"postprocess", 6:"nudging_gcm_with_sst" }
+                   4:"generate_veg", 5:"postprocess", 6:"nudging_gcm_with_sst",
+                   7:"aquaplanet1", 8:"aquaplanet2", 9:"aquaplanet3",
+                   10:"aquaplanet4", 11:"aquaplanet5", 12:"aquaplanet6",
+                   13:"aquaplanet7", 14:"aquaplanet8" }
     d['dmode'] = find_mode(d['dmode'],dmode_dict,"dmode")
 
     machinetype_dict = { 0:"mpirun", 1:"srun" }
     d['machinetype'] = find_mode(d['machinetype'],machinetype_dict,"machinetype")
 
-    leap_dict = { 0:"noleap", 1:"leap", 2:"360" }
+    leap_dict = { 0:"noleap", 1:"leap", 2:"360", 3:"auto" }
     d['leap'] = find_mode(d['leap'],leap_dict,"leap")
 
-    sib_dict = { 1:"cable_vary", 2:"modis", 3:"cable_sli", 4:"cable_const",
-                 5:"cable_modis2020", 6:"cable_sli_modis2020"}
+    sib_dict = { 1:"cable_vary", 3:"cable_sli", 4:"cable_const",
+                 5:"cable_modis2020", 6:"cable_sli_modis2020",
+                 7:"cable_modis2020_const"}
     d['sib'] = find_mode(d['sib'],sib_dict,"sib")
 
     aero_dict = { 0:"off", 1:"prognostic" }
@@ -180,14 +185,14 @@ def check_inargs():
     # args2postprocess for postprocessing_test 
 
     args2common = ['name', 'nproc', 'ncountmax', 'dmode', 'iys', 'ims', 'ids', 'iye', 'ime',
-                   'ide', 'leap', 'ktc', 'ktc_surf', 'ktc_high', 'machinetype', 'cmip', 'insdir',
+                   'ide', 'ktc', 'ktc_surf', 'ktc_high', 'machinetype', 'cmip', 'insdir',
                    'hdir' ]
 
     args2preprocess = ['midlon', 'midlat', 'gridres', 'gridsize', 'wdir', 'terread',
-                      'igbpveg', 'sibveg', 'ocnbath', 'casafield', 'uclemparm',
+                      'igbpveg', 'ocnbath', 'casafield', 'uclemparm',
                       'cableparm', 'vegindex', 'soilparm', 'uservegfile', 'userlaifile',
                       'bcsoilfile', 'nnode', 'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix',
-                      'mlo', 'casa', 'cldfrac' ]
+                      'mlo', 'casa', 'cldfrac', 'leap' ]
 
     args2simulation = ['bcdom', 'bcsoil', 'sstfile', 'sstinit', 'bcdir', 'sstdir', 'stdat',
                        'aeroemiss', 'model', 'tracer', 'rad_year' ]
@@ -218,19 +223,19 @@ def check_inargs():
             print('Missing input argument --'+i)
             sys.exit(1)
 
-    if d['preprocess_test']:
+    if d['preprocess_test'] is True:
         for i in args2preprocess:
             if not i in d.keys():
                 print('Missing input argument --'+i)
                 sys.exit(1)
 
-    if d['simulation_test']:
+    if d['simulation_test'] is True:
         for i in args2simulation:
             if not i in d.keys():
                 print('Missing input argument --'+i)
                 sys.exit(1)
 
-    if d['postprocess_test']:
+    if d['postprocess_test'] is True:
         for i in args2postprocess:
             if not i in d.keys():
                 print('Missing input argument --'+i)
@@ -242,6 +247,12 @@ def check_inargs():
     d['plevs'] = d['plevs'].replace(',', ', ')
     d['mlevs'] = d['mlevs'].replace(',', ', ')
     d['dlevs'] = d['dlevs'].replace(',', ', ')
+
+    if d['dmode'] in ["aquaplanet1", "aquaplanet2", "aquaplanet3",
+                      "aquaplanet4", "aquaplanet5", "aquaplanet6",
+                      "aquaplanet7", "aquaplanet8"]:
+        d['aero'] = "off"
+        d['mlo'] = "prescribed"
 
     if d['mlo'] == "prescribed":
         d['use_depth'] = 'F'
@@ -410,23 +421,15 @@ def calc_dt_model():
               250:5, 200:4, 150:3, 100:2, 50:1}
 
     # determine dt based on dx, dtout and ktc_surf
-    if (d['ktc_surf']>0) and (d['ktc_high']>0):
-        for dx in sorted(d_dxdt):
-            if (d['gridres_m']>=dx) and (60*d['dtout']%d_dxdt[dx]==0) and (60*d['ktc_surf']%d_dxdt[dx]==0) and (60*d['ktc_high']%d_dxdt[dx]==0):
-                d['dt'] = d_dxdt[dx]
-    elif d['ktc_surf'] > 0:
-        for dx in sorted(d_dxdt):
-            if (d['gridres_m']>=dx) and (60*d['dtout']%d_dxdt[dx]==0) and (60*d['ktc_surf']%d_dxdt[dx]==0):
-                d['dt'] = d_dxdt[dx]
-    elif d['ktc_high'] > 0:
-        for dx in sorted(d_dxdt):
-            if (d['gridres_m']>=dx) and (60*d['dtout']%d_dxdt[dx]==0) and (60*d['ktc_high']%d_dxdt[dx]==0):
-                d['dt'] = d_dxdt[dx]
-    else:
-        for dx in sorted(d_dxdt):
-            if (d['gridres_m']>=dx) and (60*d['dtout']%d_dxdt[dx]==0):
-                d['dt'] = d_dxdt[dx]
-    
+    test_surf = d['dtout']
+    test_high = d['dtout']
+    if d['ktc_surf']>0:
+        test_surf = d['ktc_surf']
+    if d['ktc_high']>0:
+        test_high = d['ktc_high']
+    for dx in sorted(d_dxdt):
+        if (d['gridres_m']>=dx) and (60*d['dtout']%d_dxdt[dx]==0) and (60*test_surf%d_dxdt[dx]==0) and (60*test_high%d_dxdt[dx]==0):
+            d['dt'] = d_dxdt[dx]
 
     if d['gridres_m'] < 50:
         raise ValueError("Minimum grid resolution of 50m has been exceeded")
@@ -488,28 +491,6 @@ def get_datetime():
     d['imthlst_2digit'] = mon_2digit(d['imthlst'])
     d['imth_2digit'] = mon_2digit(d['imth'])
 
-    # Calculate number of days in current month:
-    if d['leap'] == "noleap":
-        d['nleap'] = 0
-        d['ndays'] = monthrange(iyr, imth)[1]
-        if imth == 2:
-            d['ndays'] = 28 #leap year turned off
-    if d['leap'] == "leap":
-        d['nleap'] = 1
-        d['ndays'] = monthrange(iyr, imth)[1]
-    if d['leap'] == "360":
-        d['nleap'] = 2
-        d['ndays'] = 30
-
-    d['eday'] = d['ndays']
-    if (d['iyr']==d['iye']) and (d['imth']==d['ime']):
-        if (d['ide']>d['ndays']) or (d['ide']<1):
-            raise ValueError("End day ide is invalid.")
-        d['eday'] = d['ide']
-    if (d['iday']>d['ndays']) or (d['iday']<1):
-        raise ValueError("Start day ids is invalid.")
-    d['ndays'] = d['eday'] - d['iday'] + 1
-
     # radiation year
     if d['rad_year_input'] == 0:
         d['use_rad_year'] = '.false.'
@@ -518,6 +499,11 @@ def get_datetime():
         d['use_rad_year'] = '.true.'
         d['rad_year'] = d['rad_year_input']
 
+    if (d['preprocess_test'] is True) and (d['simulation_test'] is False):
+        # Usually applied for generate_veg.  preprocessing usually only
+        # requires monthly temporal resolution
+        if d['leap'] == "auto":
+            d['leap'] = "leap"
 
 def check_surface_files():
     "Ensure surface datasets exist"
@@ -557,7 +543,7 @@ def check_surface_files():
 
     testfail = False
     for mon in range(1, 13):
-        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=="modis"):
+        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=='cable_modis_2020_const'):
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
@@ -569,15 +555,12 @@ def check_surface_files():
 
 
     d['vegin'] = dict2str('{hdir}/vegdata')
-    if d['sib'] == "cable_const" or d['sib'] == "modis":
+    if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=="cable_modis2020_const"):
         # Fixed land-use
         d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
     else:
         # Use same year as LAI will not change.  Only the area fraction
-        if d['cmip'] == "cmip5":
-            d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
-        else:
-            d['vegfile'] = dict2str('veg{domain}.{iyr}.{imth_2digit}')
+        d['vegfile'] = dict2str('veg{domain}.{iyr}.{imth_2digit}')
 
 
 def run_cable_all():
@@ -639,56 +622,49 @@ def run_land():
     #default will disable change_landuse
     d['change_landuse'] = ""
 
-    if d['sib'] == "modis":
-        print("-> Generating MODIS land-use data")
-        write2file('sibveg.nml', sibveg_template(), mode='w+')
-        if d['machinetype'] == "srun":
-            run_cmdline('srun -n 1 {sibveg} -s 1000 < sibveg.nml > sibveg.log')
-        else:
-            run_cmdline('{sibveg} -s 1000 < sibveg.nml > sibveg.log')
-        xtest = (subprocess.getoutput('grep -o --text "sibveg completed successfully" sibveg.log')
-                 == "sibveg completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured while running sibveg. Check sibveg.log"))
-        run_cmdline('mv -f topsib{domain} topout{domain}')
-
-    else:
-        # CABLE land-use
-        # determine if time-varying
-        if d['sib'] != "cable_const":
-            if d['cmip'] == "cmip6":
-                if d['iyr'] < 2015:
-                    d['change_landuse'] = dict2str('{stdat}/{cmip}/cmip/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-landState-base-2-1-h_gn_0850-2015.nc')
+    # CABLE land-use
+    # determine if time-varying
+    if (d['sib']!="cable_const") and (d['sib']!="cable_modis2020_const"):
+        if d['cmip'] == "cmip6":
+            if d['iyr'] < 2015:
+                d['change_landuse'] = dict2str('{stdat}/{cmip}/cmip/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-landState-base-2-1-h_gn_0850-2015.nc')
+            else:
+                if d['rcp'] == "ssp126":
+                    d['rcplabel'] = "IMAGE"
+                elif d['rcp'] == "ssp245":
+                    d['rcplabel'] = "MESSAGE"
+                elif d['rcp'] == "ssp370":
+                    d['rcplabel'] = "AIM"
+                elif d['rcp'] == "ssp460":
+                    d['rcplabel'] = "GCAM"
+                elif d['rcp'] == "ssp585":
+                    d['rcplabel'] = "MAGPIE"
                 else:
-                    if d['rcp'] == "ssp126":
-                        d['rcplabel'] = "IMAGE"
-                    elif d['rcp'] == "ssp245":
-                        d['rcplabel'] = "MESSAGE"
-                    elif d['rcp'] == "ssp370":
-                        d['rcplabel'] = "AIM"
-                    elif d['rcp'] == "ssp460":
-                        d['rcplabel'] = "GCAM"
-                    elif d['rcp'] == "ssp585":
-                        d['rcplabel'] = "MAGPIE"
-                    else:
-                        raise ValueError(dict2str("Invalid choice for rcp"))
-                    d['change_landuse'] = dict2str('{stdat}/{cmip}/{rcp}/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-{rcplabel}-{rcp}-2-1-f_gn_2015-2100.nc')
-        if d['change_landuse'] == "":
-            print("-> Generating CABLE land-use data (varying)")
-        else:
-            print("-> Generating CABLE land-use data (constant)")
-        if (d['sib'] == "cable_modis2020") or (d['sib'] == "cable_sli_modis2020"):
-            write2file('igbpveg.nml', igbpveg_template2(), mode='w+')
-        else:
-            write2file('igbpveg.nml', igbpveg_template(), mode='w+')
-        if d['machinetype'] == "srun":
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
-        else:
-            run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
-        xtest = (subprocess.getoutput('grep -o --text "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
-        run_cmdline('mv -f topsib{domain} topout{domain}')
+                    raise ValueError(dict2str("Invalid choice for rcp"))
+                d['change_landuse'] = dict2str('{stdat}/{cmip}/{rcp}/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-{rcplabel}-{rcp}-2-1-f_gn_2015-2100.nc')
+
+    if d['change_landuse'] == "":
+        print("-> Generating CABLE land-use data (varying)")
+    else:
+        print("-> Generating CABLE land-use data (constant)")
+
+    # use MODIS2020 dataset
+    if (d['sib']=="cable_modis2020") or (d['sib']=="cable_sli_modis2020") or (d['sib']=="cable_modis2020_const"):
+        write2file('igbpveg.nml', igbpveg_template2(), mode='w+')
+    else:
+        write2file('igbpveg.nml', igbpveg_template(), mode='w+')
+        
+    # Run IGBPVEG
+    if d['machinetype'] == "srun":
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+    else:
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
+
+    # Check for errors
+    xtest = (subprocess.getoutput('grep -o --text "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
+    if xtest is False:
+        raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
+    run_cmdline('mv -f topsib{domain} topout{domain}')
 
 
 def run_ocean():
@@ -748,9 +724,25 @@ def prep_iofiles():
     if not os.path.exists(fpath):
         if not os.path.exists(fpath+'.000000'):
             d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
-            fpath = dict2str('{bcdir}/{mesonest}')
 
-    if d['dmode']=="sst_only":
+    if d['dmode'] == "sst_only":
+        d['mesonest'] = 'error'
+
+    if d['dmode'] == "aquaplanet1":
+        d['mesonest'] = 'error'
+    if d['dmode'] == "aquaplanet2":
+        d['mesonest'] = 'error'
+    if d['dmode'] == "aquaplanet3":
+        d['mesonest'] = 'error'
+    if d['dmode'] == "aquaplanet4":
+        d['mesonest'] = 'error'
+    if d['dmode'] == "aquaplanet5":
+        d['mesonest'] = 'error'
+    if d['dmode'] == "aquaplanet6":
+        d['mesonest'] = 'error'
+    if d['dmode'] == "aquaplanet7":
+        d['mesonest'] = 'error'
+    if d['dmode'] == "aquaplanet8":
         d['mesonest'] = 'error'
 
     # Define restart file:
@@ -865,8 +857,10 @@ def config_initconds():
 
             if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
                 d.update({'ifile': d['mesonest']})
-            else:
+            elif d['dmode'] == "sst_only":
                 d.update({'ifile': d['sstinit']})
+            else:
+                d.update({'ifile': "error"})
 
             if d['bcsoil'] == "constant":
                 d['nrungcm'] = -1
@@ -886,12 +880,30 @@ def config_initconds():
         fpath = dict2str('{bcdir}/{mesonest}')
         if os.path.exists(fpath):
             run_cmdline('ln -s '+fpath+' .')
+            cname = fpath
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
+            cname = fpath+".000000"
         elif os.path.exists(fpath+'.tar'):
             run_cmdline('tar xvf '+fpath+'.tar')
-        else:
+            cname = fpath
+            if not os.path.exists(cname):
+                cname = fpath+".000000"
+        if not os.path.exists(cname):
             raise ValueError(dict2str('Cannot locate file {bcdir}/{mesonest}'))
+        if d['leap'] == "auto":
+            calendar_noleap = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text noleap') == "noleap")
+            calendar_360 = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text 360_day') == "360_day")
+            calendar_gregorian = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text gregorian') == "gredorian")
+            if calendar_noleap is True:
+                d['leap'] = "noleap"
+            if calendar_360 is True:
+                d['leap'] = "360"
+            if calendar_gregorian is True:
+                d['leap'] = "leap"
+            if d['leap'] == "auto":
+                raise ValueError("ERROR: Cannot assign calendar for leap=auto")
+            print(dict2str('Assign calendar {leap}'))
 
     if (d['dmode']=="sst_only") and (d['iyr']==d['iys']) and (d['imth']==d['ims']):
         fpath = dict2str('{sstinit}')
@@ -902,21 +914,50 @@ def config_initconds():
         elif os.path.exists(fpath+'.tar'):
             run_cmdline('tar xvf '+fpath+'.tar')
         else:
-            raise ValueError(dict2str('Cannot locate file {sstinit}'))
+            raise ValueError(dict2str('ERROR: Cannot locate file {sstinit}'))
 
-
-    # Calculate start hour.  Usually ihs=0.
+    # Check ifile
     fname = d['ifile']
-    if not os.path.exists(fname):
-        fname = d['ifile']+'.000000'
-    if not os.path.exists(fname):
-        print("ERROR: Cannot locate "+d['ifile']+" or "+d['ifile']+".000000")
-        sys.exit(1)
+    if not fname=="error":
+        if not os.path.exists(fname):
+            fname = d['ifile']+'.000000'
+        if not os.path.exists(fname):
+            raise ValueError(dict2str('ERROR: Cannot locate {ifile} or {ifile}.000000'))
 
-    testtime = int(subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | head -1 | cut -d= -f2 | cut -d" " -f5 | cut -d: -f1'))
-    if testtime > 12:
-        testtime = 24 - testtime
-    d['ihs'] = testtime
+    # Calculate number of days in current month:
+    iyr = d['iyr']
+    imth = d['imth']
+    if d['leap'] == "auto":
+        raise ValueError("ERROR: Unable to assign calendar with leap=auto")
+    elif d['leap'] == "noleap":
+        d['nleap'] = 0
+        d['ndays'] = monthrange(iyr, imth)[1]
+        if imth == 2:
+            d['ndays'] = 28 #leap year turned off
+    elif d['leap'] == "leap":
+        d['nleap'] = 1
+        d['ndays'] = monthrange(iyr, imth)[1]
+    elif d['leap'] == "360":
+        d['nleap'] = 2
+        d['ndays'] = 30
+    else:
+        raise ValueError("ERROR: Unknown option for leap")
+    
+    d['eday'] = d['ndays']
+    if (d['iyr']==d['iye']) and (d['imth']==d['ime']):
+        if (d['ide']>d['ndays']) or (d['ide']<1):
+            raise ValueError("End day ide is invalid.")
+        d['eday'] = d['ide']
+    if (d['iday']>d['ndays']) or (d['iday']<1):
+        raise ValueError("Start day ids is invalid.")
+    d['ndays'] = d['eday'] - d['iday'] + 1
+
+    d['ihs'] = 0
+    if not fname=="error":
+        testtime = int(subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | head -1 | cut -d= -f2 | cut -d" " -f5 | cut -d: -f1'))
+        if testtime > 12:
+            testtime = 24 - testtime
+        d['ihs'] = testtime
 
 
 def set_nudging():
@@ -941,6 +982,9 @@ def set_nudging():
     elif d['dmode'] == "nudging_gcm_with_sst":
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
                   'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+    else:
+        d.update({'mbd_base': 0, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+                  'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
 def set_downscaling():
     "Set downscaling parameters"
@@ -950,29 +994,30 @@ def set_downscaling():
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
                   'mh_bs':3})
-
-    if d['dmode'] == "sst_only":
+    elif d['dmode'] == "sst_only":
         d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                   'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': 0, 'nud_aero': 0,
                   'mh_bs':3})
-
-    if d['dmode'] == "nudging_ccam":
+    elif d['dmode'] == "nudging_ccam":
         d.update({'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 1,
                   'mh_bs':3})
-
-    if d['dmode'] == "sst_6hour":
+    elif d['dmode'] == "sst_6hour":
         d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                   'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
                   'mh_bs':3})
-		  
-    if d['dmode'] == "nudging_gcm_with_sst":
+    elif d['dmode'] == "nudging_gcm_with_sst":
         d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
+                  'mh_bs':3})
+    else:
+        d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
+                  'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
+                  'nbd': 0, 'mbd': 0, 'nud_aero': 0,
                   'mh_bs':3})
 
 def set_cloud():
@@ -988,7 +1033,7 @@ def set_cloud():
     if d['cloud'] == "liq_ice_rain":
         d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "liq_ice_rain_snow_graupel":
-        d.update({'ncloud': 3, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
+        d.update({'ncloud': 3, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "lin":
         d.update({'ncloud': 100, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
 
@@ -1031,9 +1076,13 @@ def set_ocean():
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
                       'kbotmlo': -40})
-
-        if d['dmode'] == "nudging_ccam":
+        elif d['dmode'] == "nudging_ccam":
             # Downscaling CCAM:
+            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
+                      'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
+                      'kbotmlo': -40})
+        else:
+            raise ValueError(dict2str('ERROR: mlo not supported for dmode {dmode}'))
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
                       'kbotmlo': -40})
@@ -1042,106 +1091,42 @@ def set_ocean():
 def set_atmos():
     "Atmospheric physics settings"
 
+    # CABLE options
     if d['sib'] == "cable_vary":
-        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3, 'cable_litter': 0,
-                  'gs_switch': 1})
-
-        if d['casa'] == "off":
-            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp":
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp_pop":
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                      'cable_climate': 0})
-        #if d['casa'] == "casa_cnp_pop_clim":
-        #    d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-        #              'cable_climate': 1})
-
-    if d['sib'] == "modis":
-        d.update({'nsib': 5, 'ccycle': 0, 'proglai': 0, 'progvcmax': 0,
-                  'soil_struc': 0, 'fwsoil_switch': 3, 'cable_pop': 0,
-                  'gs_switch': 1, 'cable_litter': 0, 'cable_climate': 0})
-
-        if d['casa'] == "casa_cnp":
-            raise ValueError("casa=casa_cnp requires sib=cable_vary, cable_sli or cable_const")
-        if d['casa'] == "casa_cnp_pop":
-            raise ValueError("casa=casa_cnp_pop requires sib=cable_vary, cable_sli or cable_const")
-
+        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
+                  'cable_litter': 0, 'gs_switch': 1})
     if d['sib'] == "cable_sli":
-        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1,
-                  'gs_switch': 1})
-
-        if d['casa'] == "off":
-            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp":
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp_pop":
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                      'cable_climate': 0})
-        #if d['casa'] == "casa_cnp_pop_clim":
-        #    d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-        #              'cable_climate': 1})
-		      
+        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3,
+                  'cable_litter': 1, 'gs_switch': 1})
     if d['sib'] == "cable_const":
-        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3, 'cable_litter': 0,
-                  'gs_switch': 1})
-
-        if d['casa'] == "off":
-            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp":
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp_pop":
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                      'cable_climate': 0})
-
+        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
+                  'cable_litter': 0, 'gs_switch': 1})
     if d['sib'] == "cable_modis2020":
-        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3, 'cable_litter': 0,
-                  'gs_switch': 1})
-
-        if d['casa'] == "off":
-            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp":
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp_pop":
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                      'cable_climate': 0})
-
+        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
+                  'cable_litter': 0, 'gs_switch': 1})
     if d['sib'] == "cable_sli_modis2020":
-        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3, 'cable_litter': 1,
-                  'gs_switch': 1})
+        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3,
+                  'cable_litter': 1, 'gs_switch': 1})
+    if d['sib'] == "cable_modis2020_const":
+        d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
+                  'cable_litter': 0, 'gs_switch': 1})
 
-        if d['casa'] == "off":
-            d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp":
-            d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0,
-                      'cable_climate': 0})
-        if d['casa'] == "casa_cnp_pop":
-            d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1,
-                      'cable_climate': 0})
+    # CASA options        
+    if d['casa'] == "off":
+        d.update({'ccycle': 0, 'proglai': 0, 'progvcmax': 0, 'cable_pop': 0})
+    if d['casa'] == "casa_cnp":
+        d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0})
+    if d['casa'] == "casa_cnp_pop":
+        d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1})
 
-    if d['sib'] == "cable_const":
-        d.update({'vegin': dict2str('{hdir}/vegdata'),
-                  'vegfile': dict2str('veg{domain}.{imth_2digit}')})
-    elif d['sib'] == "modis":
+    # Input files for vegetation
+    if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=="cable_modis2020_const"):
         d.update({'vegin': dict2str('{hdir}/vegdata'),
                   'vegfile': dict2str('veg{domain}.{imth_2digit}')})
     else:
         # Use same year as LAI will not change.  Only the area fraction
-        if d['cmip'] == "cmip5":
-            d.update({'vegin': dict2str('{hdir}/vegdata'),
-                      'vegfile': dict2str('veg{domain}.{imth_2digit}')})
-        else:    
-            d.update({'vegin': dict2str('{hdir}/vegdata'),
-                      'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}')})
+        d.update({'vegin': dict2str('{hdir}/vegdata'),
+                  'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}')})
 
     if d['bmix'] == "ri":
         d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100., 'wg_tau': 3.,
@@ -1332,6 +1317,34 @@ def locate_tracer_emissions():
         run_cmdline('ln -s {tracer}/* .')
 
 
+def set_aquaplanet():
+    "Define aquaplanet settings"
+
+   # set-up aquaplanet
+    d['nhstest'] = 0
+    if d['dmode'] == "aquaplanet1":
+        d['nhstest'] = -1
+    if d['dmode'] == "aquaplanet2":
+        d['nhstest'] = -2
+    if d['dmode'] == "aquaplanet3":
+        d['nhstest'] = -3
+    if d['dmode'] == "aquaplanet4":
+        d['nhstest'] = -4
+    if d['dmode'] == "aquaplanet5":
+        d['nhstest'] = -5
+    if d['dmode'] == "aquaplanet6":
+        d['nhstest'] = -6
+    if d['dmode'] == "aquaplanet7":
+        d['nhstest'] = -7
+    if d['dmode'] == "aquaplanet8":
+        d['nhstest'] = -8
+
+    d['io_in'] = 1
+    if not (d['nhstest']==0):
+        if (d['iyr']==d['iys']) and (d['imth']==d['ims']):
+            d['io_in'] = 10
+
+
 def create_input_file():
     "Write arguments to the CCAM 'input' namelist file"
 
@@ -1376,11 +1389,12 @@ def create_input_file():
 def prepare_ccam_infiles():
     "Prepare and check CCAM input data"
 
-    if not os.path.exists(d['ifile']) and not os.path.exists(d['ifile']+'.000000'):
-        raise ValueError(dict2str('Cannot locate {ifile} or {ifile}.000000. ')+
-                         'If this is the start of a new run, please check that year.qm has been deleted')
+    if not d['ifile']=="error":
+        if not os.path.exists(d['ifile']) and not os.path.exists(d['ifile']+'.000000'):
+            raise ValueError(dict2str('Cannot locate {ifile} or {ifile}.000000. ')+
+                             'If this is the start of a new run, please check that year.qm has been deleted')
 
-    if d['dmode'] != "sst_only":
+    if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
         if not os.path.exists(d['mesonest']) and not os.path.exists(d['mesonest']+'.000000'):
             raise ValueError(dict2str('Cannot locate {mesonest} or {mesonest}.000000'))
 
@@ -1428,8 +1442,11 @@ def check_correct_host():
 #        if d['inv_schmidt'] < 0.2:
 #            raise ValueError('CCAM grid stretching is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
 
-    if d['dmode'] == "sst_only":
+    if d['dmode'] in ["sst_only", "aquaplanet1", "aquaplanet2", "aquaplanet3",
+                      "aquaplanet4", "aquaplanet5", "aquaplanet6",
+                      "aquaplanet7", "aquaplanet8"]:
         if d['inv_schmidt'] < 0.2:
+            print(dict2str("inv_schmidt = {inv_schmidt}"))
             raise ValueError('CCAM grid stretching is too high for dmode=sst_only.  Try reducing grid resolution or increasing grid size')
 
     if (d['dmode'] == "nudging_ccam") or (d['dmode'] == "nudging_gcm"):
@@ -1449,35 +1466,9 @@ def check_correct_landuse(fname):
 
     testfail = False
 
-    if d['sib'] == "cable_vary":
-        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-        if cable_data is False:
-            testfail = True
-
-    if d['sib'] == "modis":
-        modis_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text sibvegversion') == "sibvegversion")
-        if modis_data is False:
-            testfail = True
-
-    if d['sib'] == "cable_sli":
-        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-        if cable_data is False:
-            testfail = True
-	
-    if d['sib'] == "cable_const":	
-        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-        if cable_data is False:
-            testfail = True
-
-    if d['sib'] == "cable_modis2020":
-        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-        if cable_data is False:
-            testfail = True            
-
-    if d['sib'] == "cable_sli_modis2020":
-        cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-        if cable_data is False:
-            testfail = True
+    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
+    if cable_data is False:
+        testfail = True
 
     return testfail
 
@@ -1553,19 +1544,6 @@ def post_process_output():
         d['histmonth'] = mon_2digit(hm)
         d['histyear'] = hy
         d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
-        idaystart = 1
-        if d['leap'] == "noleap":
-            idayend = monthrange(hy, hm)[1]
-            if hm == 2:
-                idayend=28
-        if d['leap'] == "leap":
-            idayend = monthrange(hy, hm)[1]
-        if d['leap'] == "360":
-            idayend = 30
-        if (hy == d['iys']) and (hm == d['ims']):
-            idaystart = d['ids']
-        if (hy == d['iye']) and (hm == d['ime']):
-            idayend = d['ide']
 	    
         # standard output
         outlist = [""]
@@ -1625,8 +1603,7 @@ def post_process_output():
             if d['ncout'] == "ctm":
                 if not (d['vertout']=="pressure"):
                     raise ValueError("CTM output requires pressure levels")
-                d['cday'] = mon_2digit(idayend)
-                fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}{cday}.nc")
+                fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}01.nc")
                 if not os.path.exists(fname):
                     tarflag = False
                     cname = dict2str('{histfile}.000000')
@@ -1638,6 +1615,27 @@ def post_process_output():
                     if os.path.exists(cname):
                         calc_drs_host(cname)
                         print("Process CTM output for ",dict2str('{histyear}{histmonth}'))
+                        calendar_noleap = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text noleap') == "noleap")
+                        calendar_360 = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text 360_day') == "360_day")
+                        calendar_test = "leap"
+                        if calendar_noleap is True:
+                            calendar_test = "noleap"
+                        if calendar_360 is True:
+                            calendar_test = "360"
+                        print("Calendar found "+calendar_test)
+                        idaystart = 1
+                        if (hy == d['iys']) and (hm == d['ims']):
+                            idaystart = d['ids']
+                        if calendar_test == "noleap":
+                            idayend = monthrange(hy, hm)[1]
+                            if hm == 2:
+                                idayend=28
+                        if calendar_test == "leap":
+                            idayend = monthrange(hy, hm)[1]
+                        if calendar_test == "360":
+                            idayend = 30
+                        if (hy == d['iye']) and (hm == d['ime']):
+                            idayend = d['ide']
                         for iday in range(idaystart, idayend+1):
                             d['cday'] = mon_2digit(iday)
                             d['iend'] = (iday-idaystart+1)*1440
@@ -2001,6 +1999,7 @@ def calc_drs_host(fname):
     d['drs_host_scenario'] = "error"
     d['drs_host_ensemble'] = "error"
     d['drs_host_name'] = "error"
+    d['drs_host_institution'] = "error"
 
     driving_model_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_model_id | cut -d\" -f2')
     if driving_model_id_test != "":
@@ -2013,6 +2012,10 @@ def calc_drs_host(fname):
     driving_experiment_name_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_experiment_name | cut -d\" -f2')
     if driving_experiment_name_test != "":
         d['drs_host_scenario'] = driving_experiment_name_test
+
+    driving_institution_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_institution_id | cut -d\" -f2')
+    if driving_institution_id_test != "":
+        d['drs_host_institution'] = driving_institution_id_test
 
 
 def create_drs(newoutput, newoutput_h, newcordex, newhighfreq):
@@ -2056,8 +2059,23 @@ def create_drs(newoutput, newoutput_h, newcordex, newhighfreq):
             if ctest is True:
                 hres = d['gridres']
                 project = d['drsproject']
+                drsinstitution = "unknown"
                 if d['drs_host_name'] != "error":
                     d['drshost'] = d['drs_host_name']
+                
+                # Patch for old CORDEX format
+                patch_dict = { ECMWF:ERA5, CSIRO:ACCESS-ESM1-5,
+                               CSIRO-ARCCSS:ACCESS-CM2, CMCC-CMCC:ESM2,
+                               CNRM-CERFACS:CNRM-ESM2-1,
+                               EC-Earth-Consortium:EC-Earth3, NCAR:CESM2,
+                               NCC:NorESM2-MM }
+                for test_institution in patch_dict:
+                    test_model = patch_dict[test_institution]
+                    test_name = test_institution+'-'+test_model
+                    if d['drshost'] == test_name:
+                        d['drshost'] = test_model
+                        drsinstitution = test_institution
+                    print("Replace metadata with ",d['drshost']," and ",drsinstitution)
 
                 # default
                 if d['cmip'] == "cmip5":
@@ -2070,7 +2088,7 @@ def create_drs(newoutput, newoutput_h, newcordex, newhighfreq):
                         cmip_scenario = "historical"
                     else:
                         cmip_scenario = dict2str('{rcp}')
-                if d['drshost'] == 'ECMWF-ERA5':
+                if (d['drshost']=='ECMWF-ERA5') or (d['drshost']=='ERA5'):
                         cmip_scenario="evaluation"
 
                 # Use file metadata if avaliable
@@ -2078,6 +2096,13 @@ def create_drs(newoutput, newoutput_h, newcordex, newhighfreq):
                     d['drsensemble'] = d['drs_host_ensemble']
                 if d['drs_host_scenario'] != "error":
                     cmip_scenario = d['drs_host_scenario']
+                if d['drs_host_institution'] != "error":
+                    drsinstitution = d['drs_host_institution']
+
+                # Recombine host insitution and model name for compatibility
+                # depreciate this line below when driving_institution_id is
+                # avaliable with AXIOM
+                d['drshost'] = d['drshost']+'-'+drsinstitution
 
                 payload = dict(
                     input_files=dict2str('{hdir}/{drsdirname}/*nc'),
@@ -2110,14 +2135,18 @@ def update_monthyear():
     imth = d['imth']
 
     d['iday'] = d['eday'] + 1
-    if d['leap'] == "noleap":
+    if d['leap'] == "auto":
+        raise ValueError("ERROR: Unable to assign calendar with leap=auto")
+    elif d['leap'] == "noleap":
         month_length = monthrange(iyr, imth)[1]
         if imth == 2:
             month_length = 28 #leap year turned off
-    if d['leap'] == "leap":
+    elif d['leap'] == "leap":
         month_length = monthrange(iyr, imth)[1]
-    if d['leap'] == "360":
+    elif d['leap'] == "360":
         month_length = 30
+    else:
+        raise ValueError("ERROR: Unknown option for leap")
 
     if d['iday'] > month_length:
         d['iday'] = 1
@@ -2350,10 +2379,11 @@ def input_template_1():
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
      namip={namip} rescrn=1 zo_clearing=1.
+     nhstest={nhstest}
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
-     precon=-10000 restol=2.e-7 nh=5 knh=9
+     precon=-10000 restol=2.e-7 nh=5 knh=9 maxcolour=3
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0 nhor=-151
      mh_bs={mh_bs} ntvd=3
 
@@ -2387,7 +2417,7 @@ def input_template_1():
      mstn=0 nstn=0
 
      COMMENT='file'
-     synchist=.false. compression=1
+     synchist=.false. compression=1 io_in={io_in}
      tbave={tbave} tbave10={tbave10} procmode=16 fnproc_bcast_max=24
     &end
     &skyin
@@ -2623,7 +2653,7 @@ def input_template_4():
      proglai={proglai} progvcmax={progvcmax} ccycle={ccycle}
      soil_struc={soil_struc} fwsoil_switch={fwsoil_switch}
      cable_pop={cable_pop} gs_switch={gs_switch} cable_potev=0
-     cable_litter={cable_litter} cable_climate={cable_climate}
+     cable_litter={cable_litter}
      ateb_intairtmeth=1 ateb_intmassmeth=2
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
@@ -2650,7 +2680,7 @@ def cc_template_1():
      ifile = "{histfile}"
      ofile = "{histfile}.nc"
      hres  = {res}
-     kta={ktc}   ktb=999999  ktc={ktc}
+     kta={ktc}   ktb=999999  ktc=-1
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = {use_plevs}
      use_meters = {use_meters}     
@@ -2724,7 +2754,7 @@ def cc_template_3():
      ifile = "freq.{histfile}"
      ofile = "freq.{histfile}.nc"
      hres  = {res}
-     kta={ktc_units}   ktb=2999999  ktc={ktc_units}
+     kta={ktc_units}   ktb=2999999  ktc=-1
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
     &end
     &histnl
@@ -2744,12 +2774,12 @@ def cc_template_5():
      ifile = "surf.{histfile}"
      ofile = "surf.{histfile}.nc"
      hres  = {res}
-     kta={ktc_units}   ktb=2999999  ktc={ktc_units}
+     kta={ktc_units}   ktb=2999999  ktc=-1
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
     &end
     &histnl
      htype="inst"
-     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos","od550aer","tsroof","tsgree","tspav","tsskin","mrsofc","anthroheat"
+     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos","od550aer","tsroof","tsgree","tspav","mrsofc","anthroheat"
      hfreq = 1
     &end
     """
@@ -2764,7 +2794,7 @@ def cc_template_6():
      ifile="{histfile}"
      ofile="{histfile}.nc"
      hres={res}
-     kta={ktc}  ktb=999999  ktc={ktc}
+     kta={ktc}  ktb=999999  ktc=-1
      minlat={minlat}  maxlat={maxlat}  minlon={minlon}  maxlon={maxlon}
      use_plevs={use_plevs}
      use_meters={use_meters}     
@@ -2822,7 +2852,7 @@ def cc_template_7():
      ifile = "{histfile}"
      ofile = "{histfile}.nc"
      hres  = {res}
-     kta={ktc}   ktb=999999  ktc={ktc}
+     kta={ktc}   ktb=999999  ktc=-1
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = F
      use_meters = F
@@ -2872,7 +2902,7 @@ if __name__ == '__main__':
     parser.add_argument("--iye", type=int, help=" end year [YYYY]")
     parser.add_argument("--ime", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" end month [MM]")
     parser.add_argument("--ide", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" end day [DD]")    
-    parser.add_argument("--leap", type=str, help=" Define calendar (noleap, leap, 360)")
+    parser.add_argument("--leap", type=str, help=" Define calendar (noleap, leap, 360, auto)")
     parser.add_argument("--ncountmax", type=int, help=" Number of months before resubmit")
 
     parser.add_argument("--cmip", type=str, choices=['cmip5', 'cmip6'], help=" CMIP scenario")
@@ -2888,8 +2918,8 @@ if __name__ == '__main__':
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
-    parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, sst_only, nuding_ccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst")
-    parser.add_argument("--sib", type=str, help=" land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020)")
+    parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, sst_only, nuding_ccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst, squaplanet1, .., aquaplanent8)")
+    parser.add_argument("--sib", type=str, help=" land surface (cable_vary, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, cable_modis2020_const)")
     parser.add_argument("--aero", type=str, help=" aerosols (off, prognostic)")
     parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021)")
     parser.add_argument("--cldfrac", type=str, help=" cloud fraction (smith, mcgregor")
@@ -2946,7 +2976,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--terread", type=str, help=" path of terread executable")
     parser.add_argument("--igbpveg", type=str, help=" path of igbpveg executable")
-    parser.add_argument("--sibveg", type=str, help=" path of sibveg executable")
+    parser.add_argument("--sibveg", type=str, help="depreciated")
     parser.add_argument("--ocnbath", type=str, help=" path of ocnbath executable")
     parser.add_argument("--casafield", type=str, help=" path of casafield executable")
     parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
