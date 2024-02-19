@@ -763,7 +763,13 @@ def prep_iofiles():
     d['deyear'] = int(d['ddyear'] + 9)
 
     # Define ozone infile:
-    if d['cmip'] == "cmip5":
+    d['amipo3'] = ".false."
+    if d['dmode'] in ["aquaplanet1", "aquaplanet2", "aquaplanet3",
+                      "aquaplanet4", "aquaplanet5", "aquaplanet6",
+                      "aquaplanet7", "aquaplanet8"]:
+        d['amipo3'] = ".true."    
+        d['ozone'] = dict2str('{stdat}/APE-Ozone.T42-Lat-Alt')
+    elif d['cmip'] == "cmip5":
         if (d['rcp']=="historic") or (d['iyr']<2005):
             d['ozone'] = dict2str('{stdat}/{cmip}/historic/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_historic_T3M_O3.nc')
         else:
@@ -2408,7 +2414,7 @@ def input_template_1():
      nsib={nsib} nurban=1 vmodmin=0.1 nsigmf=0 jalbfix=0
 
      COMMENT='radiation and aerosols'
-     nrad=5 iaero={iaero} 
+     nrad=5 iaero={iaero} amipo3={amipo3}
 
      COMMENT='boundary layer'
      nvmix={nvmix} nlocal={nlocal}
@@ -2769,6 +2775,17 @@ def cc_template_3():
 def cc_template_5():
     "Fifth part of template for 'cc.nml' namelist file"
 
+    d['hnames'] = '"tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos"'
+
+    fname = dict2str('surf.{histfile}')
+    aero_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text od550aer | head -1') == "od550aer")
+    urban_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text tsroof | head -1') == "tsroof")
+
+    if aero_test is True:
+        d['hnames'] = dict2str('{hnames},"od550aer"')
+    if urban_test is True:
+        d['hnames'] = dict2str('{hnames},"tsroof","tsgree","tspav","mrsofc","anthroheat"')
+
     template = """\
     &input
      ifile = "surf.{histfile}"
@@ -2779,7 +2796,7 @@ def cc_template_5():
     &end
     &histnl
      htype="inst"
-     hnames= "tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrfsol","CAPE","CIN","mrfsos","mrsos","od550aer","tsroof","tsgree","tspav","mrsofc","anthroheat"
+     hnames={hnames}
      hfreq = 1
     &end
     """
