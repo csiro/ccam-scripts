@@ -251,7 +251,6 @@ def check_inargs():
     if d['dmode'] in ["aquaplanet1", "aquaplanet2", "aquaplanet3",
                       "aquaplanet4", "aquaplanet5", "aquaplanet6",
                       "aquaplanet7", "aquaplanet8"]:
-        d['aero'] = "off"
         d['mlo'] = "prescribed"
 
     if d['mlo'] == "prescribed":
