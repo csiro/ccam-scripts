@@ -1746,7 +1746,7 @@ def post_process_output():
                                  == "pcc2hist completed successfully")
                         if xtest is False:
                             raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details."))
-                        run_cmdline('mv *_{histfile}.nc {hdir}/{dailydir}')
+                        run_cmdline('mv {histfile}.nc {hdir}/{dailydir}')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
@@ -1777,7 +1777,7 @@ def post_process_output():
                                  == "pcc2hist completed successfully")
                         if xtest is False:
                             raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
-                        run_cmdline('mv *{histfile}.nc {hdir}/{dailydir}')
+                        run_cmdline('mv {histfile}.nc {hdir}/{dailydir}')
                         if tarflag is True:
                             run_cmdline('rm {histfile}.??????')
                         ftest = False
@@ -2705,7 +2705,16 @@ def cc_template_1():
 def cc_template_2():
     "Second part of template for 'cc.nml' namelist file"
 
-    template1 = """\
+    d['hnames'] = '"land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave","temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg","taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave","wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","cbas_ave","ctop_ave","u10"'
+
+    fname = dict2str('{histfile}.000000')
+    rsmin_test = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text rsmin') != "")
+    if rsmin_test is True:
+        d['hnames'] = dict2str('{hnames},"rsmin"')
+    else:
+        d['hnames'] = dict2str('{hnames},"rs"')
+
+    template = """\
     &input
      ifile = "{histfile}"
      ofile = "{outctmfile}"
@@ -2719,34 +2728,10 @@ def cc_template_2():
     &end
     &histnl
      htype="inst"
+     hnames={hnames}
+     hfreq=1
+    &end 
     """
-
-    template2 = """\
-    hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
-"temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
-"taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
-"wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rsmin",\
-"cbas_ave","ctop_ave","u10"
-     hfreq = 1
-    &end
-    """
-
-    template3 = """\
-    hnames="land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave",\
-"temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg",\
-"taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave",\
-"wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","rs",\
-"cbas_ave","ctop_ave","u10"
-     hfreq = 1
-    &end
-    """
-
-    fname = dict2str('{histfile}.000000')
-    rsmin_test = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text rsmin') != "")
-    if rsmin_test is True:
-        template = template1 + template2
-    else:
-        template = template1 + template3
 
     return template
 
@@ -2805,7 +2790,14 @@ def cc_template_5():
 def cc_template_6():
     "Sixth part of template for 'cc.nml' namelist file"
 
-    template1 = """\
+    d['hnames'] = '"pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog","tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega","cfrac","prw","clwvi","clivi","zmla","ustar","clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund","rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc","evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw","snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog","alb","sftlf","grid","sdischarge"'
+
+    fname = d['histfile']
+    mlo_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text thetao | head -1') == "thetao")
+    if mlo_test is True:
+        d['hnames'] = dict2str('{hnames},"tos","sos","uos","vos","ssh","ocndepth"')
+
+    template = """\
     &input
      ifile="{histfile}"
      ofile="{histfile}.nc"
@@ -2821,41 +2813,10 @@ def cc_template_6():
     &end
     &histnl
      htype="inst"
-    """
-    template2 = """\
-    hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
-"tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega", \
-"cfrac","prw","clwvi","clivi","zmla","ustar", \
-"clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund", \
-"rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc", \
-"evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
-"snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog", \
-"alb","sftlf","grid","sdischarge"
+     hnames={hnames}
      hfreq = 1
-    &end
+    &end 
     """
-    
-    template3 = """\
-    hnames="pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog",\
-"tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega", \
-"cfrac","prw","clwvi","clivi","zmla","ustar", \
-"clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn", "sund", \
-"rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc", \
-"evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw", \
-"snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrfsol","orog" \
-"alb","sftlf","grid","sdischarge","tos","sos","uos","vos","ssh","ocndepth"
-     hfreq = 1
-    &end
-    """
-
-    fname = d['histfile']
-    mlo_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text thetao | head -1') == "thetao")
-    print("fname ",fname)
-    print("mlo_test ",mlo_test)
-    if mlo_test is True:
-        template = template1 + template3
-    else:
-        template = template1 + template2
 
     return template
 
