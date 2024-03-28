@@ -1,5 +1,5 @@
 ! This file defines the mapping from IGBP to CSIRO PFTs
-17  ! Number of vegetation classes.  veg=0 is assumed to be ocean
+27  ! Number of vegetation classes.  veg=0 is assumed to be ocean
 ! Input                     Water Ice Frac1 PFT1                    Frac2 PFT2                    Frac3 PFT3                    Frac4 PFT4                    Frac5 PFT5
 1  Evergreen_needleleaf     F     F   1.    evergreen_needleleaf
 2  Evergreen_broadleaf      F     F   1.    evergreen_broadleaf
@@ -18,6 +18,16 @@
 15 Snow_ice                 F     T   1.    ice
 16 Barren                   F     F   1.    barren
 17 Water_bodies             T     F   1.    lakes
+101 LCZ1                    F     F   1.    lcz1
+102 LCZ2                    F     F   1.    lcz2
+103 LCZ3                    F     F   1.    lcz3
+104 LCZ4                    F     F   1.    lcz4
+105 LCZ5                    F     F   1.    lcz5
+106 LCZ6                    F     F   1.    lcz6
+107 LCZ7                    F     F   1.    lcz7
+108 LCZ8                    F     F   1.    lcz8
+109 LCZ9                    F     F   1.    lcz9
+110 LCZ10                   F     F   1.    lcz10
 
 ! (Grass) is hardcoded to CSIRO PFTs 6, 7 & 8 for C3_grass, C4_grass and Tundra
 ! (Crop) is hardcoded to CSIRO PFTs 9 & 10 for C3_crop and C4_crop

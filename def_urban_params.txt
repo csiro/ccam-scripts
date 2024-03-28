@@ -1,5 +1,5 @@
 aTEB urban type parameters
-8   ! number of urban types (do not change)
+18  ! number of urban types
 1   urban-generic                         ! urban number and name
 6.     0.4    0.38   0.45                 ! bldheight(m), hwratio, vegfrac, bldfrac
 0.     1.5                                ! industral(W/m2), traffic(W/m2)
@@ -152,3 +152,193 @@ aTEB urban type parameters
 0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
 0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
 0.     0.                                 ! heatprop(W/m3), coolprop(W/m3)
+9   lcz1                                  ! urban number and name
+50.    2.5    0.05   0.5                  ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+10  lcz2                                  ! urban number and name
+17.5   1.25   0.1    0.55                 ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+11  lcz3                                  ! urban number and name
+6.5    1.25   0.15   0.55                 ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+12  lcz4                                  ! urban number and name
+50.    1.     0.35   0.3                  ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+13  lcz5                                  ! urban number and name
+17.5   0.5    0.3    0.3                  ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+14  lcz6                                  ! urban number and name
+6.5    0.5    0.45   0.3                  ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+15  lcz7                                  ! urban number and name
+5.     1.5    0.15   0.75                 ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+16  lcz8                                  ! urban number and name
+6.5    0.2    0.1    0.4                 ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+17  lcz9                                  ! urban number and name
+6.5    0.15   0.7    0.15                 ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)
+18  lcz10                                 ! urban number and name
+10.    0.35   0.45   0.25                 ! bldheight(m), hwratio, vegfrac, bldfrac
+0.     1.5                                ! Industral(W/m2), Traffic(W/m2)
+0.2    0.3    0.1    0.2                  ! Albedo roof, Albedo wall, Albedo road, Albedo veg
+0.1                                       ! Roughness veg
+0.01   0.09   0.40   0.10                 ! roof thickness for layers 1 - 4 (m)
+2.11E6 2.11E6 0.28E6 0.29E6               ! roof heat capacity for layers 1 - 4 (J/m3/K)
+1.5100 1.5100 0.0800 0.0500               ! roof heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.10   0.05                 ! wall thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 0.29E6               ! wall heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.0500               ! wall heat conducitivity for layers 1 - 4 (W/m/K)
+0.05   0.05   0.05   0.05                 ! slab thickness for layers 1 - 4 (m)
+1.55E6 1.55E6 1.55E6 1.55E6               ! slab heat capacity for layers 1 - 4 (J/m3/K)
+0.9338 0.9338 0.9338 0.9338               ! slab heat conducitivity for layers 1 - 4 (W/m/K)
+0.01   0.04   0.45   3.5                  ! road thickness for layers 1 - 4 (m)
+1.94E6 1.94E6 1.28E6 1.28E6               ! road heat capacity for layers 1 - 4 (J/m3/K)
+0.7454 0.7454 0.2513 0.2513               ! road heat conducitivity for layers 1 - 4 (W/m/K)
+0.5    5      291.16                      ! infiltration(m3/m3), internal(W/m2), bldtemp(K)
+1.     1.                                 ! heatprop(W/m3), coolprop(W/m3)

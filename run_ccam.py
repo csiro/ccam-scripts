@@ -2657,7 +2657,7 @@ def input_template_4():
     &landnml
      proglai={proglai} progvcmax={progvcmax} ccycle={ccycle}
      soil_struc={soil_struc} fwsoil_switch={fwsoil_switch}
-     cable_pop={cable_pop} gs_switch={gs_switch} cable_potev=0
+     cable_pop={cable_pop} gs_switch={gs_switch} cable_potev=1
      cable_litter={cable_litter}
      ateb_intairtmeth=1 ateb_intmassmeth=2
      ateb_zoroof=0.05 ateb_zocanyon=0.05
