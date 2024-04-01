@@ -153,8 +153,13 @@ def convert_old_settings():
     nctar_dict = { 0:"off", 1:"tar", 2:"delete" }
     d['nctar'] = find_mode(d['nctar'],nctar_dict,"nctar")
 
-    outlevmode_dict = { 0:"pressure", 1:"height", 2:"pressure_height" }
-    d['outlevmode'] = find_mode(d['outlevmode'],outlevmode_dict,"outlevmode")
+    # backwards compatibility, but also allows for theta options
+    if d['outlevmode']==0:
+        d['outlevmode']="pressure"
+    if d['outlevmode']==1:
+        d['outlevmode']="height"
+    if d['outlevmode']==2:
+        d['outlevmode']="pressure_height"
 
     drsmode_dict = { 0:"off", 1:"on" }
     d['drsmode'] = find_mode(d['drsmode'],drsmode_dict,"drsmode")
@@ -198,7 +203,7 @@ def check_inargs():
                        'aeroemiss', 'model', 'tracer', 'rad_year' ]
 
     args2postprocess = ['minlat', 'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode',
-                        'plevs', 'mlevs', 'dlevs', 'drsmode', 'drsdomain', 'model_id',
+                        'plevs', 'mlevs', 'tlevs', 'dlevs', 'drsmode', 'drsdomain', 'model_id',
                         'contact', 'rcm_version_id', "drsproject", 'pcc2hist', 'ncout',
                         'nctar', 'ncsurf', 'nchigh' ]
 
@@ -246,6 +251,7 @@ def check_inargs():
 
     d['plevs'] = d['plevs'].replace(',', ', ')
     d['mlevs'] = d['mlevs'].replace(',', ', ')
+    d['tlevs'] = d['tlevs'].replace(',', ', ')
     d['dlevs'] = d['dlevs'].replace(',', ', ')
 
     if d['dmode'] in ["aquaplanet1", "aquaplanet2", "aquaplanet3",
@@ -307,17 +313,23 @@ def create_directories():
             print("-> Creating ",dirname)
             os.mkdir(dirname)
 
-    if d['outlevmode'] in ["pressure", "pressure_height"]:
+    if d['outlevmode'].find("pressure") != -1:
         dirname = 'daily'
         if not os.path.isdir(dirname):
             print("-> Creating ",dirname)
             os.mkdir(dirname)
 
-    if d['outlevmode'] in ["height", "pressure_height"]:
+    if d['outlevmode'].find("height") != -1:
         dirname = 'daily_h'
         if not os.path.isdir(dirname):
             print("-> Creating ",dirname)
             os.mkdir(dirname)
+
+    if d['outlevmode'].find("theta") != -1:
+        dirname = 'daily_t'
+        if not os.path.isdir(dirname):
+            print("-> Creating ",dirname)
+            os.mkdir(dirname)            
 
     if (d['ktc_surf']>0) and (d['ncsurf']!="off"):
         dirname = 'cordex'
@@ -724,24 +736,8 @@ def prep_iofiles():
         if not os.path.exists(fpath+'.000000'):
             d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
 
-    if d['dmode'] == "sst_only":
-        d['mesonest'] = 'error'
-
-    if d['dmode'] == "aquaplanet1":
-        d['mesonest'] = 'error'
-    if d['dmode'] == "aquaplanet2":
-        d['mesonest'] = 'error'
-    if d['dmode'] == "aquaplanet3":
-        d['mesonest'] = 'error'
-    if d['dmode'] == "aquaplanet4":
-        d['mesonest'] = 'error'
-    if d['dmode'] == "aquaplanet5":
-        d['mesonest'] = 'error'
-    if d['dmode'] == "aquaplanet6":
-        d['mesonest'] = 'error'
-    if d['dmode'] == "aquaplanet7":
-        d['mesonest'] = 'error'
-    if d['dmode'] == "aquaplanet8":
+    if d['dmode'] in ["sst_only", "aquaplanet1", "aquaplanet2", "aquaplanet3", "aquaplanet4", "aquaplanet5",
+                      "aquaplanet6", "aquaplanet7", "aquaplanet8"]:
         d['mesonest'] = 'error'
 
     # Define restart file:
@@ -1515,6 +1511,12 @@ def run_model():
         fname = dict2str('{hdir}/daily_h/{ofile}.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/daily_h/{ofile}.nc')
+        fname = dict2str('{hdir}/daily_t/pr_{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/daily_t/*_{ofile}.nc')
+        fname = dict2str('{hdir}/daily_t/{ofile}.nc')
+        if os.path.exists(fname):
+            run_cmdline('rm {hdir}/daily_t/{ofile}.nc')            
         fname = dict2str('{hdir}/cordex/pr_surf.{ofile}.nc')
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/cordex/*_surf.{ofile}.nc')
@@ -1540,6 +1542,7 @@ def post_process_output():
     ftest = True
     newoutput = False
     newoutput_h = False
+    newoutput_t = False
     newcordex = False
     newhighfreq = False
     d['drs_host_scenario'] = "error"
@@ -1551,13 +1554,7 @@ def post_process_output():
         d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
 	    
         # standard output
-        outlist = [""]
-        if d['outlevmode']=="pressure":
-            outlist = ["pressure"]
-        if d['outlevmode']=="height":
-            outlist = ["height"]
-        if d['outlevmode']=="pressure_height":
-            outlist = ["pressure", "height"]
+        outlist = d['outlevmode'].split("_")
         
         for outindex in range(len(outlist)):
             d['vertout'] = outlist[outindex]
@@ -1565,11 +1562,18 @@ def post_process_output():
             if d['vertout']=="pressure":
                 d['use_plevs'] = 'T'
                 d['use_meters'] = 'F'
+                d['use_theta'] = 'F'
                 d['dailydir'] = 'daily'
             elif d['vertout']=="height":
                 d['use_plevs'] = 'F'
                 d['use_meters'] = 'T'
+                d['use_theta'] = 'F'
                 d['dailydir'] = 'daily_h'
+            elif d['vertout']=="theta":
+                d['use_plevs'] = 'F'
+                d['use_meters'] = 'F'
+                d['use_theta'] = 'T'
+                d['dailydir'] = 'daily_t'
             else:
                 raise ValueError('Unknown option for vertical levels')
 
@@ -1604,6 +1608,8 @@ def post_process_output():
                             newoutput = True
                         if d['vertout'] == "height":
                             newoutput_h = True
+                        if d['vertout'] == "theta":
+                            newoutput_t = True
 
             if d['ncout'] == "ctm":
                 if not (d['vertout']=="pressure"):
@@ -1692,6 +1698,8 @@ def post_process_output():
                             newoutput = True
                         if d['vertout'] == "height":
                             newoutput_h = True
+                        if d['vertout'] == "theta":
+                            newoutput_t = True
 
             if d['ncout'] == "tracer":
                 fname = dict2str('{hdir}/{dailydir}/trav0001_{histfile}.nc')
@@ -1723,6 +1731,8 @@ def post_process_output():
                             newoutput = True
                         if d['vertout'] == "height":
                             newoutput_h = True
+                        if d['vertout'] == "theta":
+                            newoutput_t = True
 
             if d['ncout'] == "all_s":
                 fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
@@ -1754,6 +1764,8 @@ def post_process_output():
                             newoutput = True
                         if d['vertout'] == "height":
                             newoutput_h = True
+                        if d['vertout'] == "theta":
+                            newoutput_t = True
 
             if d['ncout'] == "basic_s":
                 fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
@@ -1785,6 +1797,8 @@ def post_process_output():
                             newoutput = True
                         if d['vertout'] == "height":
                             newoutput_h = True
+                        if d['vertout'] == "theta":
+                            newoutput_t = True
                     
         # store output
         if (d['nctar']=="off") and (d['dmode']!="postprocess"):
@@ -1987,7 +2001,7 @@ def post_process_output():
         if hm > 12:
             # create JSON file for DRS if new cordex formatted output was created
             if d['drsmode'] == "on":
-                create_drs(newoutput, newoutput_h, newcordex, newhighfreq) 
+                create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq) 
             # Advace year
             hm = 1
             hy = hy + 1
@@ -2023,9 +2037,9 @@ def calc_drs_host(fname):
         d['drs_host_institution'] = driving_institution_id_test
 
 
-def create_drs(newoutput, newoutput_h, newcordex, newhighfreq):
+def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
 
-    for dirname in ['daily', 'daily_h', 'cordex', 'highfreq']:
+    for dirname in ['daily', 'daily_h', 'daily_t', 'cordex', 'highfreq']:
         d['drsdirname'] = dirname
 
         # check if new file has been created
@@ -2034,6 +2048,8 @@ def create_drs(newoutput, newoutput_h, newcordex, newhighfreq):
             newtest = newoutput
         elif dirname == "daily_h":
             newtest = newoutput_h
+        elif dirname == "daily_t":
+            newtest = newoutput_t
         elif dirname == "cordex":
             newtest = newcordex
         elif dirname == "highfreq":
@@ -2049,9 +2065,11 @@ def create_drs(newoutput, newoutput_h, newcordex, newhighfreq):
                 tm = tm + 1
 
                 fname = "error"
-                if (dirname == "daily") and (d['outlevmode'] in ["pressure", "pressure_height"]):
+                if (dirname == "daily") and (d['outlevmode'].find("pressure")!=-1):
                     fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
-                elif (dirname == "daily_h") and (d['outlevmode'] in ["height", "pressure_height"]):
+                elif (dirname == "daily_h") and (d['outlevmode'].find("height")!=-1):
+                    fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
+                elif (dirname == "daily_t") and (d['outlevmode'].find("theta")!=-1):
                     fname = dict2str('{hdir}/{drsdirname}/pr_{name}.{histyear}{histmonth}.nc')
                 elif (dirname == "cordex") and (d['ncsurf']!="off"):
                     fname = dict2str('{hdir}/{drsdirname}/pr_surf.{name}.{histyear}{histmonth}.nc')
@@ -2689,9 +2707,11 @@ def cc_template_1():
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = {use_plevs}
      use_meters = {use_meters}     
+     use_theta = {use_theta}
      use_depth = {use_depth}
      plevs = {plevs}
      mlevs = {mlevs}
+     tlevs = {tlevs}
      dlevs = {dlevs}
     &end
     &histnl
@@ -2724,6 +2744,7 @@ def cc_template_2():
      minlon = {minlon}, maxlon = {maxlon}
      use_plevs = F
      use_meters = F
+     use_theta = F
      use_depth = F
     &end
     &histnl
@@ -2806,9 +2827,11 @@ def cc_template_6():
      minlat={minlat}  maxlat={maxlat}  minlon={minlon}  maxlon={maxlon}
      use_plevs={use_plevs}
      use_meters={use_meters}     
+     use_theta={use_theta}
      use_depth={use_depth}
      plevs={plevs}
      mlevs={mlevs}
+     tlevs={tlevs}
      dlevs={dlevs}
     &end
     &histnl
@@ -2833,6 +2856,7 @@ def cc_template_7():
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = F
      use_meters = F
+     use_theta = F
      use_depth = F
     &end
     &histnl
@@ -2893,6 +2917,7 @@ if __name__ == '__main__':
     parser.add_argument("--outlevmode", type=str, help=" Output level mode (pressure, height, pressure_height)")
     parser.add_argument("--plevs", type=str, help=" output pressure levels (hPa)")
     parser.add_argument("--mlevs", type=str, help=" output height levels (m)")
+    parser.add_argument("--tlevs", type=str, help=" output theta levels (K)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
     parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, sst_only, nuding_ccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst, squaplanet1, .., aquaplanent8)")

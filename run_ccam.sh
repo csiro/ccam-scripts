@@ -59,9 +59,10 @@ maxlat=-999.                                 # output max latitude (degrees) (-9
 minlon=-999.                                 # output min longitude (degrees) (-999.=automatic)
 maxlon=-999.                                 # output max longitude (degrees) (-999.=automatic)
 reqres=-999.                                 # required output resolution (degrees) (-999.=automatic)
-outlevmode=pressure                          # output mode for levels (pressure, height, pressure_height)
+outlevmode=pressure                          # output mode for levels (pressure, height, theta, combinations seperated by _ like pressure_meters)
 plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa)
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m)
+tlevs="280, 300, 320, 340, 360, 380, 400"    # output theta levels (K)
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 
 drsmode=off                                  # DRS output (off, on)
@@ -134,7 +135,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon "
                    --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --ids $ids --iye $iye --ime $ime --ide $ide --leap $leap \
                    --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
                    --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
-		   --mlevs ${mlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
+		   --mlevs ${mlevs// /} --tlevs ${tlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud --rad $rad --bmix $bmix --mlo $mlo \
                    --casa $casa --cldfrac $cldfrac \
 		   --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf  \
