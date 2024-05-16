@@ -879,6 +879,7 @@ def config_initconds():
     # prepare ifile
     if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
         fpath = dict2str('{bcdir}/{mesonest}')
+        cname = "error"
         if os.path.exists(fpath):
             run_cmdline('ln -s '+fpath+' .')
             cname = fpath
