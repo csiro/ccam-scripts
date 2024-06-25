@@ -2687,6 +2687,7 @@ def input_template_4():
      ocnsmag=0. ocnlap=0.01 zomode=0 ocneps=0.1 ocnepr=1. omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
      mlo_bs=3 minwater=2. mlo_step=1
+     mloiceadv=1
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
      rivermd=1
