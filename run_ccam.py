@@ -515,7 +515,7 @@ def get_datetime():
         # requires monthly temporal resolution
         if d['leap'] == "auto":
             d['leap'] = "leap"
-        d['edays'] = monthrange(iyr, imth)[1]
+        d['eday'] = monthrange(iyr, imth)[1]
 
 
 def check_surface_files():
