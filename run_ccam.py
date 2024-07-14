@@ -621,9 +621,9 @@ def run_topo():
     print("-> Generating topography file")
     write2file('top.nml', top_template(), mode='w+')
     if d['machinetype'] == "srun":
-        run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 {terread} < top.nml > terread.log')
     else:
-        run_cmdline('{terread} < top.nml > terread.log')
+        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {terread} < top.nml > terread.log')
     xtest = (subprocess.getoutput('grep -o --text "terread completed successfully" terread.log')
              == "terread completed successfully")
     if xtest is False:
@@ -663,7 +663,7 @@ def run_land():
 
     # use MODIS2020 dataset
     if (d['sib']=="cable_modis2020") or (d['sib']=="cable_sli_modis2020") or (d['sib']=="cable_modis2020_const"):
-        write2file('igbpveg.nml', igbpveg_template2(), mode='w+')
+        write2file('igbpreg.nml', igbpveg_template2(), mode='w+')
     else:
         write2file('igbpveg.nml', igbpveg_template(), mode='w+')
         
