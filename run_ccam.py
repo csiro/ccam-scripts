@@ -621,9 +621,9 @@ def run_topo():
     print("-> Generating topography file")
     write2file('top.nml', top_template(), mode='w+')
     if d['machinetype'] == "srun":
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 {terread} < top.nml > terread.log')
+        run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
     else:
-        run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {terread} < top.nml > terread.log')
+        run_cmdline('{terread} < top.nml > terread.log')
     xtest = (subprocess.getoutput('grep -o --text "terread completed successfully" terread.log')
              == "terread completed successfully")
     if xtest is False:
@@ -2428,7 +2428,7 @@ def input_template_1():
      ktopmlo=1 kbotmlo={kbotmlo} mloalpha=12
 
      COMMENT='ocean, lakes and rivers'
-     nmlo={nmlo} ol={mlolvl} tss_sh=0.3 nriver=-1
+     nmlo={nmlo} ol={mlolvl} tss_sh=0.3 nriver=-1 charnock=-2.
 
      COMMENT='land, urban and carbon'
      nsib={nsib} nurban=1 vmodmin=0.1 nsigmf=0 jalbfix=0
@@ -2531,7 +2531,7 @@ def input_template_c2014():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode}
+     lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
     """
 
@@ -2556,7 +2556,7 @@ def input_template_c2015a():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode}
+     lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
     """
 
@@ -2581,7 +2581,7 @@ def input_template_c2015m():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode}
+     lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
     """
 
@@ -2600,7 +2600,7 @@ def input_template_c2015b():
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode}
+     lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
     """
 
@@ -2615,12 +2615,12 @@ def input_template_c2017():
      mbase=1 nbase=3
      methdetr=-1 methprec=5 ncvcloud=0 nevapcc=0 nuvconv=-3
      rhcv=0. rhmois=0. tied_con=0. tied_over=2626.
-     ldr=1 nclddia=12 nstab_cld=0 nrhcrit=10 sigcll=0.95
+     ldr=1 nstab_cld=0 nrhcrit=10 sigcll=0.95
      dsig2=0.1 kscmom=0 sig_ct=1. sigkscb=0.95 sigksct=0.8 tied_rh=0.
      nclddia={nclddia} nmr={nmr}
      nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode}
+     lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
     """
 
@@ -2645,7 +2645,7 @@ def input_template_c2021():
      nmr={nmr} nclddia={nclddia}
      nevapls=-4 ncloud={ncloud} acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
-     lin_aerosolmode={lin_aerosolmode}
+     lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
     """
 
@@ -2686,7 +2686,7 @@ def input_template_4():
     &mlonml
      mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=0. ocnlap=0.01 zomode=0 ocneps=0.1 ocnepr=1. omaxl=1000.
+     ocnsmag=0. ocnlap=0.01 zomode=3 ocneps=0.1 ocnepr=1. omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
      mlo_bs=3 minwater=2. mlo_step=1
      mloiceadv=1
