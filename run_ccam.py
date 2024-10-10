@@ -2286,6 +2286,7 @@ def igbpveg_template2():
      albvisinput="{insdir}/vegin/salbvis_landcover2020.nc"
      albnirinput="{insdir}/vegin/salbnir_landcover2020.nc"
      change_landuse="{change_landuse}"
+     urbaninput="{insdir}/vegin/lcz_filtered_plus100_lcz_filter_v3_resampled_factor5.nc"
      fastigbp=t
      igbplsmask=t
      ozlaipatch=f
