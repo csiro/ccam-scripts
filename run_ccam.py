@@ -657,9 +657,9 @@ def run_land():
                 d['change_landuse'] = dict2str('{stdat}/{cmip}/{rcp}/multiple-states_input4MIPs_landState_ScenarioMIP_UofMD-{rcplabel}-{rcp}-2-1-f_gn_2015-2100.nc')
 
     if d['change_landuse'] == "":
-        print("-> Generating CABLE land-use data (varying)")
-    else:
         print("-> Generating CABLE land-use data (constant)")
+    else:
+        print("-> Generating CABLE land-use data (varying)")
 
     # use MODIS2020 dataset
     if (d['sib']=="cable_modis2020") or (d['sib']=="cable_sli_modis2020") or (d['sib']=="cable_modis2020_const"):
@@ -2090,11 +2090,12 @@ def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
                     d['drshost'] = d['drs_host_name']
                 
                 # Patch for old CORDEX format
-                patch_dict = { ECMWF:ERA5, CSIRO:ACCESS-ESM1-5,
-                               CSIRO-ARCCSS:ACCESS-CM2, CMCC-CMCC:ESM2,
-                               CNRM-CERFACS:CNRM-ESM2-1,
-                               EC-Earth-Consortium:EC-Earth3, NCAR:CESM2,
-                               NCC:NorESM2-MM }
+                patch_dict = { "ECMWF":"ERA5", "CSIRO":"ACCESS-ESM1-5",
+                               "CSIRO-ARCCSS":"ACCESS-CM2", "CMCC-CMCC":"ESM2",
+                               "CNRM-CERFACS":"CNRM-ESM2-1",
+                               "EC-Earth-Consortium":"EC-Earth3",
+                               "NCAR":"CESM2",
+                               "NCC":"NorESM2-MM" }
                 for test_institution in patch_dict:
                     test_model = patch_dict[test_institution]
                     test_name = test_institution+'-'+test_model
@@ -2280,13 +2281,12 @@ def igbpveg_template2():
      topofile="topout{domain}"
      newtopofile="topsib{domain}"
      landtypeout="veg{domain}"
-     veg2input="{insdir}/vegin/landcover_2020.nc"
+     veg2input="{insdir}/vegin/landcover_2020_lcz.nc"
      soilinput="{insdir}/vegin/usda4.img"
      laiinput="{insdir}/vegin"
      albvisinput="{insdir}/vegin/salbvis_landcover2020.nc"
      albnirinput="{insdir}/vegin/salbnir_landcover2020.nc"
      change_landuse="{change_landuse}"
-     urbaninput="{insdir}/vegin/lcz_filtered_plus100_lcz_filter_v3_resampled_factor5.nc"
      fastigbp=t
      igbplsmask=t
      ozlaipatch=f
