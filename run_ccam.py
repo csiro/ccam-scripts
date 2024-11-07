@@ -198,9 +198,10 @@ def check_inargs():
     # args2simulation for simulation_test
     # args2postprocess for postprocessing_test 
 
+    # cmip and rcp to be moved to args2preprocess when possible
+
     args2common = ['name', 'nproc', 'ncountmax', 'dmode', 'iys', 'ims', 'ids', 'iye', 'ime',
-                   'ide', 'ktc', 'ktc_surf', 'ktc_high', 'machinetype', 'cmip', 'insdir',
-                   'hdir']
+                   'ide', 'machinetype', 'cmip', 'rcp', 'insdir', 'hdir']
 
     args2preprocess = ['midlon', 'midlat', 'gridres', 'gridsize', 'wdir', 'terread',
                       'igbpveg', 'ocnbath', 'casafield', 'uclemparm',
@@ -209,7 +210,7 @@ def check_inargs():
                       'mlo', 'casa', 'cldfrac', 'leap']
 
     args2simulation = ['bcdom', 'bcsoil', 'sstfile', 'sstinit', 'bcdir', 'sstdir', 'stdat',
-                       'aeroemiss', 'model', 'tracer', 'rad_year']
+                       'aeroemiss', 'model', 'tracer', 'rad_year', 'ktc', 'ktc_surf', 'ktc_high']
 
     args2postprocess = ['minlat', 'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode',
                         'plevs', 'mlevs', 'tlevs', 'dlevs', 'drsmode', 'drsdomain', 'model_id',
@@ -998,15 +999,7 @@ def config_initconds():
         if not os.path.exists(cname):
             raise ValueError(dict2str('Cannot locate file {bcdir}/{mesonest}'))
         if d['leap'] == "auto":
-            calendar_noleap = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text noleap') == "noleap")
-            calendar_360 = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text 360_day') == "360_day")
-            calendar_gregorian = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text gregorian') == "gredorian")
-            if calendar_noleap is True:
-                d['leap'] = "noleap"
-            if calendar_360 is True:
-                d['leap'] = "360"
-            if calendar_gregorian is True:
-                d['leap'] = "leap"
+            d['leap'] = check_calendar_in_file(cname, d['leap'])
             if d['leap'] == "auto":
                 raise ValueError("ERROR: Cannot assign calendar for leap=auto")
             print(dict2str('Assign calendar {leap}'))
@@ -1062,7 +1055,7 @@ def config_initconds():
     # calculate the starting hour
     d['ihs'] = 0
     if not fname=="error":
-        testtime = int(subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | head -1 | cut -d= -f2 | cut -d" " -f5 | cut -d: -f1'))
+        testtime = check_starttime_in_file(fname)
         #if testtime == 12:
         #    testtime = 24 - testtime
         d['ihs'] = testtime
@@ -1402,15 +1395,14 @@ def create_aeroemiss_file():
         print("Create aerosol emissions")
         write2file('aeroemiss.nml', aeroemiss_template(), mode='w+')
 
-        # Remove any existing sulffile:
+        # Remove any existing sulffile
         run_cmdline('rm -rf {sulffile}')
 
-        # Create new sulffile:
+        # Create new sulffile
         if d['machinetype'] == "srun":
             run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log')
         else:
             run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log')
-
         check_msg_in_log("aeroemiss","aero.log","aeroemiss completed successfully")
 
 
@@ -1576,8 +1568,7 @@ def check_correct_host():
     if (d['dmode'] == "nudging_ccam") or (d['dmode'] == "nudging_gcm"):
         fname = d['mesonest']+'.000000'
         if os.path.exists(fname):
-            host_inv_schmidt = float(subprocess.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | cut -d";" -f1 | sed "s/f//g" | sed "s/ //g"'))
-            host_gridsize = float(subprocess.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | cut -d";" -f1 | sed "s/ //g"'))
+            host_inv_schmidt, host_gridsize = get_grid_properties_in_file(fname)
             host_grid_res = host_inv_schmidt * 112. * 90. / host_gridsize
             nest_grid_width = float(d['gridsize']) * float(d['gridres_m'])
             host_grid_dx = 3. * host_grid_res
@@ -1701,15 +1692,15 @@ def post_process_output():
                 raise ValueError('Unknown option for vertical levels')
 
             if (d['ncout']=="all") or (d['ncout']=="all_s"):
-                singleflag = d['ncout']=="all_s"
-                ftest, newoutput, newoutput_h, newoutput_t = write_output_std("all", singleflag, ftest, newoutput, newoutput_h, newoutput_t)
+                singlefile = d['ncout']=="all_s"
+                ftest, newoutput, newoutput_h, newoutput_t = write_output_std("all", singlefile, ftest, newoutput, newoutput_h, newoutput_t)
 
             if d['ncout'] == "ctm":
                 ftest, newoutput, newoutput_h, newoutput_t = write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm)
 
             if (d['ncout']=="basic") or (d['ncout']=="basic_s"):
-                singleflag = d['ncout']=="basic_s"
-                ftest, newoutput, newoutput_h, newoutput_t = write_output_std("basic", singleflag, ftest, newoutput, newoutput_h, newoutput_t)
+                singlefile = d['ncout']=="basic_s"
+                ftest, newoutput, newoutput_h, newoutput_t = write_output_std("basic", singlefile, ftest, newoutput, newoutput_h, newoutput_t)
 
             if d['ncout'] == "tracer":
                 ftest, newoutput, newoutput_h, newoutput_t = write_output_std("tracer", False, ftest, newoutput, newoutput_h, newoutput_t)	    
@@ -1720,8 +1711,8 @@ def post_process_output():
 
         # surface files --------------------------------------------------------
         if (d['ncsurf']=="cordex") or (d['ncsurf']=="cordex_s"):
-            singleflag = d['ncsurf']=="cordex_s"
-            ftest, newcordex = write_output_cordex("cordex", singleflag, ftest, newcordex)
+            singlefile = d['ncsurf']=="cordex_s"
+            ftest, newcordex = write_output_cordex("cordex", singlefile, ftest, newcordex)
   
         # store output
         name = dict2str('surf.{histfile}')
@@ -1729,8 +1720,8 @@ def post_process_output():
 
         # high-frequency files -------------------------------------------------
         if (d['nchigh']=="latlon") or (d['nchigh']=="latlon_s"):
-            singleflag = d['nchigh']=="latlon_s"
-            ftest, newhighfreq = write_output_highfreq("latlon", singleflag, ftest, newhighfreq)
+            singlefile = d['nchigh']=="latlon_s"
+            ftest, newhighfreq = write_output_highfreq("latlon", singlefile, ftest, newhighfreq)
 
         # store output
         name = dict2str('freq.{histfile}')
@@ -1755,13 +1746,13 @@ def post_process_output():
                 d['imth'] = hm
 
 
-def write_output_std(outmode, singleflag, ftest, newoutput, newoutput_h, newoutput_t):
+def write_output_std(outmode, singlefile, ftest, newoutput, newoutput_h, newoutput_t):
     "Write standard output for all variables"
     
     # check if output already exists
     if outmode == "tracer":
         fname = dict2str('{hdir}/{dailydir}/trav0001_{histfile}.nc')    
-    elif singleflag is True:
+    elif singlefile is True:
         fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
     else:    
         fname = dict2str('{hdir}/{dailydir}/pr_{histfile}.nc')
@@ -1796,7 +1787,7 @@ def write_output_std(outmode, singleflag, ftest, newoutput, newoutput_h, newoutp
                 print("ERROR Unknown outmode in write_output_std outmode=",outmode)
                 sys.exit(1)
 
-            if singleflag is True:
+            if singlefile is True:
                 if d['machinetype'] == "srun":
                     run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
                 else:
@@ -1809,7 +1800,7 @@ def write_output_std(outmode, singleflag, ftest, newoutput, newoutput_h, newoutp
             check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
     
             # move fles from working directory to archive directory
-            if singleflag:
+            if singlefile:
                 run_cmdline('mv {histfile}.nc {hdir}/{dailydir}')
             else:    
                 run_cmdline('mv *_{histfile}.nc {hdir}/{dailydir}')
@@ -1854,13 +1845,8 @@ def write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm):
             print(dict2str("Process CTM output for {histyear}{histmonth}"))	
             calc_drs_host(cname)
 
-            calendar_noleap = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text noleap') == "noleap")
-            calendar_360 = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text 360_day') == "360_day")
             calendar_test = "leap"
-            if calendar_noleap is True:
-                calendar_test = "noleap"
-            if calendar_360 is True:
-                calendar_test = "360"
+            calendar_test = check_calendar_in_file(cname, calendar_test)
             print("Calendar found "+calendar_test)
 	    
             idaystart = 1
@@ -1869,7 +1855,7 @@ def write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm):
             if calendar_test == "noleap":
                 idayend = monthrange(hy, hm)[1]
                 if hm == 2:
-                    idayend=28
+                    idayend = 28
             if calendar_test == "leap":
                 idayend = monthrange(hy, hm)[1]
             if calendar_test == "360":
@@ -1899,10 +1885,10 @@ def write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm):
     return ftest, newoutput, newoutput_h, newoutput_t
 
 
-def write_output_cordex(outmode, singleflag, ftest, newcordex):
+def write_output_cordex(outmode, singlefile, ftest, newcordex):
     "Write CORDEX output"
 
-    if singleflag is True:
+    if singlefile is True:
         fname = dict2str('{hdir}/cordex/surf.{histfile}.nc')
     else:    
         fname = dict2str('{hdir}/cordex/pr_surf.{histfile}.nc')
@@ -1929,7 +1915,7 @@ def write_output_cordex(outmode, singleflag, ftest, newcordex):
                 print("ERROR Unknown outmode for write_output_cordex outmode=",outmode)
                 sys.exit(1)		
 	    
-            if singleflag is True:
+            if singlefile is True:
                 if d['machinetype'] == "srun":
                     run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
                 else:
@@ -1941,7 +1927,7 @@ def write_output_cordex(outmode, singleflag, ftest, newcordex):
                     run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
             check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
 	    
-            if singleflag is True:
+            if singlefile is True:
                 run_cmdline('mv surf.{histfile}.nc {hdir}/cordex')
             else:    
                 run_cmdline('mv *_surf.{histfile}.nc {hdir}/cordex')
@@ -1955,10 +1941,10 @@ def write_output_cordex(outmode, singleflag, ftest, newcordex):
     return ftest, newcordex
 
 
-def write_output_highfreq(outmode, singleflag, ftest, newhighfreq):
+def write_output_highfreq(outmode, singlefile, ftest, newhighfreq):
     "Write high-frequency output"
     
-    if singleflag is True:
+    if singlefile is True:
         fname = dict2str('{hdir}/highfreq/freq.{histfile}.nc')            
     else:
         fname = dict2str('{hdir}/highfreq/rnd_freq.{histfile}.nc')
@@ -1985,7 +1971,7 @@ def write_output_highfreq(outmode, singleflag, ftest, newhighfreq):
                 print("ERROR Unknown outmode for write_output_latlon outmode=",outmode)
                 sys.exit(1)		
 		
-            if singleflag is True:
+            if singlefile is True:
                 if d['machinetype'] == "srun":
                     run_cmdline('srun -n {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
                 else:
@@ -1997,7 +1983,7 @@ def write_output_highfreq(outmode, singleflag, ftest, newhighfreq):
                     run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
             check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
 	    
-            if singleflag is True:
+            if singlefile is True:
                 run_cmdline('mv freq.{histfile}.nc {hdir}/highfreq')                    
             else:
                 run_cmdline('mv *_freq.{histfile}.nc {hdir}/highfreq')
@@ -2034,30 +2020,6 @@ def store_output(ftest, fname):
             ftest = False                    
 
     return ftest
-
-
-def calc_drs_host(fname):
-
-    d['drs_host_scenario'] = "error"
-    d['drs_host_ensemble'] = "error"
-    d['drs_host_name'] = "error"
-    d['drs_host_institution'] = "error"
-
-    driving_model_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_model_id | cut -d\" -f2')
-    if driving_model_id_test != "":
-        d['drs_host_name'] = driving_model_id_test
-
-    driving_model_ensemble_number_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_model_ensemble_number | cut -d\" -f2')
-    if driving_model_ensemble_number_test != "":
-        d['drs_host_ensemble'] = driving_model_ensemble_number_test
-
-    driving_experiment_name_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_experiment_name | cut -d\" -f2')
-    if driving_experiment_name_test != "":
-        d['drs_host_scenario'] = driving_experiment_name_test
-
-    driving_institution_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_institution_id | cut -d\" -f2')
-    if driving_institution_id_test != "":
-        d['drs_host_institution'] = driving_institution_id_test
 
 
 def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
@@ -2108,42 +2070,44 @@ def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
                 if d['drs_host_name'] != "error":
                     d['drshost'] = d['drs_host_name']
                 
-                # Patch for old CORDEX format
-                patch_dict = { "ECMWF":"ERA5", "CSIRO":"ACCESS-ESM1-5",
-                               "CSIRO-ARCCSS":"ACCESS-CM2", "CMCC-CMCC":"ESM2",
-                               "CNRM-CERFACS":"CNRM-ESM2-1",
-                               "EC-Earth-Consortium":"EC-Earth3",
-                               "NCAR":"CESM2",
-                               "NCC":"NorESM2-MM" }
-                for test_institution in patch_dict:
-                    test_model = patch_dict[test_institution]
-                    test_name = test_institution+'-'+test_model
-                    if d['drshost'] == test_name:
-                        d['drshost'] = test_model
-                        drsinstitution = test_institution
-                    print("Replace metadata with ",d['drshost']," and ",drsinstitution)
+                if d['drs_host_institution'] != "error":
+                    drsinstitution = d['drs_host_institution']
+                else:
+                    # Patch for old CORDEX format - to be depreciated when all CCAM output supports drs_host_institution
+                    patch_dict = { "ECMWF":"ERA5", "CSIRO":"ACCESS-ESM1-5",
+                                   "CSIRO-ARCCSS":"ACCESS-CM2", "CMCC-CMCC":"ESM2",
+                                   "CNRM-CERFACS":"CNRM-ESM2-1",
+                                   "EC-Earth-Consortium":"EC-Earth3",
+                                   "NCAR":"CESM2",
+                                   "NCC":"NorESM2-MM" }
+                    for test_institution in patch_dict:
+                        test_model = patch_dict[test_institution]
+                        test_name = test_institution+'-'+test_model
+                        if d['drshost'] == test_name:
+                            d['drshost'] = test_model
+                            drsinstitution = test_institution
+                        print("Replace metadata with ",d['drshost']," and ",drsinstitution)
 
-                # default
-                if d['cmip'] == "cmip5":
-                    if d['histyear'] <= 2005:
-                        cmip_scenario = "historical"
-                    else:
-                        cmip_scenario = d['rcp']
-                elif d['cmip'] == 'cmip6':
-                    if d['histyear'] <= 2014:
-                        cmip_scenario = "historical"
-                    else:
-                        cmip_scenario = d['rcp']
-                if (d['drshost']=='ECMWF-ERA5') or (d['drshost']=='ERA5'):
+                if d['drs_host_scenario'] != "error":
+                    cmip_scenario = d['drs_host_scenario']
+                else:
+                    # default - to be depreciated when all CCAM output supports drs_host_scenario
+                    if d['cmip'] == "cmip5":
+                        if d['histyear'] <= 2005:
+                            cmip_scenario = "historical"
+                        else:
+                            cmip_scenario = d['rcp']
+                    elif d['cmip'] == 'cmip6':
+                        if d['histyear'] <= 2014:
+                            cmip_scenario = "historical"
+                        else:
+                            cmip_scenario = d['rcp']
+                    if (d['drshost']=='ECMWF-ERA5') or (d['drshost']=='ERA5'):
                         cmip_scenario="evaluation"
 
                 # Use file metadata if avaliable
                 if d['drs_host_ensemble'] != "error":
                     d['drsensemble'] = d['drs_host_ensemble']
-                if d['drs_host_scenario'] != "error":
-                    cmip_scenario = d['drs_host_scenario']
-                if d['drs_host_institution'] != "error":
-                    drsinstitution = d['drs_host_institution']
 
                 # Recombine host insitution and model name for compatibility
                 # depreciate this line below when driving_institution_id is
@@ -2234,6 +2198,72 @@ def check_var_in_file(fname, vname):
     
     file_test = subprocess.getoutput('ncdump -c '+fname+' | grep -o --text '+vname+' | head -1') == vname
     return file_test
+
+
+def check_attribute_in_file(fname, vname, aname, vdata):
+    "Checks if attribute in file matches required value"
+
+    file_test = subprocess.getoutput('ncdump -c '+fname+' | grep '+vname+' | grep '+aname+' | grep -o --text '+vdata+') == "'+vdata+'"')
+    return file_test
+
+
+def check_timestep_in_file(fname):
+    "Checks the time-step in output file"
+    
+    timestep = subprocess.getoutput('ncdump -c '+fname+' | grep time | tail -1 | cut -d= -f2 | cut -d, -f2')
+    return timestep
+
+
+def check_calendar_in_file(cname, calendar_found):
+    "Checks what calendar is used for input file"
+
+    if check_attribute_in_file(cname, "time", "calendar", "noleap") is True:
+        calendar_found = "noleap"
+    if check_attribute_in_file(cname, "time", "calendar", "360_day") is True:
+        calendar_found = "360"
+    if check_attribute_in_file(cname, "time", "calendar", "gregorian") is True:
+        calendar_found = "leap"
+    return calendar_found    
+
+
+def check_starttime_in_file(fname):
+    "Check start time in input file"
+
+    starttime = int(subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | head -1 | cut -d= -f2 | cut -d" " -f5 | cut -d: -f1'))
+    return starttime
+
+
+def get_grid_properties_in_file(fname):
+    "Obtain grid information from file"
+
+    host_inv_schmidt = float(subprocess.getoutput('ncdump -c '+fname+' | grep schmidt | cut -d"=" -f2 | cut -d";" -f1 | sed "s/f//g" | sed "s/ //g"'))
+    host_gridsize = float(subprocess.getoutput('ncdump -c '+fname+' | grep il_g | cut -d"=" -f2 | cut -d";" -f1 | sed "s/ //g"'))
+    return host_inv_schmidt, host_gridsize
+
+
+def calc_drs_host(fname):
+    "Obtain DRS data from file"
+
+    d['drs_host_scenario'] = "error"
+    d['drs_host_ensemble'] = "error"
+    d['drs_host_name'] = "error"
+    d['drs_host_institution'] = "error"
+
+    driving_model_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_model_id | cut -d\" -f2')
+    if driving_model_id_test != "":
+        d['drs_host_name'] = driving_model_id_test
+
+    driving_model_ensemble_number_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_model_ensemble_number | cut -d\" -f2')
+    if driving_model_ensemble_number_test != "":
+        d['drs_host_ensemble'] = driving_model_ensemble_number_test
+
+    driving_experiment_name_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_experiment_name | cut -d\" -f2')
+    if driving_experiment_name_test != "":
+        d['drs_host_scenario'] = driving_experiment_name_test
+
+    driving_institution_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_institution_id | cut -d\" -f2')
+    if driving_institution_id_test != "":
+        d['drs_host_institution'] = driving_institution_id_test
 
 
 #===============================================================================
@@ -2695,13 +2725,15 @@ def cc_template_all():
     fname = dict2str('{histfile}.000000')
     if check_var_in_file(fname,"thetao") is True:
         d['use_depth'] = 'T'
+	
+    d['ktc_local'] = check_timestep_in_file(dict2str('{histfile}.000000'))
         
     template = """\
     &input
      ifile = "{histfile}"
      ofile = "{histfile}.nc"
      hres  = {res}
-     kta={ktc}   ktb=999999  ktc=-1
+     kta={ktc_local}   ktb=999999  ktc=-1
      minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
      use_plevs = {use_plevs}
      use_meters = {use_meters}     
@@ -2756,14 +2788,16 @@ def cc_template_ctm():
 
 
 def cc_template_latlon():
-    "pcc2hist namelist for surface file basic latlon output"
+    "pcc2hist namelist for high-frequency output"
+
+    d['ktc_local'] = check_timestep_in_file(dict2str('freq.{histfile}.000000'))
 
     template = """\
     &input
      ifile="freq.{histfile}"
      ofile="freq.{histfile}.nc"
      hres={res}
-     kta={ktc}   ktb=2999999  ktc=-1
+     kta={ktc_local}   ktb=2999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
     &end
     &histnl
@@ -2775,8 +2809,9 @@ def cc_template_latlon():
 
     return template
 
+
 def cc_template_cordex():
-    "Fifth part of template for 'cc.nml' namelist file"
+    "pcc2hist namelist for cordex output"
 
     d['hnames'] = '"tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrsfl","CAPE","CIN","mrfsos","mrsos"'
 
@@ -2786,12 +2821,14 @@ def cc_template_cordex():
     if check_var_in_file(fname,"anthroheat") is True:
         d['hnames'] = dict2str('{hnames},"tsroof","tsgree","tspav","mrsofc","anthroheat"')
 
+    d['ktc_local'] = check_timestep_in_file(dict2str('surf.{histfile}.000000'))
+
     template = """\
     &input
      ifile="surf.{histfile}"
      ofile="surf.{histfile}.nc"
      hres={res}
-     kta={ktc}   ktb=2999999  ktc=-1
+     kta={ktc_local}  ktb=2999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
     &end
     &histnl
@@ -2803,8 +2840,9 @@ def cc_template_cordex():
 
     return template
 
+
 def cc_template_basic():
-    "Sixth part of template for 'cc.nml' namelist file"
+    "pcc2hist namelist for basic standard output"
 
     d['hnames'] = '"pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog","tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega","cfrac","prw","clwvi","clivi","zmla","ustar","clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund","rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc","evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw","snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrsfl","orog","alb","sftlf","grid","sdischarge"'
     d['use_deoth'] = 'F'
@@ -2814,12 +2852,14 @@ def cc_template_basic():
         d['hnames'] = dict2str('{hnames},"tos","sos","uos","vos","ssh","ocndepth"')
         d['use_deoth'] = 'T'
 
+    d['ktc_local'] = check_timestep_in_file(dict2str('{histfile}.000000'))
+
     template = """\
     &input
      ifile="{histfile}"
      ofile="{histfile}.nc"
      hres={res}
-     kta={ktc}  ktb=999999  ktc=-1
+     kta={ktc_local}  ktb=999999  ktc=-1
      minlat={minlat}  maxlat={maxlat}  minlon={minlon}  maxlon={maxlon}
      use_plevs={use_plevs}
      use_meters={use_meters}     
@@ -2843,12 +2883,14 @@ def cc_template_basic():
 def cc_template_tracer():
     "Tracer part of template for 'cc.nml' namelist file"
 
+    d['ktc_local'] = check_timestep_in_file(dict2str('{histfile}.000000'))
+
     template = """\
     &input
      ifile="{histfile}"
      ofile="{histfile}.nc"
      hres={res}
-     kta={ktc}   ktb=999999  ktc=-1
+     kta={ktc_local}   ktb=999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
      use_plevs=F
      use_meters=F
@@ -2946,8 +2988,8 @@ if __name__ == '__main__':
     parser.add_argument("--userlaifile", type=str, help=" User defined LAI map (none for no file)")
 
     parser.add_argument("--drsmode", type=str, help=" DRS output (off, on)")
-    parser.add_argument("--drshost", type=str, help=" Host GCM for DRS output")
-    parser.add_argument("--drsensemble", type=str, help=" Host GCM ensemble number for DRS output")
+    parser.add_argument("--drshost", type=str, help=" Host GCM for DRS output") # to be depreciated
+    parser.add_argument("--drsensemble", type=str, help=" Host GCM ensemble number for DRS output") # to be depreciated
     parser.add_argument("--drsdomain", type=str, help=" DRS domain")
     parser.add_argument("--drsproject", type=str, help=" DRS project name")
     parser.add_argument("--model_id", type=str, help=" CCAM version name")
