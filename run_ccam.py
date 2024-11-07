@@ -17,59 +17,61 @@ def main(inargs):
     convert_old_settings()
     check_inargs()
 
-    print("Verifying directories")
+    print("Verify directories")
     create_directories()
 
-    print("Defining simulation settings")
-    calc_dt_output()
-    calc_res()
-    calc_dt_model()
+    if d['preprocess_test'] is True:
+        print("Define preprocess settings")
+        set_preprocess_options()
 
-    print("Loop over simulation months ",d['ncountmax'])
+    if d['simulation_test'] is True:
+        print("Define simulation settings")
+        set_simulation_options()
+
+    print("Loop over simulation months")
     for mth in range(0, d['ncountmax']):
 
-        print("---------------------")
+        print("----------------------------------------")
 
-        if d['preprocess_test'] is True:
-
+        if d['timeloop_test'] is True:
             # Find date for downscaling
             get_datetime()
             print("Reading date and time ",d['iyr'],d['imth_2digit'])
             d['ofile'] = dict2str('{name}.{iyr}{imth_2digit}')
-
+	    
+        if d['preprocess_test'] is True:	    
             # Create surface files if needed
             check_surface_files()
 
         if d['simulation_test'] is True:
-
             # Define input and output files
             print("Define input and output filenames")
             prep_iofiles()
-
             # Determine model parameters
             print("Set model parameters")
             set_mlev_params()
             config_initconds()
             set_nudging()
             set_downscaling()
+            set_gwdrag()
+            set_convection()
             set_cloud()
             set_radiation()
+            set_land_and_carbon()
             set_ocean()
-            set_atmos()
-            set_surfc()
-            set_aeros()
-            set_aquaplanet()
-
+            set_pblmix()
             # Create emission datasets
+            set_aeros()
             create_aeroemiss_file()
             locate_tracer_emissions()
-
+            # special modes
+            set_aquaplanet()
             # Create CCAM namelist and system checks
             print("Create CCAM namelist and perform system checks")
+            set_surf_output()
             prepare_ccam_infiles()
             create_input_file()
             check_correct_host()
-
             # Run CCAM simulation
             print("Run CCAM")
             run_model()
@@ -78,12 +80,12 @@ def main(inargs):
             print("Post-process CCAM output")
             post_process_output()
 
-        if d['preprocess_test'] is True:
+        if d['timeloop_test'] is True:
+            print("Update simulation date and time")	
             update_monthyear()
-            print("Update simulation date and time")
             update_yearqm()
 
-    print("---------------------")
+    print("----------------------------------------")
     print("Simulation loop completed")
 
     # Check if restart is required
@@ -93,8 +95,14 @@ def main(inargs):
     print("Script completed sucessfully")
 
 
+#===============================================================================
+# Initialisation and finalisation
+#===============================================================================
+
 def convert_old_settings():
     "Convert dmode for new format"
+
+    # replace number options with text versions.  This makes the code more readable.
 
     dmode_dict = { 0:"nudging_gcm", 1:"sst_only", 2:"nudging_ccam", 3:"sst_6hour",
                    4:"generate_veg", 5:"postprocess", 6:"nudging_gcm_with_sst",
@@ -168,6 +176,7 @@ def convert_old_settings():
 def find_mode(nt, nt_dict, nt_name):
     "Correct and test arguments"
 
+    # search list and replace numerical option with text based on nt_dict
     itest = False
     for ct in nt_dict:
         if nt == str(ct):
@@ -191,115 +200,72 @@ def check_inargs():
 
     args2common = ['name', 'nproc', 'ncountmax', 'dmode', 'iys', 'ims', 'ids', 'iye', 'ime',
                    'ide', 'ktc', 'ktc_surf', 'ktc_high', 'machinetype', 'cmip', 'insdir',
-                   'hdir' ]
+                   'hdir']
 
     args2preprocess = ['midlon', 'midlat', 'gridres', 'gridsize', 'wdir', 'terread',
                       'igbpveg', 'ocnbath', 'casafield', 'uclemparm',
                       'cableparm', 'vegindex', 'soilparm', 'uservegfile', 'userlaifile',
                       'bcsoilfile', 'nnode', 'sib', 'aero', 'conv', 'cloud', 'rad', 'bmix',
-                      'mlo', 'casa', 'cldfrac', 'leap' ]
+                      'mlo', 'casa', 'cldfrac', 'leap']
 
     args2simulation = ['bcdom', 'bcsoil', 'sstfile', 'sstinit', 'bcdir', 'sstdir', 'stdat',
-                       'aeroemiss', 'model', 'tracer', 'rad_year' ]
+                       'aeroemiss', 'model', 'tracer', 'rad_year']
 
     args2postprocess = ['minlat', 'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode',
                         'plevs', 'mlevs', 'tlevs', 'dlevs', 'drsmode', 'drsdomain', 'model_id',
                         'contact', 'rcm_version_id', "drsproject", 'pcc2hist', 'ncout',
-                        'nctar', 'ncsurf', 'nchigh' ]
+                        'nctar', 'ncsurf', 'nchigh']
 
     # determine what simulation modes should be active
-
     d['preprocess_test'] = False
     if d['dmode'] != "postprocess":
         d['preprocess_test'] = True
-
     d['simulation_test'] = False
     if not d['dmode'] in ["generate_veg", "postprocess"]:
         d['simulation_test'] = True
-
     d['postprocess_test'] = False
     if d['dmode'] != "generate_veg":
         d['postprocess_test'] = True
+    d['timeloop_test'] = False
+    if (d['preprocess_test'] is True) or (d['simulation_test'] is True):
+        d['timeloop_test'] = True
+    if d['simulation_test'] is True:
+        if d['preprocess_test'] is False:
+            print('Internal error - simulation_test=T requires preprocess_test=T')
+            sys.exit(1)
 
     # check arguments
-
     for i in args2common:
         if not i in d.keys():
             print('Missing input argument --'+i)
             sys.exit(1)
-
     if d['preprocess_test'] is True:
         for i in args2preprocess:
             if not i in d.keys():
                 print('Missing input argument --'+i)
                 sys.exit(1)
-
     if d['simulation_test'] is True:
         for i in args2simulation:
             if not i in d.keys():
                 print('Missing input argument --'+i)
                 sys.exit(1)
-
     if d['postprocess_test'] is True:
         for i in args2postprocess:
             if not i in d.keys():
                 print('Missing input argument --'+i)
                 sys.exit(1)
 
-
-    # process some input options
-
+    # process level data for later use
     d['plevs'] = d['plevs'].replace(',', ', ')
     d['mlevs'] = d['mlevs'].replace(',', ', ')
     d['tlevs'] = d['tlevs'].replace(',', ', ')
     d['dlevs'] = d['dlevs'].replace(',', ', ')
 
-    if d['dmode'] in ["aquaplanet1", "aquaplanet2", "aquaplanet3",
-                      "aquaplanet4", "aquaplanet5", "aquaplanet6",
-                      "aquaplanet7", "aquaplanet8"]:
-        d['mlo'] = "prescribed"
-
-    if d['mlo'] == "prescribed":
-        d['use_depth'] = 'F'
-    elif d['mlo'] == "dynamical":
-        d['use_depth'] = 'T'
-    else:
-        raise ValueError("Invalid choice for mlo")
-
-    if d['gridres'] == -999.:
-        d['gridres'] = 112.*90./d['gridsize']
-        print(dict2str('-> Update gridres to {gridres}'))
-        if d['minlat'] == -999.:
-            d['minlat'] = -90.
-        if d['maxlat'] == -999.:
-            d['maxlat'] = 90.
-        if d['minlon'] == -999.:
-            d['minlon'] = 0.
-        if d['maxlon'] == -999.:
-            d['maxlon'] = 360.
-
-    d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
-    d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
-
-    if d['uclemparm'] == 'default':
-        d['uclemparm'] = ''
-    if d['cableparm'] == 'default':
-        d['cableparm'] = ''
-    if d['soilparm'] == 'default':
-        d['soilparm'] = ''
-    if d['vegindex'] == 'default':
-        d['vegindex'] = ''
-    if d['uservegfile'] == 'none':
-        d['uservegfile'] = ''
-    if d['userlaifile'] == 'none':
-        d['userlaifile'] = ''
-
-    # store input rad_year as rad_year_input
-    d['rad_year_input'] = d['rad_year']
-
 
 def create_directories():
     "Create output directories and go to working directory"
+
+    # verify ccam directories exist and create any missing directories
 
     dirname = dict2str('{hdir}')
     if not os.path.isdir(dirname):
@@ -308,40 +274,47 @@ def create_directories():
 
     os.chdir(dirname)
 
-    for dirname in ['OUTPUT', 'RESTART', 'vegdata']:
+    if d['preprocess_test'] is True:
+        dirname = "vegdata"
         if not os.path.isdir(dirname):
             print("-> Creating ",dirname)
             os.mkdir(dirname)
+        
+    if d['simulation_test'] is True:
+        for dirname in ['OUTPUT', 'RESTART']:
+            if not os.path.isdir(dirname):
+                print("-> Creating ",dirname)
+                os.mkdir(dirname)
 
-    if d['outlevmode'].find("pressure") != -1:
-        dirname = 'daily'
-        if not os.path.isdir(dirname):
-            print("-> Creating ",dirname)
-            os.mkdir(dirname)
-
-    if d['outlevmode'].find("height") != -1:
-        dirname = 'daily_h'
-        if not os.path.isdir(dirname):
-            print("-> Creating ",dirname)
-            os.mkdir(dirname)
-
-    if d['outlevmode'].find("theta") != -1:
-        dirname = 'daily_t'
-        if not os.path.isdir(dirname):
-            print("-> Creating ",dirname)
-            os.mkdir(dirname)            
-
-    if (d['ktc_surf']>0) and (d['ncsurf']!="off"):
-        dirname = 'cordex'
-        if not os.path.isdir(dirname):
-            print("-> Creating ",dirname)
-            os.mkdir(dirname)
-
-    if (d['ktc_high']>0) and (d['nchigh']!="off"):
-        dirname = 'highfreq'
-        if not os.path.isdir(dirname):
-            print("-> Creating ",dirname)
-            os.mkdir(dirname)
+    if d['postprocess_test'] is True:
+        # different ouitlevmode indicate different vertical levels in different directories
+        if d['outlevmode'].find("pressure") != -1:
+            dirname = 'daily'
+            if not os.path.isdir(dirname):
+                print("-> Creating ",dirname)
+                os.mkdir(dirname)
+        if d['outlevmode'].find("height") != -1:
+            dirname = 'daily_h'
+            if not os.path.isdir(dirname):
+                print("-> Creating ",dirname)
+                os.mkdir(dirname)
+        if d['outlevmode'].find("theta") != -1:
+            dirname = 'daily_t'
+            if not os.path.isdir(dirname):
+                print("-> Creating ",dirname)
+                os.mkdir(dirname)            
+        # ncsurf decides if raw output is processed, but ktc_surf decides if raw output is created
+        if d['ncsurf'] != "off":
+            dirname = 'cordex'
+            if not os.path.isdir(dirname):
+                print("-> Creating ",dirname)
+                os.mkdir(dirname)
+        # nchigh decides if raw output is processed, but ktc_high decides if raw output is created
+        if d['nchigh'] != "off":
+            dirname = 'highfreq'
+            if not os.path.isdir(dirname):
+                print("-> Creating ",dirname)
+                os.mkdir(dirname)
 
     if d['dmode'] == "postprocess":
         run_cmdline('rm -f {hdir}/restart5.qm')    
@@ -354,108 +327,34 @@ def create_directories():
         if not os.path.isdir(dirname):
             print("-> Creating ",dirname)
             os.mkdir(dirname)
-
-    # change to working directory, depending on dmode
+    # change to working or OUTPUT directory, depending on dmode
     os.chdir(dirname)
 
 
-def calc_dt_output():
-    "Calculate model output timestep"
+def restart_flag():
+    "Create restart.qm containing flag for restart. This flag signifies that CCAM completed previous month"
 
-    # raw cc output frequency (mins)
-    d['dtout'] = 360  
-    if d['ktc'] < d['dtout']:
-        d['dtout'] = d['ktc']
+    sdate = d['iyr']*100 +d['imth']
+    edate = d['iye']*100 +d['ime']
 
-    # need hourly output for CTM
-    if d['ncout'] == "ctm":
-        if d['dtout'] > 60:
-            print("-> Adjusting ncout for CTM to 60 mins")
-            d['dtout'] = 60 
-
-
-def calc_res():
-    "Calculate resolution for high resolution area"
-
-    # GRIDRES IN UNITS OF METERS
-    gridres_m = d['gridres']*1000. 
-    d['gridres_m'] = gridres_m
-
-    res = d['reqres']
-    if res == -999.:
-        res = gridres_m/112000.
-        print("-> Adjust reqres to ",res)
-    d['res'] = res
-
-    if d['minlat'] == -999.:
-        d['minlat'] = d['midlat']-gridres_m*d['gridsize']/200000.
-        if d['minlat'] < -90.:
-            d['minlat'] = -90.
-        print(dict2str("-> Adjust minlat to {minlat}"))
-
-    if d['maxlat'] == -999.:
-        d['maxlat'] = d['midlat']+gridres_m*d['gridsize']/200000.
-        if d['maxlat'] > 90.:
-            d['maxlat'] = 90.
-        print(dict2str("-> Adjust maxlat to {maxlat}"))
-
-    if d['minlon'] == -999.:
-        d['minlon'] = d['midlon']-gridres_m*d['gridsize']/200000.
-        if d['minlat'] == -90.:
-            d['minlon'] = 0.
-        if d['maxlat'] == 90.:
-            d['minlon'] = 0.
-        print(dict2str("-> Adjust minlon to {minlon}"))
-
-    if d['maxlon'] == -999.:
-        d['maxlon'] = d['midlon']+gridres_m*d['gridsize']/200000.
-        if d['minlat'] == -90.:
-            d['maxlon'] = 360.
-        if d['maxlat'] == 90.:
-            d['maxlon'] = 360.
-        print(dict2str("-> Adjust maxlon to {maxlon}"))
+    if d['dmode'] == "postprocess":
+        if sdate > edate:
+            print("CCAM postprocessing completed successfully")
+            write2file(d['hdir']+'/restart5.qm', "Complete", mode='w+')
+        else:
+            write2file(d['hdir']+'/restart5.qm', "True", mode='w+')
+    else:	
+        if sdate > edate:
+            print("CCAM simulation completed successfully")	
+            write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
+            sys.exit(0)
+        else:
+            write2file(d['hdir']+'/restart.qm', "True", mode='w+')
 
 
-def calc_dt_model():
-    """Calculate model timestep.
-     dt is a function of dx; dt out and ktc_surf must be integer multiples of dt"""
-
-    # define dictionary of pre-defined dx (mtrs) : dt (sec) relationships
-    d_dxdt = {60000:1200, 45000:900, 36000:720,
-              30000:600, 22500:450, 20000:400, 18000:360,
-              15000:300, 12000:240, 11250:225, 10000:200, 9000:180,
-              7500:150, 7200:144, 6000:120, 5000:100, 4500:90, 4000:80,
-              3750:75, 3600:72, 3000:60, 2500:50, 2400:48, 2250:45,
-              2000:40, 1800:36, 1500:30, 1250:25, 1200:24,
-              1000:20, 900:18, 800:16, 750:15, 600:12,
-              500:10, 450:9, 400:8, 300:6,
-              250:5, 200:4, 150:3, 100:2, 50:1}
-
-    # determine dt based on dx, dtout and ktc_surf
-    test_surf = d['dtout']
-    test_high = d['dtout']
-    if d['ktc_surf']>0:
-        test_surf = d['ktc_surf']
-    if d['ktc_high']>0:
-        test_high = d['ktc_high']
-    for dx in sorted(d_dxdt):
-        if (d['gridres_m']>=dx) and (60*d['dtout']%d_dxdt[dx]==0) and (60*test_surf%d_dxdt[dx]==0) and (60*test_high%d_dxdt[dx]==0):
-            d['dt'] = d_dxdt[dx]
-
-    if d['gridres_m'] < 50:
-        raise ValueError("Minimum grid resolution of 50m has been exceeded")
-
-    if d['ktc']%d['dtout'] != 0:
-        raise ValueError("ktc must be a multiple of dtout")
-
-    if d['ktc_surf'] > 0:
-        if d['dtout']%d['ktc_surf'] != 0:
-            raise ValueError("dtout must be a multiple of ktc_surf")
-
-    if d['ktc_high'] > 0:
-        if d['dtout']%d['ktc_high'] != 0:
-            raise ValueError("dtout must be a multiple of ktc_high")
-
+#===============================================================================
+# Timeloop functions
+#===============================================================================
 
 def get_datetime():
     "Determine relevant dates and timesteps for running model"
@@ -472,26 +371,20 @@ def get_datetime():
             d['iyr'] = int(yyyydd[0:4])
             d['imth'] = int(yyyydd[4:6])
             d['iday'] = 1
-        #print("ATTENTION:")
-        #print(dict2str("Simulation start date taken from {hdir}/year.qm"))
-        #print("Start date: "+str(d['iyr'])+mon_2digit(d['imth'])+mon_2digit(d['iday']))
-        #print("If this is the incorrect start date, please delete year.qm")
     else:
         d['iyr'] = d['iys']
         d['imth'] = d['ims']
         d['iday'] = d['ids']
 
-    # Abort run at finish year:
+    # Abort run at finish year
     sdate = d['iyr']*10000 + d['imth']*100 + d['iday']
     edate = d['iye']*10000 + d['ime']*100 + d['ide']
-
-    if (sdate>edate) and (d['dmode']!="postprocess"):
+    if (sdate>edate) and (d['simulation_test'] is True):
         raise ValueError("CCAM simulation already completed. Delete year.qm to restart.")
 
+    # Calculate date of previous month
     iyr = d['iyr']
     imth = d['imth']
-
-    # Calculate previous month:
     if imth == 1:
         d['imthlst'] = 12
         d['iyrlst'] = iyr-1
@@ -499,23 +392,138 @@ def get_datetime():
         d['imthlst'] = imth-1
         d['iyrlst'] = iyr
 
+    # two-digit versions of previous and current month
     d['imthlst_2digit'] = mon_2digit(d['imthlst'])
     d['imth_2digit'] = mon_2digit(d['imth'])
 
-    # radiation year
-    if d['rad_year_input'] == 0:
-        d['use_rad_year'] = '.false.'
-        d['rad_year'] = d['iyr']
-    else:
-        d['use_rad_year'] = '.true.'
-        d['rad_year'] = d['rad_year_input']
-
-    if (d['preprocess_test'] is True) and (d['simulation_test'] is False):
-        # Usually applied for generate_veg.  preprocessing usually only
-        # requires monthly temporal resolution
+    # update calendar for generate_veg which only requires monthly temporal resolution
+    if d['simulation_test'] is False:
         if d['leap'] == "auto":
             d['leap'] = "leap"
         d['eday'] = monthrange(iyr, imth)[1]
+
+
+def update_monthyear():
+    # update counter for next simulation month and remove old files
+    iyr = d['iyr']
+    imth = d['imth']
+
+    d['iday'] = d['eday'] + 1
+    if d['leap'] == "auto":
+        raise ValueError("ERROR: Unable to assign calendar with leap=auto")
+    elif d['leap'] == "noleap":
+        month_length = monthrange(iyr, imth)[1]
+        if imth == 2:
+            month_length = 28 #leap year turned off
+    elif d['leap'] == "leap":
+        month_length = monthrange(iyr, imth)[1]
+    elif d['leap'] == "360":
+        month_length = 30
+    else:
+        raise ValueError("ERROR: Unknown option for leap")
+
+    if d['iday'] > month_length:
+        d['iday'] = 1
+        d['imth'] = d['imth'] + 1
+
+    if d['imth'] < 12:
+        fname = dict2str('Rest{name}.{iyrlst}12.000000')
+        if os.path.exists(fname):
+            run_cmdline('rm Rest{name}.{iyrlst}12.??????')
+
+    if d['imth'] > 12:
+        fname = dict2str('Rest{name}.{iyr}12.000000')
+        if os.path.exists(fname):
+            run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
+            run_cmdline('rm Rest{name}.{iyr}0?.?????? Rest{name}.{iyr}10.?????? Rest{name}.{iyr}11.??????')
+            #run_cmdline('rm {name}*{iyr}??')
+            #run_cmdline('rm {name}*{iyr}??.nc')
+        d['imth'] = 1
+        d['iyr'] = d['iyr'] + 1
+
+
+def update_yearqm():
+    "Update the year.qm file"
+
+    d['yyyymmdd'] = d['iyr'] * 10000 + d['imth'] * 100 + d['iday']
+    write2file(d['hdir']+'/year.qm', "{yyyymmdd}", mode='w+')
+
+
+#===============================================================================
+# Preprocess
+#===============================================================================
+
+def set_preprocess_options():
+    "Define settings for proeprocess"
+
+    # This function is called when preprocess_test is True
+
+    # configure domain if undefined
+    if d['gridres'] == -999.:
+        d['gridres'] = 112.*90./d['gridsize']
+        print(dict2str('-> Update gridres to {gridres}'))
+        # this logic might need to move to run_cam.sh
+        if d['postprocess_test'] is True:
+            if d['minlat'] == -999.:
+                d['minlat'] = -90.
+            if d['maxlat'] == -999.:
+                d['maxlat'] = 90.
+            if d['minlon'] == -999.:
+                d['minlon'] = 0.
+            if d['maxlon'] == -999.:
+                d['maxlon'] = 360.
+
+    # define domain name and special variables
+    d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
+    d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
+    d['gridres_m'] = d['gridres']*1000. 
+        
+    # define user input
+    if d['uclemparm'] == 'default':
+        d['uclemparm'] = ''
+    if d['cableparm'] == 'default':
+        d['cableparm'] = ''
+    if d['soilparm'] == 'default':
+        d['soilparm'] = ''
+    if d['vegindex'] == 'default':
+        d['vegindex'] = ''
+    if d['uservegfile'] == 'none':
+        d['uservegfile'] = ''
+    if d['userlaifile'] == 'none':
+        d['userlaifile'] = ''
+
+    # Maybe move this logic to run_ccam.sh?
+    # Replace undefined postprocess output with global settings
+    if d['postprocess_test'] is True:
+        res = d['reqres']
+        if res == -999.:
+            res = d['gridres_m']/112000.
+            print("-> Adjust reqres to ",res)
+        d['res'] = res
+        if d['minlat'] == -999.:
+            d['minlat'] = d['midlat']-d['gridres_m']*d['gridsize']/200000.
+            if d['minlat'] < -90.:
+                d['minlat'] = -90.
+            print(dict2str("-> Adjust minlat to {minlat}"))
+        if d['maxlat'] == -999.:
+            d['maxlat'] = d['midlat']+d['gridres_m']*d['gridsize']/200000.
+            if d['maxlat'] > 90.:
+                d['maxlat'] = 90.
+            print(dict2str("-> Adjust maxlat to {maxlat}"))
+        if d['minlon'] == -999.:
+            d['minlon'] = d['midlon']-d['gridres_m']*d['gridsize']/200000.
+            if d['minlat'] == -90.:
+                d['minlon'] = 0.
+            if d['maxlat'] == 90.:
+                d['minlon'] = 0.
+            print(dict2str("-> Adjust minlon to {minlon}"))
+        if d['maxlon'] == -999.:
+            d['maxlon'] = d['midlon']+d['gridres_m']*d['gridsize']/200000.
+            if d['minlat'] == -90.:
+                d['maxlon'] = 360.
+            if d['maxlat'] == 90.:
+                d['maxlon'] = 360.
+            print(dict2str("-> Adjust maxlon to {maxlon}"))
 
 
 def check_surface_files():
@@ -579,6 +587,8 @@ def check_surface_files():
 def run_cable_all():
     "Generate topography and land-use files for CCAM"
 
+    # Update all topography, landtype, bathymetry and carbon input files
+
     run_cmdline('rm -f {hdir}/vegdata/*')
     run_topo()
     run_land()
@@ -594,6 +604,8 @@ def run_cable_all():
 def run_cable_land():
     "Generate topography and land-use files for CCAM"
 
+    # update only landtype files
+
     run_cmdline("ln -s {hdir}/vegdata/topout{domain} .")
     run_land()
     run_cmdline('rm -f topout{domain}')
@@ -602,6 +614,10 @@ def run_cable_land():
 
 
 def update_custom_land():
+    "Update custom.qm with current preprocess files"
+
+    # record surface file configurations
+    # this information is used to determine if surface files need to be recalculated
 
     filename = open('custom.qm', 'w+')
     filename.write(dict2str('{uclemparm}\n'))
@@ -617,6 +633,7 @@ def update_custom_land():
 
 
 def run_topo():
+    "Run terread for topography"
 
     print("-> Generating topography file")
     write2file('top.nml', top_template(), mode='w+')
@@ -624,13 +641,11 @@ def run_topo():
         run_cmdline('srun -n 1 {terread} < top.nml > terread.log')
     else:
         run_cmdline('{terread} < top.nml > terread.log')
-    xtest = (subprocess.getoutput('grep -o --text "terread completed successfully" terread.log')
-             == "terread completed successfully")
-    if xtest is False:
-        raise ValueError(dict2str("An error occured while running terread. Check terread.log"))
+    check_msg_in_log("terread","terread.log","terread completed successfully")
 
 
 def run_land():
+    "Run landuse program"
 
     #default will disable change_landuse
     d['change_landuse'] = ""
@@ -663,7 +678,7 @@ def run_land():
 
     # use MODIS2020 dataset
     if (d['sib']=="cable_modis2020") or (d['sib']=="cable_sli_modis2020") or (d['sib']=="cable_modis2020_const"):
-        write2file('igbpreg.nml', igbpveg_template2(), mode='w+')
+        write2file('igbpveg.nml', igbpveg_template2(), mode='w+')
     else:
         write2file('igbpveg.nml', igbpveg_template(), mode='w+')
         
@@ -674,13 +689,12 @@ def run_land():
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {igbpveg} -s 5000 < igbpveg.nml > igbpveg.log')
 
     # Check for errors
-    xtest = (subprocess.getoutput('grep -o --text "igbpveg completed successfully" igbpveg.log') == "igbpveg completed successfully")
-    if xtest is False:
-        raise ValueError(dict2str("An error occured while running igbpveg.  Check igbpveg.log for details"))
+    check_msg_in_log("igbpveg","igbpveg.log","igbpveg completed successfully")
     run_cmdline('mv -f topsib{domain} topout{domain}')
 
 
 def run_ocean():
+    "Run ocnbath for ocean bathymetry and rivers"
 
     print("-> Processing bathymetry data")
     write2file('ocnbath.nml', ocnbath_template(), mode='w+')
@@ -688,27 +702,90 @@ def run_ocean():
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m srun -n 1 -c {nnode} {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
     else:
         run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {ocnbath} -s 5000 < ocnbath.nml > ocnbath.log')
-    xtest = (subprocess.getoutput('grep -o --text "ocnbath completed successfully" ocnbath.log')
-             == "ocnbath completed successfully")
-    if xtest is False:
-        raise ValueError(dict2str("An error occured while running ocnbath. Check ocnbath.log"))
+    check_msg_in_log("ocnbath","ocnbath.log","ocnbath completed successfully")
 
 
 def run_carbon():
+    "Run casafield for carbon cycle emissions"
 
     print("-> Processing CASA data")
     if d['machinetype'] == "srun":
         run_cmdline('srun -n 1 {casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
     else:
         run_cmdline('{casafield} -t topout{domain} -i {insdir}/vegin/casaNP_gridinfo_1dx1d.nc -o casa{domain} > casafield.log')
-    xtest = (subprocess.getoutput('grep -o --text "casafield completed successfully" casafield.log')
-             == "casafield completed successfully")
-    if xtest is False:
-        raise ValueError(dict2str("An error occured while running casafield.  Check casafield.log for details"))
+    check_msg_in_log("casafield","casafield.log","casafield completed successfully")
+
+
+#===============================================================================
+# Simulation
+#===============================================================================
+
+def set_simulation_options():
+    "Define simulation options"
+
+    # This function is called when simulation_test is True
+    
+    # store input rad_year as rad_year_input
+    d['rad_year_input'] = d['rad_year']
+    
+    # raw cc output frequency (mins)
+    d['dtout'] = 360
+    if d['ktc'] < d['dtout']:
+        d['dtout'] = d['ktc']
+
+    # need hourly output for CTM
+    # (may need to move this logic to run_ccam.sh)
+    if d['postprocess_test'] is True:
+        if d['ncout'] == "ctm":
+            if d['dtout'] > 60:
+                print("-> Adjusting ncout for CTM to 60 mins")
+                d['dtout'] = 60 
+
+    # define dictionary of pre-defined dx (mtrs) : dt (sec) relationships
+    d_dxdt = {60000:1200, 45000:900, 36000:720,
+              30000:600, 22500:450, 20000:400, 18000:360,
+              15000:300, 12000:240, 11250:225, 10000:200, 9000:180,
+              7500:150, 7200:144, 6000:120, 5000:100, 4500:90, 4000:80,
+              3750:75, 3600:72, 3000:60, 2500:50, 2400:48, 2250:45,
+              2000:40, 1800:36, 1500:30, 1250:25, 1200:24,
+              1000:20, 900:18, 800:16, 750:15, 600:12,
+              500:10, 450:9, 400:8, 300:6,
+              250:5, 200:4, 150:3, 100:2, 50:1}
+
+    # Note - if simulation_test=T then preprocess_test=T
+
+    # determine dt based on dx, dtout, ktc_surf and ktc_high
+    test_gridres = d['gridres_m']
+    test_surf = d['dtout']
+    if d['ktc_surf']>0:
+        test_surf = d['ktc_surf']
+    test_high = d['dtout']
+    if d['ktc_high']>0:
+        test_high = d['ktc_high']
+        
+    for dx in sorted(d_dxdt):
+        if (test_gridres>=dx) and (60*d['dtout']%d_dxdt[dx]==0) and (60*test_surf%d_dxdt[dx]==0) and (60*test_high%d_dxdt[dx]==0):
+            d['dt'] = d_dxdt[dx]
+
+    # resolution below 50m requires time step less than 1 second
+    if test_gridres < 50:
+        raise ValueError("Minimum grid resolution of 50m has been exceeded")
+
+    # check for errors with output frequency
+    if d['ktc']%d['dtout'] != 0:
+        raise ValueError("ktc must be a multiple of dtout")
+    if d['ktc_surf'] > 0:
+        if d['dtout']%d['ktc_surf'] != 0:
+            raise ValueError("dtout must be a multiple of ktc_surf")
+    if d['ktc_high'] > 0:
+        if d['dtout']%d['ktc_high'] != 0:
+            raise ValueError("dtout must be a multiple of ktc_high")
 
 
 def prep_iofiles():
     "Prepare input and output files"
+
+    # This function is called if simulation_test=T
 
     # Define restart file:
     d['ifile'] = dict2str('Rest{name}.{iyrlst}{imthlst_2digit}')
@@ -737,7 +814,7 @@ def prep_iofiles():
     if not os.path.exists(fpath):
         if not os.path.exists(fpath+'.000000'):
             d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}')
-
+    # no mesonest file required for some dmode options
     if d['dmode'] in ["sst_only", "aquaplanet1", "aquaplanet2", "aquaplanet3", "aquaplanet4", "aquaplanet5",
                       "aquaplanet6", "aquaplanet7", "aquaplanet8"]:
         d['mesonest'] = 'error'
@@ -745,15 +822,29 @@ def prep_iofiles():
     # Define restart file:
     d['restfile'] = dict2str('Rest{name}.{iyr}{imth_2digit}')
 
-    # Check for errors
-    if d['cmip'] == "cmip5":
+    # Check for user errors
+    if d['cmip'] == "cmip3":
+        print("ERROR: cmip=cmip3 is not supported")
+        sys.exit(1)
+    elif d['cmip'] == "cmip5":
         if d['rcp'] == "historic":
             if d['iyr'] >= 2005:
-                raise ValueError(dict2str("Historical period finished at 2004.  Consider selecting a future RCP."))
+                raise ValueError("Historical period finished at 2004.  Consider selecting a future RCP.")
     elif d['cmip'] == "cmip6":
         if d['rcp'] == "historic":
             if d['iyr'] >= 2015:
-                raise ValueError(dict2str("Historical period finished at 2014.  Consider selecting a future SSP."))
+                raise ValueError("Historical period finished at 2014.  Consider selecting a future SSP.")
+    else:
+        print("ERROR: Unknown cmip option cmip = ",d['cmip'])
+        sys.exit(1)
+
+    # radiation year
+    if d['rad_year_input'] == 0:
+        d['use_rad_year'] = '.false.'
+        d['rad_year'] = d['iyr']
+    else:
+        d['use_rad_year'] = '.true.'
+        d['rad_year'] = d['rad_year_input']
 
     # Decade start and end:
     d['ddyear'] = int(int(d['rad_year']/10)*10)
@@ -774,7 +865,7 @@ def prep_iofiles():
                 d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_2090-2099_{rcp}_T3M_O3.nc')
             else:		
                 d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
-    else:
+    elif d['cmip'] == "cmip6":
         if d['iyr'] < 1900:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
         elif d['iyr'] < 1950:
@@ -787,9 +878,13 @@ def prep_iofiles():
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
         else:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
+    else:
+        print("ERROR: Unknown cmip option")
+        sys.exit(1)        
+    # Check ozone file exisits
+    check_file_exists(d['ozone'])
 
-
-    # Define CO2 infile:
+    # Define GHG input depending on generation of CMIP
     if d['cmip'] == "cmip5":
         d['co2file'] = dict2str('{stdat}/{cmip}/{rcp}_MIDYR_CONC.DAT')
         d['ch4file'] = ""
@@ -799,9 +894,11 @@ def prep_iofiles():
         d['cfc113file'] = ""
         d['hcfc22file'] = ""
         d['solarfile'] = ""
-        for fname in [d['ozone'], d['co2file']]:
-            check_file_exists(fname)
-    else:
+        # verify iofiles exist
+        check_file_exists(d['co2file'])
+
+    elif d['cmip'] == "cmip6":
+        # check for historical or future GHG concentrations
         if d['iyr'] < 2015:
             d['co2file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
             d['ch4file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
@@ -822,8 +919,8 @@ def prep_iofiles():
             elif d['rcp'] == "ssp585":
                 d['rcplabel'] = "REMIND-MAGPIE"
             else:
-                raise ValueError(dict2str("Invalid choice for rcp"))
-
+                print("ERROR: Invalid choice for rcp=",d['rcp'])
+                sys.exit(1)
             d['co2file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
             d['ch4file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
             d['n2ofile'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
@@ -832,10 +929,17 @@ def prep_iofiles():
             d['cfc113file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-cfc113-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
             d['hcfc22file'] = dict2str('{stdat}/{cmip}/{rcp}/mole-fraction-of-hcfc22-in-air_input4MIPs_GHGConcentrations_ScenarioMIP_UoM-{rcplabel}-{rcp}-1-2-1_gr1-GMNHSH_201501-250012.nc')
 
+        # use time varying solar constant
         d['solarfile'] = dict2str('{stdat}/{cmip}/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-3-2_gn_185001-229912.nc')
-        for fname in [d['ozone'], d['co2file'], d['ch4file'], d['n2ofile'], d['cfc11file'],
+        
+        # verify iofiles exist
+        for fname in [d['co2file'], d['ch4file'], d['n2ofile'], d['cfc11file'],
                       d['cfc12file'], d['cfc113file'], d['hcfc22file'], d['solarfile']]:
             check_file_exists(fname)
+            
+    else:
+        print("ERROR: Unknown cmip option")
+        sys.exit(1)
 
 
 def set_mlev_params():
@@ -855,16 +959,13 @@ def config_initconds():
     d['nrungcm'] = 0
 
     if d['iyr'] == d['iys']:
-
         if d['imth'] == d['ims']:
-
             if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
                 d.update({'ifile': d['mesonest']})
             elif d['dmode'] == "sst_only":
                 d.update({'ifile': d['sstinit']})
             else:
                 d.update({'ifile': "error"})
-
             if d['bcsoil'] == "constant":
                 d['nrungcm'] = -1
             if d['bcsoil'] == "climatology":
@@ -877,13 +978,14 @@ def config_initconds():
                 d['nrungcm'] = -4
                 check_file_exists(d['bcsoilfile']+'.000000')
 
-
     # prepare ifile
     if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
         fpath = dict2str('{bcdir}/{mesonest}')
         cname = "error"
         if os.path.exists(fpath):
-            run_cmdline('ln -s '+fpath+' .')
+            newpath = dict2str('{wdir}/{mesonest}')
+            if not os.path.exists(newpath):
+                run_cmdline('ln -s '+fpath+' '+newpath)
             cname = fpath
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
@@ -946,7 +1048,8 @@ def config_initconds():
         d['ndays'] = 30
     else:
         raise ValueError("ERROR: Unknown option for leap")
-    
+
+    # calculate the number of days in the simulation    
     d['eday'] = d['ndays']
     if (d['iyr']==d['iye']) and (d['imth']==d['ime']):
         if (d['ide']>d['ndays']) or (d['ide']<1):
@@ -956,11 +1059,12 @@ def config_initconds():
         raise ValueError("Start day ids is invalid.")
     d['ndays'] = d['eday'] - d['iday'] + 1
 
+    # calculate the starting hour
     d['ihs'] = 0
     if not fname=="error":
         testtime = int(subprocess.getoutput('ncdump -c '+fname+' | grep time | grep units | head -1 | cut -d= -f2 | cut -d" " -f5 | cut -d: -f1'))
-        if testtime > 12:
-            testtime = 24 - testtime
+        #if testtime == 12:
+        #    testtime = 24 - testtime
         d['ihs'] = testtime
 
 
@@ -989,6 +1093,7 @@ def set_nudging():
     else:
         d.update({'mbd_base': 0, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
                   'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+
 
 def set_downscaling():
     "Set downscaling parameters"
@@ -1024,13 +1129,34 @@ def set_downscaling():
                   'nbd': 0, 'mbd': 0, 'nud_aero': 0,
                   'mh_bs':3})
 
+
+def set_gwdrag():
+    "Gravity wave drag settings"
+    
+    # Note JLM convection can override these settings
+    d.update({'ngwd': -5, 'helim': 800., 'fc2': 1., 'sigbot_gwd': 0., 'alphaj': '0.000001'})
+
+
+def set_convection():    
+    "Convection settings"
+
+    # note that conv selects alternative namelists
+    
+    # Note JLM convection can override gravity wave drag settings
+    if d['conv'] == "2015b":
+        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
+    if d['conv'] == "2017":
+        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
+    if d['conv'] == "2021":
+        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
+
+
 def set_cloud():
     "Cloud microphysics settings"
 
     d['diaglevel_cloud'] = 0
     if (d['ncout']=="all") or (d['ncout']=="all_s"):
         d['diaglevel_cloud'] = 9
-
 
     if d['cloud'] == "liq_ice":
         d.update({'ncloud': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
@@ -1043,6 +1169,7 @@ def set_cloud():
 
     if d['cldfrac'] == "mcgregor":
         d.update({'rcrit_l': 0.85, 'rcrit_s': 0.85, 'nclddia': 3})
+
 
 def set_radiation():
     "Radiation settings"
@@ -1064,36 +1191,8 @@ def set_radiation():
                   'liqradmethod': 6, 'iceradmethod': 4})
 
 
-def set_ocean():
-    "Ocean physics settings"
-
-    if d['mlo'] == "prescribed":
-        #Interpolated SSTs
-        d.update({'nmlo': 0, 'mbd_mlo': 0, 'nud_sst': 0,
-                  'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                  'kbotmlo': -40})
-
-    else:
-        #Dynanical Ocean
-        if d['dmode'] in ["nudging_gcm", "sst_only", "sst_6hour", "nudging_gcm_with_sst"]:
-            # Downscaling mode - GCM or SST-only:
-            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
-                      'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                      'kbotmlo': -40})
-        elif d['dmode'] == "nudging_ccam":
-            # Downscaling CCAM:
-            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
-                      'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
-                      'kbotmlo': -40})
-        else:
-            raise ValueError(dict2str('ERROR: mlo not supported for dmode {dmode}'))
-            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
-                      'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
-                      'kbotmlo': -40})
-
-
-def set_atmos():
-    "Atmospheric physics settings"
+def set_land_and_carbon():
+    "Land and carbon cycle settings"
 
     # CABLE options
     if d['sib'] == "cable_vary":
@@ -1132,44 +1231,54 @@ def set_atmos():
         d.update({'vegin': dict2str('{hdir}/vegdata'),
                   'vegfile': dict2str('veg{domain}.{iyr}.{imth_2digit}')})
 
+
+def set_ocean():
+    "Ocean physics settings"
+
+    if d['mlo'] == "prescribed":
+        #Interpolated SSTs
+        d.update({'nmlo': 0, 'mbd_mlo': 0, 'nud_sst': 0,
+                  'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
+                  'kbotmlo': -40})
+
+    else:
+        #Dynanical Ocean
+        if d['dmode'] in ["nudging_gcm", "sst_only", "sst_6hour", "nudging_gcm_with_sst"]:
+            # Downscaling mode - GCM or SST-only:
+            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
+                      'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
+                      'kbotmlo': -40})
+        elif d['dmode'] == "nudging_ccam":
+            # Downscaling CCAM:
+            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
+                      'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
+                      'kbotmlo': -40})
+        else:
+            raise ValueError(dict2str('ERROR: mlo not supported for dmode {dmode}'))
+            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
+                      'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
+                      'kbotmlo': -40})
+
+
+def set_pblmix():
+    "Boundary layer turbulent mixing"
+    
     if d['bmix'] == "ri":
         d.update({'nvmix': 3, 'nlocal': 6, 'amxlsq': 100., 'wg_tau': 3.,
                   'wg_prob': 0.5})
-    if d['bmix'] == "tke_eps":
+    elif d['bmix'] == "tke_eps":
         if d['mlo'] == "dynamical":
             d.update({'nvmix': 9, 'nlocal': 7, 'amxlsq': 9., 'wg_tau': 3.,
                       'wg_prob': 0.5})
         else:
             d.update({'nvmix': 6, 'nlocal': 7, 'amxlsq': 9., 'wg_tau': 3.,
                       'wg_prob': 0.5})
-    if d['bmix'] == "hbg":
+    elif d['bmix'] == "hbg":
         d.update({'nvmix': 7, 'nlocal': 6, 'amxlsq': 9., 'wg_tau': 3.,
                   'wg_prob': 0.5})
-
-    d.update({'ngwd': -5, 'helim': 800., 'fc2': 1., 'sigbot_gwd': 0., 'alphaj': '0.000001'})
-
-    if d['conv'] == "2015b":
-        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
-
-    if d['conv'] == "2017":
-        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
-
-    if d['conv'] == "2021":
-        d.update({'ngwd': -20, 'helim': 1600., 'fc2': -0.5, 'sigbot_gwd': 1., 'alphaj': '0.025'})
-
-
-def set_surfc():
-    "Prepare surface files"
-
-    if d['ktc_surf'] > 0:
-        d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
     else:
-        d.update({'tbave': 0})	
-
-    if d['ktc_high'] > 0:
-        d.update({'tbave10': int(d['ktc_high']*60/d['dt'])})
-    else:
-        d.update({'tbave10': 0})	
+        print("ERROR: Unknown option for bmix = ",d['bmix'])
+        sys.exit(1)
 
 
 def set_aeros():
@@ -1302,10 +1411,7 @@ def create_aeroemiss_file():
         else:
             run_cmdline('env OMP_NUM_THREADS={nnode} OMP_WAIT_POLICY="PASSIVE" OMP_STACKSIZE=1024m {aeroemiss} -o {sulffile} < aeroemiss.nml > aero.log')
 
-        xtest = (subprocess.getoutput('grep -o --text "aeroemiss completed successfully" aero.log')
-                 == "aeroemiss completed successfully")
-        if xtest is False:
-            raise ValueError(dict2str("An error occured while running aeroemiss.  Check aero.log for details"))
+        check_msg_in_log("aeroemiss","aero.log","aeroemiss completed successfully")
 
 
 def locate_tracer_emissions():
@@ -1317,7 +1423,6 @@ def locate_tracer_emissions():
         filename = dict2str('{tracer}/tracer.txt')
         if not os.path.exists(filename):
             raise ValueError(dict2str("Cannot locate tracer.txt in {tracer}"))
-
         run_cmdline('ln -s {tracer}/* .')
 
 
@@ -1347,6 +1452,20 @@ def set_aquaplanet():
     if not (d['nhstest']==0):
         if (d['iyr']==d['iys']) and (d['imth']==d['ims']):
             d['io_in'] = 10
+
+
+def set_surf_output():
+    "Prepare surface files"
+
+    if d['ktc_surf'] > 0:
+        d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
+    else:
+        d.update({'tbave': 0})	
+
+    if d['ktc_high'] > 0:
+        d.update({'tbave10': int(d['ktc_high']*60/d['dt'])})
+    else:
+        d.update({'tbave10': 0})	
 
 
 def create_input_file():
@@ -1416,11 +1535,11 @@ def prepare_ccam_infiles():
         fname = dict2str('{sstdir}/{sstfile}')
         if not os.path.exists(fname):
             raise ValueError('Cannot locate '+fname)
-        testrealheader = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text real_header') == "real_header")
+        testrealheader = check_var_in_file(fname, "real_header")    
         if testrealheader is False:
             raise ValueError('Invalid sstfile '+fname+'.  Must use a cubic grid.')
         # check if sea-ice is present in sstfile
-        sictest = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text sic') == "sic")
+        sictest = check_var_in_file(fname, "sic")
         if sictest is True:
             d['nmaip'] = 14
         else:
@@ -1433,7 +1552,7 @@ def check_correct_host():
     if d['dmode'] in ["nudging_gcm", "nudging_ccam", "nudging_gcm_with_sst"]:
         for fname in [d['mesonest'], d['mesonest']+'.000000']:
             if os.path.exists(fname):
-                ccam_host = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text :version') == ":version")
+                ccam_host = check_var_in_file(fname, ":version")
                 break
         if ccam_host is True and (d['dmode']=="nudging_gcm"):
             raise ValueError('CCAM is the host model. Use dmode=nudging_ccam')
@@ -1442,6 +1561,7 @@ def check_correct_host():
         if ccam_host is True and (d['dmode']=="nudging_gcm_with_sst"):
             raise ValueError('CCAM is the host model. Use dmode=nudging_ccam')
 
+#    # should this stretching be limited because nud_q=0?
 #    if d['dmode'] == "nudging_gcm":
 #        if d['inv_schmidt'] < 0.2:
 #            raise ValueError('CCAM grid stretching is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
@@ -1468,29 +1588,21 @@ def check_correct_host():
 def check_correct_landuse(fname):
     "Check that land-use data matches what the user wants"
 
-    testfail = False
-
-    cable_data = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text cableversion') == "cableversion")
-    if cable_data is False:
-        testfail = True
-
-    return testfail
+    return ( not check_var_in_file(fname,"cableversion") )
 
 
 def run_model():
     "Execute the CCAM model"
 
+    # run CCAM
     if d['machinetype'] == "srun":
         run_cmdline('srun -n {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
     else:
         run_cmdline('mpirun -np {nproc} {model} > prnew.{kdates}.{name} 2> err.{iyr}')
-
     prfile = dict2str('prnew.{kdates}.{name}')
-    xtest = (subprocess.getoutput('grep -o --text "globpea completed successfully" '+prfile)
-             == "globpea completed successfully")
-    if xtest is False:
-        raise ValueError(dict2str("An error occured while running CCAM.  Check prnew.{kdates}.{name} for details"))
+    check_msg_in_log("CCAM",prfile,"globpea completed successfully")
 
+    # clean-up temporary files
     fname = dict2str('{mesonest}.000000')
     if os.path.exists(fname):
         run_cmdline('rm {mesonest}.??????')
@@ -1498,6 +1610,7 @@ def run_model():
     if os.path.exists(fname):
         run_cmdline('rm {mesonest}')
 
+    # delete postprocess files so that a subsequent postprocess will update with the new run
     if d['dmode'] != "postprocess":
         fname = dict2str('{hdir}/daily/pr_{ofile}.nc')
         if os.path.exists(fname):
@@ -1527,6 +1640,7 @@ def run_model():
         if os.path.exists(fname):
             run_cmdline('rm {hdir}/highfreq/*_freq.{ofile}.nc')
 
+    # Remove incomplete simulations (treat as spinup)
     if d['ihour'] > 0:
         print("Incomplete month detected - Removing spin-up output")
         run_cmdline('rm {ofile}.??????')
@@ -1536,6 +1650,11 @@ def run_model():
         fname = dict2str('freq.{ofile}.000000')
         if os.path.exists(fname):
             run_cmdline('rm freq.{ofile}.??????')
+
+
+#===============================================================================
+# Postprocess
+#===============================================================================
 
 def post_process_output():
     "Post-process the CCAM model output"
@@ -1551,17 +1670,18 @@ def post_process_output():
     d['drs_host_scenario'] = "error"
     d['drs_host_ensemble'] = "error"
     d['drs_host_name'] = "error"
+
     while ftest:
+    
         d['histmonth'] = mon_2digit(hm)
         d['histyear'] = hy
         d['histfile'] = dict2str('{name}.{histyear}{histmonth}')
 	    
-        # standard output
+        # standard output ------------------------------------------------------
         outlist = d['outlevmode'].split("_")
-        
         for outindex in range(len(outlist)):
-            d['vertout'] = outlist[outindex]
 
+            d['vertout'] = outlist[outindex]
             if d['vertout']=="pressure":
                 d['use_plevs'] = 'T'
                 d['use_meters'] = 'F'
@@ -1580,425 +1700,43 @@ def post_process_output():
             else:
                 raise ValueError('Unknown option for vertical levels')
 
-
-            if d['ncout'] == "all":
-                fname = dict2str('{hdir}/{dailydir}/pr_{histfile}.nc')
-                if not os.path.exists(fname):
-                    tarflag = False
-                    cname = dict2str('{histfile}.000000')
-                    if not os.path.exists(cname):
-                        tname = dict2str('{histfile}.tar')
-                        if os.path.exists(tname):
-                            tarflag = True
-                            run_cmdline('tar xvf '+tname)    
-                    if os.path.exists(cname):
-                        calc_drs_host(cname)
-                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
-                        write2file('cc.nml', cc_template_1(), mode='w+')
-                        if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                                 == "pcc2hist completed successfully")
-                        if xtest is False:
-                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details"))
-                        run_cmdline('mv *_{histfile}.nc {hdir}/{dailydir}')
-                        if tarflag is True:
-                            run_cmdline('rm {histfile}.??????')
-                        ftest = False
-                        if d['vertout'] == "pressure":
-                            newoutput = True
-                        if d['vertout'] == "height":
-                            newoutput_h = True
-                        if d['vertout'] == "theta":
-                            newoutput_t = True
+            if (d['ncout']=="all") or (d['ncout']=="all_s"):
+                singleflag = d['ncout']=="all_s"
+                ftest, newoutput, newoutput_h, newoutput_t = write_output_std("all", singleflag, ftest, newoutput, newoutput_h, newoutput_t)
 
             if d['ncout'] == "ctm":
-                if not (d['vertout']=="pressure"):
-                    raise ValueError("CTM output requires pressure levels")
-                fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}01.nc")
-                if not os.path.exists(fname):
-                    tarflag = False
-                    cname = dict2str('{histfile}.000000')
-                    if not os.path.exists(cname):
-                        tname = dict2str('{histfile}.tar')
-                        if os.path.exists(tname):
-                            tarflag = True
-                            run_cmdline('tar xvf '+tname)    
-                    if os.path.exists(cname):
-                        calc_drs_host(cname)
-                        print("Process CTM output for ",dict2str('{histyear}{histmonth}'))
-                        calendar_noleap = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text noleap') == "noleap")
-                        calendar_360 = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text 360_day') == "360_day")
-                        calendar_test = "leap"
-                        if calendar_noleap is True:
-                            calendar_test = "noleap"
-                        if calendar_360 is True:
-                            calendar_test = "360"
-                        print("Calendar found "+calendar_test)
-                        idaystart = 1
-                        if (hy == d['iys']) and (hm == d['ims']):
-                            idaystart = d['ids']
-                        if calendar_test == "noleap":
-                            idayend = monthrange(hy, hm)[1]
-                            if hm == 2:
-                                idayend=28
-                        if calendar_test == "leap":
-                            idayend = monthrange(hy, hm)[1]
-                        if calendar_test == "360":
-                            idayend = 30
-                        if (hy == d['iye']) and (hm == d['ime']):
-                            idayend = d['ide']
-                        for iday in range(idaystart, idayend+1):
-                            d['cday'] = mon_2digit(iday)
-                            d['iend'] = (iday-idaystart+1)*1440
-                            d['istart'] = (iday-idaystart)*1440
-                            d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
-                            write2file('cc.nml', cc_template_2(), mode='w+')
-                            if d['machinetype'] == "srun":
-                                run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
-                            else:
-                                run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
-                            xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist_ctm.log')
-                                     == "pcc2hist completed successfully")
-                            if xtest is False:
-                                raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist_ctm.log for details"))
-                        run_cmdline('mv ccam_{histyear}{histmonth}??.nc {hdir}/daily')
-                        if tarflag is True:
-                            run_cmdline('rm {histfile}.??????')
-                        ftest = False
-                        # No DRS output for CTM formatting
-                        newoutput = False
+                ftest, newoutput, newoutput_h, newoutput_t = write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm)
 
-            if d['ncout'] == "basic":
-                fname = dict2str('{hdir}/{dailydir}/pr_{histfile}.nc')
-                if not os.path.exists(fname):
-                    tarflag = False
-                    cname = dict2str('{histfile}.000000')
-                    if not os.path.exists(cname):
-                        tname = dict2str('{histfile}.tar')
-                        if os.path.exists(tname):
-                            tarflag = True
-                            run_cmdline('tar xvf '+tname)    
-                    if os.path.exists(cname):
-                        calc_drs_host(cname)
-                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
-                        write2file('cc.nml', cc_template_6(), mode='w+')
-                        if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                                 == "pcc2hist completed successfully")
-                        if xtest is False:
-                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
-                        run_cmdline('mv *{histfile}.nc {hdir}/{dailydir}')
-                        if tarflag is True:
-                            run_cmdline('rm {histfile}.??????')
-                        ftest = False
-                        if d['vertout'] == "pressure":
-                            newoutput = True
-                        if d['vertout'] == "height":
-                            newoutput_h = True
-                        if d['vertout'] == "theta":
-                            newoutput_t = True
+            if (d['ncout']=="basic") or (d['ncout']=="basic_s"):
+                singleflag = d['ncout']=="basic_s"
+                ftest, newoutput, newoutput_h, newoutput_t = write_output_std("basic", singleflag, ftest, newoutput, newoutput_h, newoutput_t)
 
             if d['ncout'] == "tracer":
-                fname = dict2str('{hdir}/{dailydir}/trav0001_{histfile}.nc')
-                if not os.path.exists(fname):
-                    tarflag = False
-                    cname = dict2str('{histfile}.000000')
-                    if not os.path.exists(cname):
-                        tname = dict2str('{histfile}.tar')
-                        if os.path.exists(tname):
-                            tarflag = True
-                            run_cmdline('tar xvf '+tname)
-                    if os.path.exists(cname):
-                        calc_drs_host(cname)
-                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
-                        write2file('cc.nml', cc_template_7(), mode='w+')
-                        if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                                 == "pcc2hist completed successfully")
-                        if xtest is False:
-                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
-                        run_cmdline('mv *{histfile}.nc {hdir}/{dailydir}')
-                        if tarflag is True:
-                            run_cmdline('rm {histfile}.??????')
-                        ftest = False
-                        if d['vertout'] == "pressure":
-                            newoutput = True
-                        if d['vertout'] == "height":
-                            newoutput_h = True
-                        if d['vertout'] == "theta":
-                            newoutput_t = True
-
-            if d['ncout'] == "all_s":
-                fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
-                if not os.path.exists(fname):
-                    tarflag = False
-                    cname = dict2str('{histfile}.000000')
-                    if not os.path.exists(cname):
-                        tname = dict2str('{histfile}.tar')
-                        if os.path.exists(tname):
-                            tarflag = True
-                            run_cmdline('tar xvf '+tname)
-                    if os.path.exists(cname):
-                        calc_drs_host(cname)
-                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
-                        write2file('cc.nml', cc_template_1(), mode='w+')
-                        if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                                 == "pcc2hist completed successfully")
-                        if xtest is False:
-                            raise ValueError(dict2str("An error occured while running pcc2hist.  Check pcc2hist.log for details."))
-                        run_cmdline('mv {histfile}.nc {hdir}/{dailydir}')
-                        if tarflag is True:
-                            run_cmdline('rm {histfile}.??????')
-                        ftest = False
-                        if d['vertout'] == "pressure":
-                            newoutput = True
-                        if d['vertout'] == "height":
-                            newoutput_h = True
-                        if d['vertout'] == "theta":
-                            newoutput_t = True
-
-            if d['ncout'] == "basic_s":
-                fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
-                if not os.path.exists(fname):
-                    tarflag = False
-                    cname = dict2str('{histfile}.000000')
-                    if not os.path.exists(cname):
-                        tname = dict2str('{histfile}.tar')
-                        if os.path.exists(tname):
-                            tarflag = True
-                            run_cmdline('tar xvf '+tname)
-                    if os.path.exists(cname):
-                        calc_drs_host(cname)
-                        print("Process ",dict2str('{vertout}')," (daily) output for ",dict2str('{histyear}{histmonth}'))
-                        write2file('cc.nml', cc_template_6(), mode='w+')
-                        if d['machinetype'] == "srun":
-                            run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                        else:
-                            run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
-                        xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" pcc2hist.log')
-                                 == "pcc2hist completed successfully")
-                        if xtest is False:
-                            raise ValueError(dict2str("An error occured running pcc2hist. Check pcc2hist.log"))
-                        run_cmdline('mv {histfile}.nc {hdir}/{dailydir}')
-                        if tarflag is True:
-                            run_cmdline('rm {histfile}.??????')
-                        ftest = False
-                        if d['vertout'] == "pressure":
-                            newoutput = True
-                        if d['vertout'] == "height":
-                            newoutput_h = True
-                        if d['vertout'] == "theta":
-                            newoutput_t = True
+                ftest, newoutput, newoutput_h, newoutput_t = write_output_std("tracer", False, ftest, newoutput, newoutput_h, newoutput_t)	    
                     
         # store output
-        if (d['nctar']=="off") and (d['dmode']!="postprocess"):
-            cname = dict2str('{histfile}.000000')
-            if os.path.exists(cname):
-                run_cmdline('mv {histfile}.?????? {hdir}/OUTPUT')
-                ftest = False
+        fname = dict2str('{histfile}')
+        ftest = store_output(ftest, fname)
 
-        if d['nctar'] == "tar":
-            cname = dict2str('{histfile}.000000')
-            if os.path.exists(cname):
-                run_cmdline('tar cvf {hdir}/OUTPUT/{histfile}.tar {histfile}.??????')
-                run_cmdline('rm {histfile}.??????')
-                ftest = False
+        # surface files --------------------------------------------------------
+        if (d['ncsurf']=="cordex") or (d['ncsurf']=="cordex_s"):
+            singleflag = d['ncsurf']=="cordex_s"
+            ftest, newcordex = write_output_cordex("cordex", singleflag, ftest, newcordex)
+  
+        # store output
+        name = dict2str('surf.{histfile}')
+        ftest = store_output(ftest, fname)
 
-        if d['nctar'] == "delete":
-            cname = dict2str('{histfile}.000000')
-            if os.path.exists(cname):
-                run_cmdline('rm {histfile}.??????')
-                ftest = False                    
-
-        # surface files
-        if d['ncsurf'] == "cordex":
-            fname = dict2str('{hdir}/cordex/pr_surf.{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('surf.{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('surf.{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)    
-                if os.path.exists(cname):
-                    calc_drs_host(cname)
-                    print("Process CORDEX output for ",dict2str('{histyear}{histmonth}'))
-                    d['ktc_units'] = d['ktc_surf']
-                    cname = dict2str('surf.{histfile}.000000')
-                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
-                    if seconds_check is True:
-                        d['ktc_units'] = d['ktc_units']*60
-                    write2file('cc.nml', cc_template_5(), mode='w+')
-                    if d['machinetype'] == "srun":
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
-                    else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
-                    run_cmdline('mv *_surf.{histfile}.nc {hdir}/cordex')
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-                    newcordex = True
-
-        if d['ncsurf'] == "cordex_s":
-            fname = dict2str('{hdir}/cordex/surf.{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('surf.{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('surf.{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)
-                if os.path.exists(cname):
-                    calc_drs_host(cname)
-                    print("Process CORDEX output for ",dict2str('{histyear}{histmonth}'))
-                    d['ktc_units'] = d['ktc_surf']
-                    cname = dict2str('surf.{histfile}.000000')
-                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
-                    if seconds_check is True:
-                        d['ktc_units'] = d['ktc_units']*60
-                    write2file('cc.nml', cc_template_5(), mode='w+')
-                    if d['machinetype'] == "srun":
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
-                    else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" surf.pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured running pcc2hist. Check surf.pcc2hist.log"))
-                    run_cmdline('mv *_surf.{histfile}.nc {hdir}/cordex')
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-                    newcordex = True
+        # high-frequency files -------------------------------------------------
+        if (d['nchigh']=="latlon") or (d['nchigh']=="latlon_s"):
+            singleflag = d['nchigh']=="latlon_s"
+            ftest, newhighfreq = write_output_highfreq("latlon", singleflag, ftest, newhighfreq)
 
         # store output
-        if d['ktc_surf'] > 0:
-            if (d['nctar']=="off") and (d['dmode']!="postprocess"):
-                cname = dict2str('surf.{histfile}.000000')
-                if os.path.exists(cname):
-                    run_cmdline('mv surf.{histfile}.?????? {hdir}/OUTPUT')
-                    ftest = False
-
-            if d['nctar'] == "tar":
-                cname = dict2str('surf.{histfile}.000000')
-                if os.path.exists(cname):
-                    run_cmdline('tar cvf {hdir}/OUTPUT/surf.{histfile}.tar surf.{histfile}.??????')
-                    run_cmdline('rm surf.{histfile}.??????')
-                    ftest = False
-
-            if d['nctar'] == "delete":
-                cname = dict2str('surf.{histfile}.000000')
-                if os.path.exists(cname):
-                    run_cmdline('rm surf.{histfile}.??????')
-                    ftest = False
-
-        # high-frequency files
-        if d['nchigh'] == "latlon":
-            fname = dict2str('{hdir}/highfreq/rnd_freq.{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('freq.{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('freq.{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)    
-                if os.path.exists(cname):
-                    calc_drs_host(cname)
-                    print("Process high-frequency output for ",dict2str('{histyear}{histmonth}'))
-                    d['ktc_units'] = d['ktc_high']
-                    cname = dict2str('freq.{histfile}.000000')
-                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
-                    if seconds_check is True:
-                        d['ktc_units'] = d['ktc_units']*60
-                    write2file('cc.nml', cc_template_3(), mode='w+')
-                    if d['machinetype'] == "srun":
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
-                    else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" freq.pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured running pcc2hist. Check freq.pcc2hist.log"))
-                    run_cmdline('mv *_freq.{histfile}.nc {hdir}/highfreq')
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-                    newhighfreq = True
-
-        if d['nchigh'] == "latlon_s":
-            fname = dict2str('{hdir}/highfreq/freq.{histfile}.nc')
-            if not os.path.exists(fname):
-                tarflag = False
-                cname = dict2str('freq.{histfile}.000000')
-                if not os.path.exists(cname):
-                    tname = dict2str('freq.{histfile}.tar')
-                    if os.path.exists(tname):
-                        tarflag = True
-                        run_cmdline('tar xvf '+tname)
-                if os.path.exists(cname):
-                    calc_drs_host(cname)
-                    print("Process high-frequency output for ",dict2str('{histyear}{histmonth}'))
-                    d['ktc_units'] = d['ktc_high']
-                    cname = dict2str('freq.{histfile}.000000')
-                    seconds_check = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep units | grep -o --text seconds') == "seconds")
-                    if seconds_check is True:
-                        d['ktc_units'] = d['ktc_units']*60
-                    write2file('cc.nml', cc_template_3(), mode='w+')
-                    if d['machinetype'] == "srun":
-                        run_cmdline('srun -n {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
-                    else:
-                        run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
-                    xtest = (subprocess.getoutput('grep -o --text "pcc2hist completed successfully" freq.pcc2hist.log')
-                             == "pcc2hist completed successfully")
-                    if xtest is False:
-                        raise ValueError(dict2str("An error occured running pcc2hist. Check freq.pcc2hist.log"))
-                    run_cmdline('mv *_freq.{histfile}.nc {hdir}/highfreq')
-                    if tarflag is True:
-                        run_cmdline('rm {histfile}.??????')
-                    ftest = False
-                    newhighfreq = True
-
-
-        # store output
-        if d['ktc_high'] > 0:
-            if (d['nctar']=="off") and (d['dmode']!="postprocess"):
-                cname = dict2str('freq.{histfile}.000000')
-                if os.path.exists(cname):
-                    run_cmdline('mv freq.{histfile}.?????? {hdir}/OUTPUT')
-                    ftest = False
-
-            if d['nctar'] == "tar":
-                cname = dict2str('freq.{histfile}.000000')
-                if os.path.exists(cname):
-                    run_cmdline('tar cvf {hdir}/OUTPUT/freq.{histfile}.tar freq.{histfile}.??????')
-                    run_cmdline('rm freq.{histfile}.??????')
-                    ftest = False
-
-            if d['nctar'] == "delete":
-                cname = dict2str('freq.{histfile}.000000')
-                if os.path.exists(cname):
-                    run_cmdline('rm freq.{histfile}.??????')
-                    ftest = False
+        name = dict2str('freq.{histfile}')
+        ftest = store_output(ftest, fname)
+	
+	# ----------------------------------------------------------------------
 
         hm = hm + 1
         if hm > 12:
@@ -2008,12 +1746,294 @@ def post_process_output():
             # Advace year
             hm = 1
             hy = hy + 1
-        if (hy>d['iye']) and (ftest==True):
+    
+        if hy>d['iye']:
             ftest = False
             if d['dmode'] == "postprocess":
-                print("CCAM post-processing is complete")
-                write2file(d['hdir']+'/restart5.qm', "Complete", mode='w+')
-                sys.exit(0)
+                # allow simulation to exit
+                d['iyr'] = hy
+                d['imth'] = hm
+
+
+def write_output_std(outmode, singleflag, ftest, newoutput, newoutput_h, newoutput_t):
+    "Write standard output for all variables"
+    
+    # check if output already exists
+    if outmode == "tracer":
+        fname = dict2str('{hdir}/{dailydir}/trav0001_{histfile}.nc')    
+    elif singleflag is True:
+        fname = dict2str('{hdir}/{dailydir}/{histfile}.nc')
+    else:    
+        fname = dict2str('{hdir}/{dailydir}/pr_{histfile}.nc')
+
+    if not os.path.exists(fname):
+    
+        # open tar file if necessary
+        tarflag = False
+        cname = dict2str('{histfile}.000000')
+        if not os.path.exists(cname):
+            tname = dict2str('{histfile}.tar')
+            if os.path.exists(tname):
+                tarflag = True
+                run_cmdline('tar xvf '+tname)
+
+        # star processing data if present 	
+        if os.path.exists(cname):
+
+            print(dict2str("Process {vertout} (daily) output for {histyear}{histmonth}"))
+
+            # read DRS data
+            calc_drs_host(cname)
+    
+            # Run pcc2hist to extract data from raw cubic data
+            if outmode == "all":
+                write2file('cc.nml', cc_template_all(), mode='w+')
+            elif outmode == "basic":		
+                write2file('cc.nml', cc_template_basic(), mode='w+')
+            elif outmode == "tracer":
+                write2file('cc.nml', cc_template_tracer(), mode='w+')
+            else:
+                print("ERROR Unknown outmode in write_output_std outmode=",outmode)
+                sys.exit(1)
+
+            if singleflag is True:
+                if d['machinetype'] == "srun":
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+            else:
+                if d['machinetype'] == "srun":
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+            check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
+    
+            # move fles from working directory to archive directory
+            if singleflag:
+                run_cmdline('mv {histfile}.nc {hdir}/{dailydir}')
+            else:    
+                run_cmdline('mv *_{histfile}.nc {hdir}/{dailydir}')
+
+            # clean up temporary files
+            if tarflag is True:
+                run_cmdline('rm {histfile}.??????')
+		
+            # set flags for postprocess loop in calling function
+            ftest = False
+            if d['vertout'] == "pressure":
+                newoutput = True
+            if d['vertout'] == "height":
+                newoutput_h = True
+            if d['vertout'] == "theta":
+                newoutput_t = True
+
+    return ftest, newoutput, newoutput_h, newoutput_t
+
+
+def write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm):
+    "Write CTM output"
+    
+    # CTM expects hourly ouput
+
+    if not (d['vertout']=="pressure"):
+        raise ValueError("CTM output requires pressure levels")
+	
+    fname = dict2str("{hdir}/daily/ccam_{histyear}{histmonth}01.nc")
+    if not os.path.exists(fname):
+    
+        tarflag = False
+        cname = dict2str('{histfile}.000000')
+        if not os.path.exists(cname):
+            tname = dict2str('{histfile}.tar')
+            if os.path.exists(tname):
+                tarflag = True
+                run_cmdline('tar xvf '+tname)
+		    
+        if os.path.exists(cname):
+
+            print(dict2str("Process CTM output for {histyear}{histmonth}"))	
+            calc_drs_host(cname)
+
+            calendar_noleap = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text noleap') == "noleap")
+            calendar_360 = (subprocess.getoutput('ncdump -c '+cname+' | grep time | grep calendar | grep -o --text 360_day') == "360_day")
+            calendar_test = "leap"
+            if calendar_noleap is True:
+                calendar_test = "noleap"
+            if calendar_360 is True:
+                calendar_test = "360"
+            print("Calendar found "+calendar_test)
+	    
+            idaystart = 1
+            if (hy == d['iys']) and (hm == d['ims']):
+                idaystart = d['ids']
+            if calendar_test == "noleap":
+                idayend = monthrange(hy, hm)[1]
+                if hm == 2:
+                    idayend=28
+            if calendar_test == "leap":
+                idayend = monthrange(hy, hm)[1]
+            if calendar_test == "360":
+                idayend = 30
+            if (hy == d['iye']) and (hm == d['ime']):
+                idayend = d['ide']
+		
+            for iday in range(idaystart, idayend+1):
+                d['cday'] = mon_2digit(iday)
+                d['iend'] = (iday-idaystart+1)*1440
+                d['istart'] = (iday-idaystart)*1440
+                d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
+                write2file('cc.nml', cc_template_ctm(), mode='w+')
+                if d['machinetype'] == "srun":
+                    run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")    
+		
+            run_cmdline('mv ccam_{histyear}{histmonth}??.nc {hdir}/daily')
+            if tarflag is True:
+                run_cmdline('rm {histfile}.??????')
+            ftest = False
+            # No DRS output for CTM formatting
+            newoutput = False
+
+    return ftest, newoutput, newoutput_h, newoutput_t
+
+
+def write_output_cordex(outmode, singleflag, ftest, newcordex):
+    "Write CORDEX output"
+
+    if singleflag is True:
+        fname = dict2str('{hdir}/cordex/surf.{histfile}.nc')
+    else:    
+        fname = dict2str('{hdir}/cordex/pr_surf.{histfile}.nc')
+	
+    if not os.path.exists(fname):
+    
+        tarflag = False
+        cname = dict2str('surf.{histfile}.000000')
+        if not os.path.exists(cname):
+            tname = dict2str('surf.{histfile}.tar')
+            if os.path.exists(tname):
+                tarflag = True
+                run_cmdline('tar xvf '+tname)    
+
+        if os.path.exists(cname):
+
+            print(dict2str("Process CORDEX output for {histyear}{histmonth}"))
+
+            calc_drs_host(cname)
+	    
+            if outmode == "cordex":
+                write2file('cc.nml', cc_template_cordex(), mode='w+')
+            else:
+                print("ERROR Unknown outmode for write_output_cordex outmode=",outmode)
+                sys.exit(1)		
+	    
+            if singleflag is True:
+                if d['machinetype'] == "srun":
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+            else:
+                if d['machinetype'] == "srun":
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+            check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
+	    
+            if singleflag is True:
+                run_cmdline('mv surf.{histfile}.nc {hdir}/cordex')
+            else:    
+                run_cmdline('mv *_surf.{histfile}.nc {hdir}/cordex')
+		
+            if tarflag is True:
+                run_cmdline('rm surf.{histfile}.??????')
+
+            ftest = False
+            newcordex = True
+
+    return ftest, newcordex
+
+
+def write_output_highfreq(outmode, singleflag, ftest, newhighfreq):
+    "Write high-frequency output"
+    
+    if singleflag is True:
+        fname = dict2str('{hdir}/highfreq/freq.{histfile}.nc')            
+    else:
+        fname = dict2str('{hdir}/highfreq/rnd_freq.{histfile}.nc')
+	
+    if not os.path.exists(fname):
+	    
+        tarflag = False
+        cname = dict2str('freq.{histfile}.000000')
+        if not os.path.exists(cname):
+            tname = dict2str('freq.{histfile}.tar')
+            if os.path.exists(tname):
+                tarflag = True
+                run_cmdline('tar xvf '+tname)    
+
+        if os.path.exists(cname):
+
+            print(dict2str("Process high-frequency output for {histyear}{histmonth}"))
+	
+            calc_drs_host(cname)
+
+            if outmode == "latlon":
+                write2file('cc.nml', cc_template_latlon(), mode='w+')
+            else:
+                print("ERROR Unknown outmode for write_output_latlon outmode=",outmode)
+                sys.exit(1)		
+		
+            if singleflag is True:
+                if d['machinetype'] == "srun":
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
+                else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
+            else:
+                if d['machinetype'] == "srun":
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
+                else:
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
+            check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
+	    
+            if singleflag is True:
+                run_cmdline('mv freq.{histfile}.nc {hdir}/highfreq')                    
+            else:
+                run_cmdline('mv *_freq.{histfile}.nc {hdir}/highfreq')
+		
+            if tarflag is True:
+                run_cmdline('rm {histfile}.??????')
+		
+            ftest = False
+            newhighfreq = True
+		    
+    return ftest, newhighfreq
+
+
+def store_output(ftest, fname):
+    "Move, tar or delete output files"
+    
+    if (d['nctar']=="off") and (d['dmode']!="postprocess"):
+        cname = dict2str(fname+'.000000')
+        if os.path.exists(cname):
+            run_cmdline('mv '+fname+'.?????? {hdir}/OUTPUT')
+            ftest = False
+
+    if d['nctar'] == "tar":
+        cname = dict2str(fname+'.000000')
+        if os.path.exists(cname):
+            run_cmdline('tar cvf {hdir}/OUTPUT/'+fname+'.tar '+fname+'.??????')
+            run_cmdline('rm '+fname+'.??????')
+            ftest = False
+
+    if d['nctar'] == "delete":
+        cname = dict2str(fname+'.000000')
+        if os.path.exists(cname):
+            run_cmdline('rm '+fname+'.??????')
+            ftest = False                    
+
+    return ftest
 
 
 def calc_drs_host(fname):
@@ -2062,7 +2082,6 @@ def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
 
             ctest = True
             tm = 1
-
             while (tm<=12) and (ctest is True):    
                 d['histmonth'] = mon_2digit(tm)
                 tm = tm + 1
@@ -2109,12 +2128,12 @@ def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
                     if d['histyear'] <= 2005:
                         cmip_scenario = "historical"
                     else:
-                        cmip_scenario = dict2str('{rcp}')
+                        cmip_scenario = d['rcp']
                 elif d['cmip'] == 'cmip6':
                     if d['histyear'] <= 2014:
                         cmip_scenario = "historical"
                     else:
-                        cmip_scenario = dict2str('{rcp}')
+                        cmip_scenario = d['rcp']
                 if (d['drshost']=='ECMWF-ERA5') or (d['drshost']=='ERA5'):
                         cmip_scenario="evaluation"
 
@@ -2156,75 +2175,21 @@ def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
                 f.close()
 
 
-def update_monthyear():
-    # update counter for next simulation month and remove old files
-    iyr = d['iyr']
-    imth = d['imth']
-
-    d['iday'] = d['eday'] + 1
-    if d['leap'] == "auto":
-        raise ValueError("ERROR: Unable to assign calendar with leap=auto")
-    elif d['leap'] == "noleap":
-        month_length = monthrange(iyr, imth)[1]
-        if imth == 2:
-            month_length = 28 #leap year turned off
-    elif d['leap'] == "leap":
-        month_length = monthrange(iyr, imth)[1]
-    elif d['leap'] == "360":
-        month_length = 30
-    else:
-        raise ValueError("ERROR: Unknown option for leap")
-
-    if d['iday'] > month_length:
-        d['iday'] = 1
-        d['imth'] = d['imth'] + 1
-
-    if d['imth'] < 12:
-        fname = dict2str('Rest{name}.{iyrlst}12.000000')
-        if os.path.exists(fname):
-            run_cmdline('rm Rest{name}.{iyrlst}12.??????')
-
-    if d['imth'] > 12:
-        run_cmdline('tar cvf {hdir}/RESTART/Rest{name}.{iyr}12.tar Rest{name}.{iyr}12.??????')
-        run_cmdline('rm Rest{name}.{iyr}0?.?????? Rest{name}.{iyr}10.?????? Rest{name}.{iyr}11.??????')
-        run_cmdline('rm {name}*{iyr}??')
-        run_cmdline('rm {name}*{iyr}??.nc')
-        d['imth'] = 1
-        d['iyr'] = d['iyr'] + 1
-
-
-def update_yearqm():
-    "Update the year.qm file"
-
-    yyyymmdd = d['iyr'] * 10000 + d['imth'] * 100 + d['iday']
-    d['yyyymmdd'] = yyyymmdd
-    write2file(d['hdir']+'/year.qm', "{yyyymmdd}", mode='w+')
-
-
-def restart_flag():
-    "Create restart.qm containing flag for restart. This flag signifies that CCAM completed previous month"
-
-    if d['dmode'] == "postprocess":
-        write2file(d['hdir']+'/restart5.qm', "True", mode='w+')
-    else:	
-        sdate = d['iyr']*100 +d['imth']
-        edate = d['iye']*100 +d['ime']
-        if sdate > edate:
-            write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
-            sys.exit(0)
-        else:
-            write2file(d['hdir']+'/restart.qm', "True", mode='w+')
-
+#===============================================================================
+# Miscellaneous
+#===============================================================================
 
 def run_cmdline(arg):
     "Run a command line argument from within python"
 
     os.system(dict2str(arg))
 
+
 def dict2str(str_template):
     "Create a string that includes dictionary elements"
 
     return str_template.format(**d)
+
 
 def write2file(fname, args_template, mode='a'):
     "Write arguments to namelist file"
@@ -2234,9 +2199,11 @@ def write2file(fname, args_template, mode='a'):
 
     ofile.close()
 
+
 def get_fpath(fpath):
     "Get relevant file path(s)"
     return subprocess.getoutput(dict2str('ls -1tr '+fpath+' | tail -1'))
+
 
 def check_file_exists(path):
     "Check that the specified file path exists"
@@ -2244,15 +2211,34 @@ def check_file_exists(path):
     if not os.path.exists(path):
         raise ValueError('File not found: '+path)
 
+
 def mon_2digit(imth):
     "Create 2-digit numerical string for given month"
 
     cmth = int(imth)
-
     if cmth < 10:
         return '0'+str(cmth)
-
     return str(cmth)
+
+
+def check_msg_in_log(exename, fname, msg):
+    "Checks if text is present in log file"
+    
+    xtest = subprocess.getoutput('grep -o --text "'+msg+'" '+fname) == msg
+    if xtest is False:
+        raise ValueError("An error occured while running "+exename+".  Check "+fname+" for details")
+
+
+def check_var_in_file(fname, vname):
+    "Checks if a variable exists in a netcdf file"
+    
+    file_test = subprocess.getoutput('ncdump -c '+fname+' | grep -o --text '+vname+' | head -1') == vname
+    return file_test
+
+
+#===============================================================================
+# Namelist templates
+#===============================================================================
 
 def top_template():
     "Template for writing top.nml namelist file"
@@ -2373,6 +2359,7 @@ def ocnbath_template():
     &end
     """
 
+
 def aeroemiss_template():
     "Template for writing aeroemiss.nml namelist file"
 
@@ -2394,6 +2381,7 @@ def aeroemiss_template():
      dustfile='{stdat}/ginoux.nc'
     &end
     """
+
 
 def input_template_1():
     "First part of template for 'input' namelist file"
@@ -2700,9 +2688,14 @@ def input_template_4():
     """
 
 
-def cc_template_1():
+def cc_template_all():
     "First part of template for 'cc.nml' namelist file"
 
+    d['use_depth'] = 'F'
+    fname = dict2str('{histfile}.000000')
+    if check_var_in_file(fname,"thetao") is True:
+        d['use_depth'] = 'T'
+        
     template = """\
     &input
      ifile = "{histfile}"
@@ -2721,36 +2714,36 @@ def cc_template_1():
     &end
     &histnl
      htype="inst"
-     hnames= "all"  hfreq = 1
+     hnames="all"  hfreq=1
     &end
     """
 
     return template
 
-def cc_template_2():
-    "Second part of template for 'cc.nml' namelist file"
+
+def cc_template_ctm():
+    "pcc2hist namelist for CTM output"
 
     d['hnames'] = '"land_mask","vegt","soilt","lai","zolnd","zs","sigmf","tscr_ave","temp","u","v","omega","mixr","qlg","qfg","ps","rnd","rnc","pblh","fg","eg","taux","tauy","cld","qgscrn","tsu","wb1_ave","wb2_ave","wb3_ave","wb4_ave","wb5_ave","wb6_ave","tgg1","tgg2","tgg3","tgg4","tgg5","tgg6","ustar","cbas_ave","ctop_ave","u10"'
 
     fname = dict2str('{histfile}.000000')
-    rsmin_test = (subprocess.getoutput('ncdump -c '+fname+' | grep -o --text rsmin') != "")
-    if rsmin_test is True:
+    if check_var_in_file(fname,"rsmin") is True:
         d['hnames'] = dict2str('{hnames},"rsmin"')
     else:
         d['hnames'] = dict2str('{hnames},"rs"')
 
     template = """\
     &input
-     ifile = "{histfile}"
-     ofile = "{outctmfile}"
-     hres  = {res}
-     kta={istart} ktb={iend} ktc=60
-     minlat = {minlat}, maxlat = {maxlat}
-     minlon = {minlon}, maxlon = {maxlon}
-     use_plevs = F
-     use_meters = F
-     use_theta = F
-     use_depth = F
+     ifile="{histfile}"
+     ofile="{outctmfile}"
+     hres={res}
+     kta={istart} ktb={iend} ktc=-1
+     minlat={minlat} maxlat={maxlat}
+     minlon={minlon} maxlon={maxlon}
+     use_plevs=F
+     use_meters=F
+     use_theta=F
+     use_depth=F
     &end
     &histnl
      htype="inst"
@@ -2762,16 +2755,16 @@ def cc_template_2():
     return template
 
 
-def cc_template_3():
-    "Third part of template for 'cc.nml' namelist file"
+def cc_template_latlon():
+    "pcc2hist namelist for surface file basic latlon output"
 
     template = """\
     &input
-     ifile = "freq.{histfile}"
-     ofile = "freq.{histfile}.nc"
-     hres  = {res}
-     kta={ktc_units}   ktb=2999999  ktc=-1
-     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
+     ifile="freq.{histfile}"
+     ofile="freq.{histfile}.nc"
+     hres={res}
+     kta={ktc}   ktb=2999999  ktc=-1
+     minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
     &end
     &histnl
      htype="inst"
@@ -2782,27 +2775,24 @@ def cc_template_3():
 
     return template
 
-def cc_template_5():
+def cc_template_cordex():
     "Fifth part of template for 'cc.nml' namelist file"
 
     d['hnames'] = '"tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrsfl","CAPE","CIN","mrfsos","mrsos"'
 
-    fname = dict2str('surf.{histfile}')
-    aero_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text od550aer | head -1') == "od550aer")
-    urban_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text tsroof | head -1') == "tsroof")
-
-    if aero_test is True:
+    fname = dict2str('surf.{histfile}.000000')
+    if check_var_in_file(fname,"od550aer") is True:
         d['hnames'] = dict2str('{hnames},"od550aer"')
-    if urban_test is True:
+    if check_var_in_file(fname,"anthroheat") is True:
         d['hnames'] = dict2str('{hnames},"tsroof","tsgree","tspav","mrsofc","anthroheat"')
 
     template = """\
     &input
-     ifile = "surf.{histfile}"
-     ofile = "surf.{histfile}.nc"
-     hres  = {res}
-     kta={ktc_units}   ktb=2999999  ktc=-1
-     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
+     ifile="surf.{histfile}"
+     ofile="surf.{histfile}.nc"
+     hres={res}
+     kta={ktc}   ktb=2999999  ktc=-1
+     minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
     &end
     &histnl
      htype="inst"
@@ -2813,15 +2803,16 @@ def cc_template_5():
 
     return template
 
-def cc_template_6():
+def cc_template_basic():
     "Sixth part of template for 'cc.nml' namelist file"
 
     d['hnames'] = '"pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog","tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega","cfrac","prw","clwvi","clivi","zmla","ustar","clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund","rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc","evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw","snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrsfl","orog","alb","sftlf","grid","sdischarge"'
+    d['use_deoth'] = 'F'
 
-    fname = d['histfile']
-    mlo_test = (subprocess.getoutput('ncdump -c '+fname+'.000000 | grep -o --text thetao | head -1') == "thetao")
-    if mlo_test is True:
+    fname = dict2str('{histfile}.000000')
+    if check_var_in_file(fname,"thetao") is True:
         d['hnames'] = dict2str('{hnames},"tos","sos","uos","vos","ssh","ocndepth"')
+        d['use_deoth'] = 'T'
 
     template = """\
     &input
@@ -2833,7 +2824,7 @@ def cc_template_6():
      use_plevs={use_plevs}
      use_meters={use_meters}     
      use_theta={use_theta}
-     use_depth={use_depth}
+     use_depth={use depth}
      plevs={plevs}
      mlevs={mlevs}
      tlevs={tlevs}
@@ -2849,20 +2840,20 @@ def cc_template_6():
     return template
 
 
-def cc_template_7():
+def cc_template_tracer():
     "Tracer part of template for 'cc.nml' namelist file"
 
     template = """\
     &input
-     ifile = "{histfile}"
-     ofile = "{histfile}.nc"
-     hres  = {res}
+     ifile="{histfile}"
+     ofile="{histfile}.nc"
+     hres={res}
      kta={ktc}   ktb=999999  ktc=-1
-     minlat = {minlat}, maxlat = {maxlat}, minlon = {minlon},  maxlon = {maxlon}
-     use_plevs = F
-     use_meters = F
-     use_theta = F
-     use_depth = F
+     minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
+     use_plevs=F
+     use_meters=F
+     use_theta=F
+     use_depth=F
     &end
     &histnl
      htype="inst"
