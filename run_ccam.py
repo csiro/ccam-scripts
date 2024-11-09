@@ -335,18 +335,18 @@ def create_directories():
 def restart_flag():
     "Create restart.qm containing flag for restart. This flag signifies that CCAM completed previous month"
 
-    sdate = d['iyr']*100 +d['imth']
-    edate = d['iye']*100 +d['ime']
+    sdate = d['iyr']*100 + d['imth']
+    edate = d['iye']*100 + d['ime']
 
     if d['dmode'] == "postprocess":
         if sdate > edate:
-            print("CCAM postprocessing completed successfully")
+            print("Reached end of postprocessing time-period")
             write2file(d['hdir']+'/restart5.qm', "Complete", mode='w+')
         else:
             write2file(d['hdir']+'/restart5.qm', "True", mode='w+')
     else:	
         if sdate > edate:
-            print("CCAM simulation completed successfully")	
+            print("Reached end of simulation time-period")	
             write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
             sys.exit(0)
         else:
@@ -1842,7 +1842,7 @@ def write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm):
 		    
         if os.path.exists(cname):
 
-            print(dict2str("Process CTM output for {histyear}{histmonth}"))	
+            print(dict2str("Process CTM output for {histyear} {histmonth}"))	
             calc_drs_host(cname)
 
             calendar_test = "leap"
@@ -1905,7 +1905,7 @@ def write_output_cordex(outmode, singlefile, ftest, newcordex):
 
         if os.path.exists(cname):
 
-            print(dict2str("Process CORDEX output for {histyear}{histmonth}"))
+            print(dict2str("Process CORDEX output for {histyear} {histmonth}"))
 
             calc_drs_host(cname)
 	    
@@ -1961,7 +1961,7 @@ def write_output_highfreq(outmode, singlefile, ftest, newhighfreq):
 
         if os.path.exists(cname):
 
-            print(dict2str("Process high-frequency output for {histyear}{histmonth}"))
+            print(dict2str("Process high-frequency output for {histyear} {histmonth}"))
 	
             calc_drs_host(cname)
 
@@ -2813,7 +2813,7 @@ def cc_template_latlon():
 def cc_template_cordex():
     "pcc2hist namelist for cordex output"
 
-    d['hnames'] = '"tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrsfl","CAPE","CIN","mrfsos","mrsos"'
+    d['hnames'] = '"tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrsfl","CAPE","CIN","LI","mrfsos","mrsos"'
 
     fname = dict2str('surf.{histfile}.000000')
     if check_var_in_file(fname,"od550aer") is True:
