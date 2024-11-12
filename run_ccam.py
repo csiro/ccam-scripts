@@ -1158,7 +1158,7 @@ def set_cloud():
     if d['cloud'] == "liq_ice_rain_snow_graupel":
         d.update({'ncloud': 3, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "lin":
-        d.update({'ncloud': 100, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
+        d.update({'ncloud': 101, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
 
     if d['cldfrac'] == "mcgregor":
         d.update({'rcrit_l': 0.85, 'rcrit_s': 0.85, 'nclddia': 3})
