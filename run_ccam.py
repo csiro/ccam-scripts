@@ -2424,7 +2424,7 @@ def input_template_1():
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
      namip={namip} rescrn=1 zo_clearing=1.
-     nhstest={nhstest}
+     qg_fix=1 nhstest={nhstest}
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
@@ -2703,9 +2703,9 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=11 otaumode=1 mlojacobi=7 mlomfix=1
+     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=0. ocnlap=0.01 zomode=3 ocneps=0.1 ocnepr=1. omaxl=1000.
+     ocnsmag=0.01 zomode=3 ocneps=0.1 ocnepr=1. omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
      mlo_bs=3 minwater=2. mlo_step=1
      mloiceadv=1
@@ -2747,6 +2747,7 @@ def cc_template_all():
     &histnl
      htype="inst"
      hnames="all"  hfreq=1
+     chunk_grid=24
     &end
     """
 
@@ -2781,6 +2782,7 @@ def cc_template_ctm():
      htype="inst"
      hnames={hnames}
      hfreq=1
+     chunk_grid=24
     &end 
     """
 
@@ -2804,6 +2806,7 @@ def cc_template_latlon():
      htype="inst"
      hnames= "uas","vas","tas","hurs","ps","pr"
      hfreq = 1
+     chunk_grid=24
     &end
     """
 
@@ -2835,6 +2838,7 @@ def cc_template_cordex():
      htype="inst"
      hnames={hnames}
      hfreq = 1
+     chunk_grid=24
     &end
     """
 
@@ -2874,6 +2878,7 @@ def cc_template_basic():
      htype="inst"
      hnames={hnames}
      hfreq = 1
+     chunk_grid=24
     &end 
     """
 
@@ -2900,6 +2905,7 @@ def cc_template_tracer():
     &histnl
      htype="inst"
      hnames= "tracer"  hfreq = 1
+     chunk_grid=24
     &end
     """
 
