@@ -128,7 +128,7 @@ def convert_old_settings():
     conv_dict = { 0:"2014", 1:"2015a", 2:"2015b", 3:"2017", 4:"Mod2015a", 5:"2021" }
     d['conv'] = find_mode(d['conv'],conv_dict,"conv")
 
-    cldfrac_dict = { 0:"smith", 1:"mcgregor" }
+    cldfrac_dict = { 0:"smith", 1:"mcgregor", 2:"tiedtke" }
     d['cldfrac'] = find_mode(d['cldfrac'],cldfrac_dict,"cldfrac")
 
     cloud_dict = { 0:"liq_ice", 1:"liq_ice_rain", 2:"liq_ice_rain_snow_graupel", 3:"lin" }
@@ -730,17 +730,17 @@ def set_simulation_options():
     d['rad_year_input'] = d['rad_year']
     
     # raw cc output frequency (mins)
-    d['dtout'] = 360
-    if d['ktc'] < d['dtout']:
-        d['dtout'] = d['ktc']
+    if d['ktc'] > 360:
+        print("WARN: Output frequency ktc is greater than 360")
+        print("WARN: Output is unsuitable for further downscaling")
 
     # need hourly output for CTM
     # (may need to move this logic to run_ccam.sh)
     if d['postprocess_test'] is True:
         if d['ncout'] == "ctm":
-            if d['dtout'] > 60:
+            if d['ktc'] > 60:
                 print("-> Adjusting ncout for CTM to 60 mins")
-                d['dtout'] = 60 
+                d['ktc'] = 60 
 
     # define dictionary of pre-defined dx (mtrs) : dt (sec) relationships
     d_dxdt = {60000:1200, 45000:900, 36000:720,
@@ -755,17 +755,17 @@ def set_simulation_options():
 
     # Note - if simulation_test=T then preprocess_test=T
 
-    # determine dt based on dx, dtout, ktc_surf and ktc_high
+    # determine dt based on dx, ktc, ktc_surf and ktc_high
     test_gridres = d['gridres_m']
-    test_surf = d['dtout']
+    test_surf = d['ktc']
     if d['ktc_surf']>0:
         test_surf = d['ktc_surf']
-    test_high = d['dtout']
+    test_high = d['ktc']
     if d['ktc_high']>0:
         test_high = d['ktc_high']
         
     for dx in sorted(d_dxdt):
-        if (test_gridres>=dx) and (60*d['dtout']%d_dxdt[dx]==0) and (60*test_surf%d_dxdt[dx]==0) and (60*test_high%d_dxdt[dx]==0):
+        if (test_gridres>=dx) and (60*d['ktc']%d_dxdt[dx]==0) and (60*test_surf%d_dxdt[dx]==0) and (60*test_high%d_dxdt[dx]==0):
             d['dt'] = d_dxdt[dx]
 
     # resolution below 50m requires time step less than 1 second
@@ -773,14 +773,12 @@ def set_simulation_options():
         raise ValueError("Minimum grid resolution of 50m has been exceeded")
 
     # check for errors with output frequency
-    if d['ktc']%d['dtout'] != 0:
-        raise ValueError("ktc must be a multiple of dtout")
     if d['ktc_surf'] > 0:
-        if d['dtout']%d['ktc_surf'] != 0:
-            raise ValueError("dtout must be a multiple of ktc_surf")
+        if d['ktc']%d['ktc_surf'] != 0:
+            raise ValueError("ktc must be a multiple of ktc_surf")
     if d['ktc_high'] > 0:
-        if d['dtout']%d['ktc_high'] != 0:
-            raise ValueError("dtout must be a multiple of ktc_high")
+        if d['ktc']%d['ktc_high'] != 0:
+            raise ValueError("ktc must be a multiple of ktc_high")
 
 
 def prep_iofiles():
@@ -1152,16 +1150,35 @@ def set_cloud():
         d['diaglevel_cloud'] = 9
 
     if d['cloud'] == "liq_ice":
-        d.update({'ncloud': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
+        if d['cldfrac'] == "smith":
+            d.update({'ncloud': 0, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
+        if d['cldfrac'] == "mcgregor":
+            d.update({'ncloud': 0, 'rcrit_l': 0.85, 'rcrit_s': 0.85, 'nclddia': 3})
+        if d['cldfrac'] == "tiedtke":
+            d.update({'ncloud': 10, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "liq_ice_rain":
-        d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
+        if d['cldfrac'] == "smith":
+            d.update({'ncloud': 2, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
+        if d['cldfrac'] == "mcgregor":
+            d.update({'ncloud': 2, 'rcrit_l': 0.85, 'rcrit_s': 0.85, 'nclddia': 13}) 
+        if d['cldfrac'] == "tiedtke":
+            d.update({'ncloud': 12, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
+            
     if d['cloud'] == "liq_ice_rain_snow_graupel":
-        d.update({'ncloud': 3, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
+        if d['cldfrac'] == "smith":
+            d.update({'ncloud': 3, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
+        if d['cldfrac'] == "mcgregor":
+            d.update({'ncloud': 3, 'rcrit_l': 0.85, 'rcrit_s': 0.85, 'nclddia': 3})
+        if d['cldfrac'] == "tiedtke":
+            d.update({'ncloud': 13, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "lin":
-        d.update({'ncloud': 101, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
+        if d['cldfrac'] == "smith":
+            d.update({'ncloud': 101, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
+        if d['cldfrac'] == "mcgregor":
+            d.update({'ncloud': 101, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 3})
+        if d['cldfrac'] == "tiedtke":
+            d.update({'ncloud': 111, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})    
 
-    if d['cldfrac'] == "mcgregor":
-        d.update({'rcrit_l': 0.85, 'rcrit_s': 0.85, 'nclddia': 3})
 
 
 def set_radiation():
@@ -1471,7 +1488,7 @@ def create_input_file():
             raise ValueError("Start hour ihs is invalid.")
 
     # Number of steps between output:
-    d['nwt'] = int(d['dtout']*60/d['dt'])
+    d['nwt'] = int(d['ktc']*60/d['dt'])
 
     # Number of steps in run:
     d['ntau'] = int(((d['ndays']-1)*86400+(24-d['ihour'])*3600)/d['dt'])
@@ -2430,7 +2447,7 @@ def input_template_1():
      epsp=0.1 epsu=0.1 epsh=1.
      precon=-10000 restol=2.e-7 nh=5 knh=9 maxcolour=3
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0 nhor=-151
-     mh_bs={mh_bs} ntvd=3
+     mh_bs={mh_bs} ntvd=3 adv_precip=1
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
@@ -2466,7 +2483,7 @@ def input_template_1():
      tbave={tbave} tbave10={tbave10} procmode=16 fnproc_bcast_max=24
     &end
     &skyin
-     mins_rad=-1 qgmin=2.E-7
+     mins_rad=-1 qgmin=1.E-20
      ch_dust=3.E-10 aerosol_u10=1 aero_split=1
      siglow=0.76 sigmid=0.44
      linecatalog_form='{linecatalog_form}'
@@ -2548,7 +2565,7 @@ def input_template_c2014():
      nuvconv=-3
      rhcv=0.1 rhmois=0. tied_over=-26.
      nclddia={nclddia} nmr={nmr}
-     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
@@ -2573,7 +2590,7 @@ def input_template_c2015a():
      rhmois=0. rhcv=0.1
      tied_con=0. tied_over=2626.
      nclddia={nclddia} nmr={nmr}
-     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
@@ -2598,7 +2615,7 @@ def input_template_c2015m():
      rhmois=0. rhcv=0.1
      tied_con=0. tied_over=2626. tied_rh=0.
      nclddia={nclddia} nmr={nmr}
-     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
@@ -2617,7 +2634,7 @@ def input_template_c2015b():
      ksc=0 kscsea=0 sigkscb=0.95 sigksct=0.8 tied_con=0. tied_over=2626.
      ldr=1 nstab_cld=0 nrhcrit=10 sigcll=0.95
      nclddia={nclddia} nmr={nmr}
-     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
@@ -2637,7 +2654,7 @@ def input_template_c2017():
      ldr=1 nstab_cld=0 nrhcrit=10 sigcll=0.95
      dsig2=0.1 kscmom=0 sig_ct=1. sigkscb=0.95 sigksct=0.8 tied_rh=0.
      nclddia={nclddia} nmr={nmr}
-     nevapls=0 ncloud={ncloud} acon={acon} bcon={bcon}
+     nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
@@ -2662,7 +2679,7 @@ def input_template_c2021():
      nuvconv=-3
      rhcv=0. rhmois=0. tied_over=1026.
      nmr={nmr} nclddia={nclddia}
-     nevapls=-4 ncloud={ncloud} acon={acon} bcon={bcon}
+     nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
     &end
@@ -2968,7 +2985,7 @@ if __name__ == '__main__':
     parser.add_argument("--sib", type=str, help=" land surface (cable_vary, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, cable_modis2020_const)")
     parser.add_argument("--aero", type=str, help=" aerosols (off, prognostic)")
     parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021)")
-    parser.add_argument("--cldfrac", type=str, help=" cloud fraction (smith, mcgregor")
+    parser.add_argument("--cldfrac", type=str, help=" cloud fraction (smith, mcgregor, tiedtke")
     parser.add_argument("--cloud", type=str, help=" cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel)")
     parser.add_argument("--rad", type=str, help=" radiation (SE3, SE4)")
     parser.add_argument("--rad_year", type=int, help=" radiation year (0=off)")
