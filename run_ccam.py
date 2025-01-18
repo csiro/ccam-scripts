@@ -455,7 +455,7 @@ def update_yearqm():
 #===============================================================================
 
 def set_preprocess_options():
-    "Define settings for proeprocess"
+    "Define settings for preprocess"
 
     # This function is called when preprocess_test is True
 
@@ -463,16 +463,6 @@ def set_preprocess_options():
     if d['gridres'] == -999.:
         d['gridres'] = 112.*90./d['gridsize']
         print(dict2str('-> Update gridres to {gridres}'))
-        # this logic might need to move to run_cam.sh
-        if d['postprocess_test'] is True:
-            if d['minlat'] == -999.:
-                d['minlat'] = -90.
-            if d['maxlat'] == -999.:
-                d['maxlat'] = 90.
-            if d['minlon'] == -999.:
-                d['minlon'] = 0.
-            if d['maxlon'] == -999.:
-                d['maxlon'] = 360.
 
     # define domain name and special variables
     d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
@@ -492,39 +482,6 @@ def set_preprocess_options():
         d['uservegfile'] = ''
     if d['userlaifile'] == 'none':
         d['userlaifile'] = ''
-
-    # Maybe move this logic to run_ccam.sh?
-    # Replace undefined postprocess output with global settings
-    if d['postprocess_test'] is True:
-        res = d['reqres']
-        if res == -999.:
-            res = d['gridres_m']/112000.
-            print("-> Adjust reqres to ",res)
-        d['res'] = res
-        if d['minlat'] == -999.:
-            d['minlat'] = d['midlat']-d['gridres_m']*d['gridsize']/200000.
-            if d['minlat'] < -90.:
-                d['minlat'] = -90.
-            print(dict2str("-> Adjust minlat to {minlat}"))
-        if d['maxlat'] == -999.:
-            d['maxlat'] = d['midlat']+d['gridres_m']*d['gridsize']/200000.
-            if d['maxlat'] > 90.:
-                d['maxlat'] = 90.
-            print(dict2str("-> Adjust maxlat to {maxlat}"))
-        if d['minlon'] == -999.:
-            d['minlon'] = d['midlon']-d['gridres_m']*d['gridsize']/200000.
-            if d['minlat'] == -90.:
-                d['minlon'] = 0.
-            if d['maxlat'] == 90.:
-                d['minlon'] = 0.
-            print(dict2str("-> Adjust minlon to {minlon}"))
-        if d['maxlon'] == -999.:
-            d['maxlon'] = d['midlon']+d['gridres_m']*d['gridsize']/200000.
-            if d['minlat'] == -90.:
-                d['maxlon'] = 360.
-            if d['maxlat'] == 90.:
-                d['maxlon'] = 360.
-            print(dict2str("-> Adjust maxlon to {maxlon}"))
 
 
 def check_surface_files():
@@ -1732,7 +1689,7 @@ def post_process_output():
             ftest, newcordex = write_output_cordex("cordex", singlefile, ftest, newcordex)
   
         # store output
-        name = dict2str('surf.{histfile}')
+        fname = dict2str('surf.{histfile}')
         ftest = store_output(ftest, fname)
 
         # high-frequency files -------------------------------------------------
@@ -1741,7 +1698,7 @@ def post_process_output():
             ftest, newhighfreq = write_output_highfreq("latlon", singlefile, ftest, newhighfreq)
 
         # store output
-        name = dict2str('freq.{histfile}')
+        fname = dict2str('freq.{histfile}')
         ftest = store_output(ftest, fname)
 	
 	# ----------------------------------------------------------------------
@@ -1761,6 +1718,58 @@ def post_process_output():
                 # allow simulation to exit
                 d['iyr'] = hy
                 d['imth'] = hm
+
+
+def set_postprocess_options(fname):
+    "Define settings for postprocess"
+
+    # This function is called when postprocess_test is True
+
+    inv_schmidt, gridsize = get_grid_properties_in_file(fname)
+    grid_res = inv_schmidt * 112. * 90. / gridsize
+    grid_res_m = grid_res*1000. 
+
+    # configure domain if undefined
+    if inv_schmidt == 1.:
+        if d['minlat'] == -999.:
+            d['minlat'] = -90.
+        if d['maxlat'] == -999.:
+            d['maxlat'] = 90.
+        if d['minlon'] == -999.:
+            d['minlon'] = 0.
+        if d['maxlon'] == -999.:
+            d['maxlon'] = 360.
+        
+    # Replace undefined postprocess output with global settings
+    res = d['reqres']
+    if res == -999.:
+        res = grid_res_m/112000.
+        print("-> Adjust reqres to ",res)
+    d['res'] = res
+    if d['minlat'] == -999.:
+        d['minlat'] = d['midlat']-grid_res_m*gridsize/200000.
+        if d['minlat'] < -90.:
+            d['minlat'] = -90.
+        print(dict2str("-> Adjust minlat to {minlat}"))
+    if d['maxlat'] == -999.:
+        d['maxlat'] = d['midlat']+grid_res_m*gridsize/200000.
+        if d['maxlat'] > 90.:
+            d['maxlat'] = 90.
+        print(dict2str("-> Adjust maxlat to {maxlat}"))
+    if d['minlon'] == -999.:
+        d['minlon'] = d['midlon']-grid_res_m*gridsize/200000.
+        if d['minlat'] == -90.:
+            d['minlon'] = 0.
+        if d['maxlat'] == 90.:
+            d['minlon'] = 0.
+        print(dict2str("-> Adjust minlon to {minlon}"))
+    if d['maxlon'] == -999.:
+        d['maxlon'] = d['midlon']+grid_res_m*gridsize/200000.
+        if d['minlat'] == -90.:
+            d['maxlon'] = 360.
+        if d['maxlat'] == 90.:
+            d['maxlon'] = 360.
+        print(dict2str("-> Adjust maxlon to {maxlon}"))
 
 
 def write_output_std(outmode, singlefile, ftest, newoutput, newoutput_h, newoutput_t):
@@ -1788,9 +1797,10 @@ def write_output_std(outmode, singlefile, ftest, newoutput, newoutput_h, newoutp
         # star processing data if present 	
         if os.path.exists(cname):
 
-            print(dict2str("Process {vertout} (daily) output for {histyear}{histmonth}"))
+            # define output parameters
+            set_postprocess_options(cname)
 
-            # read DRS data
+            print(dict2str("Process {vertout} (daily) output for {histyear}{histmonth}"))
             calc_drs_host(cname)
     
             # Run pcc2hist to extract data from raw cubic data
@@ -1859,6 +1869,9 @@ def write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm):
 		    
         if os.path.exists(cname):
 
+            # define output parameters
+            set_postprocess_options(cname)
+
             print(dict2str("Process CTM output for {histyear} {histmonth}"))	
             calc_drs_host(cname)
 
@@ -1922,8 +1935,10 @@ def write_output_cordex(outmode, singlefile, ftest, newcordex):
 
         if os.path.exists(cname):
 
-            print(dict2str("Process CORDEX output for {histyear} {histmonth}"))
+            # define output parameters
+            set_postprocess_options(cname)
 
+            print(dict2str("Process CORDEX output for {histyear} {histmonth}"))
             calc_drs_host(cname)
 	    
             if outmode == "cordex":
@@ -1978,8 +1993,10 @@ def write_output_highfreq(outmode, singlefile, ftest, newhighfreq):
 
         if os.path.exists(cname):
 
+            # define output parameters
+            set_postprocess_options(cname)
+
             print(dict2str("Process high-frequency output for {histyear} {histmonth}"))
-	
             calc_drs_host(cname)
 
             if outmode == "latlon":
@@ -2866,12 +2883,12 @@ def cc_template_basic():
     "pcc2hist namelist for basic standard output"
 
     d['hnames'] = '"pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog","tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega","cfrac","prw","clwvi","clivi","zmla","ustar","clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund","rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc","evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw","snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrsfl","orog","alb","sftlf","grid","sdischarge"'
-    d['use_deoth'] = 'F'
+    d['use_depth'] = 'F'
 
     fname = dict2str('{histfile}.000000')
     if check_var_in_file(fname,"thetao") is True:
         d['hnames'] = dict2str('{hnames},"tos","sos","uos","vos","ssh","ocndepth"')
-        d['use_deoth'] = 'T'
+        d['use_depth'] = 'T'
 
     d['ktc_local'] = check_timestep_in_file(dict2str('{histfile}.000000'))
 
@@ -2885,7 +2902,7 @@ def cc_template_basic():
      use_plevs={use_plevs}
      use_meters={use_meters}     
      use_theta={use_theta}
-     use_depth={use depth}
+     use_depth={use_depth}
      plevs={plevs}
      mlevs={mlevs}
      tlevs={tlevs}
