@@ -261,6 +261,10 @@ def check_inargs():
     d['mlevs'] = d['mlevs'].replace(',', ', ')
     d['tlevs'] = d['tlevs'].replace(',', ', ')
     d['dlevs'] = d['dlevs'].replace(',', ', ')
+    
+    # default value for year
+    d['iyr'] = d['iys']
+    d['imth'] = d['ims']
 
 
 def create_directories():
@@ -335,17 +339,17 @@ def create_directories():
 def restart_flag():
     "Create restart.qm containing flag for restart. This flag signifies that CCAM completed previous month"
 
-    sdate = d['iyr']*100 + d['imth']
+    cdate = d['iyr']*100 + d['imth']
     edate = d['iye']*100 + d['ime']
 
     if d['dmode'] == "postprocess":
-        if sdate > edate:
+        if cdate > edate:
             print("Reached end of postprocessing time-period")
             write2file(d['hdir']+'/restart5.qm', "Complete", mode='w+')
         else:
             write2file(d['hdir']+'/restart5.qm', "True", mode='w+')
     else:	
-        if sdate > edate:
+        if cdate > edate:
             print("Reached end of simulation time-period")	
             write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
             sys.exit(0)
@@ -1733,12 +1737,16 @@ def set_postprocess_options(fname):
     if inv_schmidt == 1.:
         if d['minlat'] == -999.:
             d['minlat'] = -90.
+            print(dict2str("-> Adjust minlat to {minlat}"))
         if d['maxlat'] == -999.:
             d['maxlat'] = 90.
+            print(dict2str("-> Adjust maxlat to {maxlat}"))	    
         if d['minlon'] == -999.:
             d['minlon'] = 0.
+            print(dict2str("-> Adjust minlon to {minlon}"))
         if d['maxlon'] == -999.:
             d['maxlon'] = 360.
+            print(dict2str("-> Adjust maxlon to {maxlon}"))
         
     # Replace undefined postprocess output with global settings
     res = d['reqres']
