@@ -2245,7 +2245,7 @@ def check_var_in_file(fname, vname):
 def check_attribute_in_file(fname, vname, aname, vdata):
     "Checks if attribute in file matches required value"
 
-    file_test = subprocess.getoutput('ncdump -c '+fname+' | grep '+vname+' | grep '+aname+' | grep -o --text '+vdata+') == "'+vdata+'"')
+    file_test = subprocess.getoutput('ncdump -c '+fname+' | grep '+vname+' | grep '+aname+' | grep -o --text '+vdata) == vdata
     return file_test
 
 
@@ -2890,7 +2890,7 @@ def cc_template_cordex():
 def cc_template_basic():
     "pcc2hist namelist for basic standard output"
 
-    d['hnames'] = '"pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog","tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega","cfrac","prw","clwvi","clivi","zmla","ustar","clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund","rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","prc","evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw","snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrsfl","orog","alb","sftlf","grid","sdischarge"'
+    d['hnames'] = '"pr","ta","ts","ua","va","psl","tas","uas","vas","hurs","orog","tasmax","tasmin","sfcWind","zg","hus","qlg","qfg","wa","theta","omega","cfrac","prw","clwvi","clivi","zmla","ustar","clt","clh","clm","cll","rsds","rlds","rsus","rlus","prgr","prsn","sund","rsut","rlut","rsdt","hfls","hfss","CAPE","CIN","LI","prc","evspsbl","mrro","mrros","snm","hurs","huss","ps","tauu","tauv","snw","snc","snd","siconca","z0","evspsblpot","tdew","tsl","mrsol","mrsfl","alb","sftlf","grid","sdischarge","rnd24"'
     d['use_depth'] = 'F'
 
     fname = dict2str('{histfile}.000000')
