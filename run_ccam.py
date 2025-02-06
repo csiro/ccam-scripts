@@ -491,12 +491,16 @@ def set_preprocess_options():
 def check_surface_files():
     "Ensure surface datasets exist"
 
-    testfail = False
-    if not os.path.exists('custom.qm'):
+    cfname = dict2str('{hdir}/vegdata/custom.qm')
+    if not os.path.exists(cfname):
+        cfname = dict2str('{wdir}/custom.qm')
+
+    testfail = False    
+    if not os.path.exists(cfname):
         print("WARN: Cannot locate custom.qm - Need to rebuild vegetation")
         testfail = True
     else:
-        filename = open('custom.qm', 'r')
+        filename = open(cfname, 'r')
         if dict2str('{uclemparm}\n') != filename.readline():
             print("WARN: uclemparm changed in custom.qm - Need to rebuild vegetation")
             testfail = True
@@ -530,7 +534,9 @@ def check_surface_files():
         run_cable_all()
 
     for fname in ['topout', 'bath', 'casa']:
-        if not os.path.exists(dict2str('{hdir}/vegdata/'+fname+'{domain}')):
+        filename = dict2str('{hdir}/vegdata/'+fname+'{domain}')
+        if not os.path.exists(filename):
+            print("WARN: Cannot locate file ",filename)
             print("Create surface data")
             run_cable_all()
 
@@ -540,7 +546,11 @@ def check_surface_files():
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
-        if (not os.path.exists(fname)) or (check_correct_landuse(fname) is True):
+        if not os.path.exists(fname):
+            print("WARN: Cannot locate file ",fname)
+            testfail = True
+        if check_correct_landuse(fname):
+            print("WARN: Invalid CABLE version in ",fname)
             testfail = True
     if testfail is True:
         print("Update land-surface data")
@@ -591,7 +601,7 @@ def update_custom_land():
     # record surface file configurations
     # this information is used to determine if surface files need to be recalculated
 
-    filename = open('custom.qm', 'w+')
+    filename = open('{hdir}/vegdata/custom.qm', 'w+')
     filename.write(dict2str('{uclemparm}\n'))
     filename.write(dict2str('{cableparm}\n'))
     filename.write(dict2str('{soilparm}\n'))
