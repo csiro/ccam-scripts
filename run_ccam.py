@@ -493,26 +493,36 @@ def check_surface_files():
 
     testfail = False
     if not os.path.exists('custom.qm'):
+        print("WARN: Cannot locate custom.qm - Need to rebuild vegetation")
         testfail = True
     else:
         filename = open('custom.qm', 'r')
         if dict2str('{uclemparm}\n') != filename.readline():
+            print("WARN: uclemparm changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{cableparm}\n') != filename.readline():
+            print("WARN: uclemparm changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{soilparm}\n') != filename.readline():
+            print("WARN: soilparm changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{vegindex}\n') != filename.readline():
+            print("WARN: vegindex changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{uservegfile}\n') != filename.readline():
+            print("WARN: uservegfile changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{userlaifile}\n') != filename.readline():
+            print("WARN: userlaifile changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{cmip}\n') != filename.readline():
+            print("WARN: cmip changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{rcp}\n') != filename.readline():
+            print("WARN: rcp changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         if dict2str('{sib}\n') != filename.readline():
+            print("WARN: sib changed in custom.qm - Need to rebuild vegetation")
             testfail = True
         filename.close()
     if testfail is True:
