@@ -601,7 +601,7 @@ def update_custom_land():
     # record surface file configurations
     # this information is used to determine if surface files need to be recalculated
 
-    filename = open('{hdir}/vegdata/custom.qm', 'w+')
+    filename = open(dict2str('{hdir}/vegdata/custom.qm'), 'w+')
     filename.write(dict2str('{uclemparm}\n'))
     filename.write(dict2str('{cableparm}\n'))
     filename.write(dict2str('{soilparm}\n'))
