@@ -542,7 +542,7 @@ def check_surface_files():
 
     testfail = False
     for mon in range(1, 13):
-        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=='cable_modis_2020_const'):
+        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=='cable_modis2020_const'):
             fname = dict2str('{hdir}/vegdata/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{hdir}/vegdata/veg{domain}.{iyr}.'+mon_2digit(mon))
