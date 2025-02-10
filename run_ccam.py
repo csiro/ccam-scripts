@@ -1531,7 +1531,7 @@ def prepare_ccam_infiles():
         # check if sea-ice is present in sstfile
         sictest = check_var_in_file(fname, "sic")
         if sictest is True:
-            d['nmaip'] = 14
+            d['namip'] = 14
         else:
             d['namip'] = 11
 
