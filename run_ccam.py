@@ -927,7 +927,7 @@ def set_mlev_params():
 
     d_mlev_eigenv = {27:"eigenv27-10.300", 35:"eigenv.35b", 54:"eigenv.54b", 72:"eigenv.72b",
                      108:"eigenv.108b", 144:"eigenv.144b"}
-    d_mlev_modlolvl = {27:24, 35:32, 54:48, 72:64, 108:96, 144:128}
+    d_mlev_modlolvl = {27:20, 35:26, 54:40, 72:53, 108:80, 144:106}
 
     d.update({'nmr': 1, 'acon': 0.00, 'bcon': 0.02, 'eigenv': d_mlev_eigenv[d['mlev']],
               'mlolvl': d_mlev_modlolvl[d['mlev']]})
