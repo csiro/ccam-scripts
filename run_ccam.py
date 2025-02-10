@@ -2493,6 +2493,7 @@ def input_template_1():
      precon=-10000 restol=2.e-7 nh=5 knh=9 maxcolour=3
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0 nhor=-151
      mh_bs={mh_bs} ntvd=3 adv_precip=1
+     mex=4
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
