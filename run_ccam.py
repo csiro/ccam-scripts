@@ -493,6 +493,8 @@ def check_surface_files():
 
     cfname = dict2str('{hdir}/vegdata/custom.qm')
     if not os.path.exists(cfname):
+        cfname = dict2str('{hdir}/custom.qm')
+    if not os.path.exists(cfname):
         cfname = dict2str('{wdir}/custom.qm')
 
     testfail = False    
