@@ -1987,7 +1987,7 @@ def write_output_cordex(outmode, singlefile, ftest, newcordex):
                     run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
                 else:
                     run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
-            check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
+            check_msg_in_log("pcc2hist","surf.pcc2hist.log","pcc2hist completed successfully")
 	    
             if singlefile is True:
                 run_cmdline('mv surf.{histfile}.nc {hdir}/cordex')
@@ -2045,7 +2045,7 @@ def write_output_highfreq(outmode, singlefile, ftest, newhighfreq):
                     run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
                 else:
                     run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
-            check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
+            check_msg_in_log("pcc2hist","freq.pcc2hist.log","pcc2hist completed successfully")
 	    
             if singlefile is True:
                 run_cmdline('mv freq.{histfile}.nc {hdir}/highfreq')                    
