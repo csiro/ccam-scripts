@@ -2494,7 +2494,7 @@ def input_template_1():
      epsp=0.1 epsu=0.1 epsh=1.
      precon=-10000 restol=2.e-7 nh=5 knh=9 maxcolour=3
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0 nhor=-151
-     mh_bs={mh_bs} ntvd=3 adv_precip=1
+     mh_bs={mh_bs} ntvd=3 adv_precip=0
      mex=4
 
      COMMENT='mass fixer'
