@@ -1156,11 +1156,11 @@ def set_cloud():
             d.update({'ncloud': 13, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 12})
     if d['cloud'] == "lin":
         if d['cldfrac'] == "smith":
-            d.update({'ncloud': 101, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})
+            d.update({'ncloud': 101, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': -4})
         if d['cldfrac'] == "mcgregor":
             d.update({'ncloud': 101, 'rcrit_l': 0.75, 'rcrit_s': 0.85, 'nclddia': 3})
         if d['cldfrac'] == "tiedtke":
-            d.update({'ncloud': 111, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': 8})    
+            d.update({'ncloud': 111, 'rcrit_l': 0.825, 'rcrit_s': 0.825, 'nclddia': -4})    
 
 
 
@@ -2494,8 +2494,7 @@ def input_template_1():
      epsp=0.1 epsu=0.1 epsh=1.
      precon=-10000 restol=2.e-7 nh=5 knh=9 maxcolour=3
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0 nhor=-151
-     mh_bs={mh_bs} ntvd=3 adv_precip=0
-     mex=4
+     mh_bs={mh_bs} ntvd=3
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
@@ -2616,6 +2615,7 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
+     qlg_max=1.e-3 qfg_max=1.e-3
     &end
     """
 
@@ -2641,6 +2641,7 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2666,6 +2667,7 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2685,6 +2687,7 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2705,6 +2708,7 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2730,6 +2734,7 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
+     qlg_max=1.e-3 qfg_max=1.e-3
     &end
     """
 
@@ -2770,7 +2775,7 @@ def input_template_4():
     &mlonml
      mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=0.01 zomode=3 ocneps=0.1 ocnepr=1. omaxl=1000.
+     ocnsmag=2. zomode=3 ocneps=0.1 ocnepr=1. omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
      mlo_bs=3 minwater=2. mlo_step=1
      mloiceadv=1
