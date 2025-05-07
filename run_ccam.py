@@ -2615,7 +2615,7 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=2.e-3 qfg_max=2.e-3
     &end
     """
 
@@ -2641,7 +2641,7 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=2.e-3 qfg_max=2.e-3     
     &end
     """
 
@@ -2667,7 +2667,7 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=2.e-3 qfg_max=2.e-3     
     &end
     """
 
@@ -2687,7 +2687,7 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=2.e-3 qfg_max=2.e-3     
     &end
     """
 
@@ -2708,7 +2708,7 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=2.e-3 qfg_max=2.e-3     
     &end
     """
 
@@ -2734,7 +2734,7 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=2.e-3 qfg_max=2.e-3
     &end
     """
 
