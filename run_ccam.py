@@ -125,7 +125,7 @@ def convert_old_settings():
     aero_dict = { 0:"off", 1:"prognostic" }
     d['aero'] = find_mode(d['aero'],aero_dict,"aero")
 
-    conv_dict = { 0:"2014", 1:"2015a", 2:"2015b", 3:"2017", 4:"Mod2015a", 5:"2021" }
+    conv_dict = { 0:"2014", 1:"2015a", 2:"2015b", 3:"2017", 4:"Mod2015a", 5:"2021", 6:"grell" }
     d['conv'] = find_mode(d['conv'],conv_dict,"conv")
 
     cldfrac_dict = { 0:"smith", 1:"mcgregor", 2:"tiedtke" }
@@ -1494,6 +1494,8 @@ def create_input_file():
         write2file('input', input_template_c2015m())
     if d['conv'] == "2021":
         write2file('input', input_template_c2021())
+    if d['conv'] == "grell":
+        write2file('input', input_template_grell())
 
     if d['tracer'] != "off":
         write2file('input', input_template_3())
@@ -2615,7 +2617,7 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=2.e-3 qfg_max=2.e-3
+     qlg_max=1.e-3 qfg_max=1.e-3
     &end
     """
 
@@ -2641,7 +2643,7 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=2.e-3 qfg_max=2.e-3     
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2667,7 +2669,7 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=2.e-3 qfg_max=2.e-3     
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2687,7 +2689,7 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=2.e-3 qfg_max=2.e-3     
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2708,7 +2710,7 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=2.e-3 qfg_max=2.e-3     
+     qlg_max=1.e-3 qfg_max=1.e-3     
     &end
     """
 
@@ -2734,7 +2736,21 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=2.e-3 qfg_max=2.e-3
+     qlg_max=1.e-3 qfg_max=1.e-3
+    &end
+    """
+
+def input_template_grell():
+    "Fifth part of template for 'input' namelist file"
+
+    return """
+    &kuonml
+     nkuo=31
+     nclddia={nclddia} nmr={nmr}
+     nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
+     rcrit_l={rcrit_l} rcrit_s={rcrit_s}
+     lin_aerosolmode={lin_aerosolmode} lin_adv=1
+     qlg_max=1.e-3 qfg_max=1.e-3
     &end
     """
 
@@ -3037,7 +3053,7 @@ if __name__ == '__main__':
     parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, sst_only, nuding_ccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst, squaplanet1, .., aquaplanent8)")
     parser.add_argument("--sib", type=str, help=" land surface (cable_vary, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, cable_modis2020_const)")
     parser.add_argument("--aero", type=str, help=" aerosols (off, prognostic)")
-    parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021)")
+    parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021, grell)")
     parser.add_argument("--cldfrac", type=str, help=" cloud fraction (smith, mcgregor, tiedtke")
     parser.add_argument("--cloud", type=str, help=" cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel)")
     parser.add_argument("--rad", type=str, help=" radiation (SE3, SE4)")
