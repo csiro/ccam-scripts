@@ -2285,6 +2285,8 @@ def check_calendar_in_file(cname, calendar_found):
 
     if check_attribute_in_file(cname, "time", "calendar", "noleap") is True:
         calendar_found = "noleap"
+    if check_attribute_in_file(cname, "time", "calendar", "365_day") is True:
+        calendar_found = "noleap"
     if check_attribute_in_file(cname, "time", "calendar", "360_day") is True:
         calendar_found = "360"
     if check_attribute_in_file(cname, "time", "calendar", "gregorian") is True:
