@@ -472,6 +472,7 @@ def set_preprocess_options():
     d['domain'] = dict2str('{gridsize}_{midlon}_{midlat}_{gridres}km')
     d['inv_schmidt'] = float(d['gridres']) * float(d['gridsize']) / (112. * 90.)
     d['gridres_m'] = d['gridres']*1000. 
+    d['lowres'] = 112.*90./(float(d['inv_schmidt'])*float(d['gridsize']))
         
     # define user input
     if d['uclemparm'] == 'default':
@@ -963,20 +964,18 @@ def config_initconds():
     # prepare ifile
     if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
         fpath = dict2str('{bcdir}/{mesonest}')
+        newpath = dict2str('{wdir}/{mesonest}')
         cname = "error"
         if os.path.exists(fpath):
-            newpath = dict2str('{wdir}/{mesonest}')
             if not os.path.exists(newpath):
                 run_cmdline('ln -s '+fpath+' '+newpath)
-            cname = fpath
+            cname = newpath
         elif os.path.exists(fpath+'.000000'):
             run_cmdline('ln -s '+fpath+'.?????? .')
-            cname = fpath+".000000"
+            cname = newpath+".000000"
         elif os.path.exists(fpath+'.tar'):
             run_cmdline('tar xvf '+fpath+'.tar')
-            cname = fpath
-            if not os.path.exists(cname):
-                cname = fpath+".000000"
+            cname = newpath+".000000"
         if not os.path.exists(cname):
             raise ValueError(dict2str('Cannot locate file {bcdir}/{mesonest}'))
         if d['leap'] == "auto":
@@ -1555,17 +1554,16 @@ def check_correct_host():
         if ccam_host is True and (d['dmode']=="nudging_gcm_with_sst"):
             raise ValueError('CCAM is the host model. Use dmode=nudging_ccam')
 
-    # should this stretching be limited because nud_q=0?
+#    # should this stretching be limited because nud_q=0?
     if d['dmode'] == "nudging_gcm":
-        if d['inv_schmidt'] < 0.2:
-            raise ValueError('CCAM grid stretching is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
+        if d['lowres'] > 200.:
+            raise ValueError('CCAM coarse grid is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
 
     if d['dmode'] in ["sst_only", "aquaplanet1", "aquaplanet2", "aquaplanet3",
                       "aquaplanet4", "aquaplanet5", "aquaplanet6",
                       "aquaplanet7", "aquaplanet8"]:
-        if d['inv_schmidt'] < 0.2:
-            print(dict2str("inv_schmidt = {inv_schmidt}"))
-            raise ValueError('CCAM grid stretching is too high for dmode=sst_only.  Try reducing grid resolution or increasing grid size')
+        if d['lowres'] > 200.:
+            raise ValueError('CCAM coarse is too high for dmode=sst_only.  Try reducing grid resolution or increasing grid size')
 
     if (d['dmode'] == "nudging_ccam") or (d['dmode'] == "nudging_gcm"):
         fname = d['mesonest']+'.000000'
@@ -2284,8 +2282,6 @@ def check_calendar_in_file(cname, calendar_found):
     "Checks what calendar is used for input file"
 
     if check_attribute_in_file(cname, "time", "calendar", "noleap") is True:
-        calendar_found = "noleap"
-    if check_attribute_in_file(cname, "time", "calendar", "365_day") is True:
         calendar_found = "noleap"
     if check_attribute_in_file(cname, "time", "calendar", "360_day") is True:
         calendar_found = "360"
