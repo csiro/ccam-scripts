@@ -2937,7 +2937,7 @@ def cc_template_basic():
 
     fname = dict2str('{histfile}.000000')
     if check_var_in_file(fname,"thetao") is True:
-        d['hnames'] = dict2str('{hnames},"tos","sos","uos","vos","ssh","ocndepth"')
+        d['hnames'] = dict2str('{hnames},"tos","sos","uos","vos","zos","ocndepth"')
         d['use_depth'] = 'T'
 
     d['ktc_local'] = check_timestep_in_file(dict2str('{histfile}.000000'))
