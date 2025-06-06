@@ -1555,10 +1555,10 @@ def check_correct_host():
         if ccam_host is True and (d['dmode']=="nudging_gcm_with_sst"):
             raise ValueError('CCAM is the host model. Use dmode=nudging_ccam')
 
-#    # should this stretching be limited because nud_q=0?
-#    if d['dmode'] == "nudging_gcm":
-#        if d['inv_schmidt'] < 0.2:
-#            raise ValueError('CCAM grid stretching is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
+    # should this stretching be limited because nud_q=0?
+    if d['dmode'] == "nudging_gcm":
+        if d['inv_schmidt'] < 0.2:
+            raise ValueError('CCAM grid stretching is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
 
     if d['dmode'] in ["sst_only", "aquaplanet1", "aquaplanet2", "aquaplanet3",
                       "aquaplanet4", "aquaplanet5", "aquaplanet6",
