@@ -22,20 +22,22 @@ module load python       # Python
 hdir=$HOME/ccaminstall/scripts/run_ccam      # script directory
 wdir=$hdir/wdir                              # working directory
 machinetype=mpirun                           # machine type (mpirun, srun)
-nproc=$SLURM_NTASKS                          # number of processors
+nproc=$SLURM_NTASKS                          # total number of processors
 nnode=$SLURM_NTASKS_PER_NODE                 # number of processors per node
+
+dmode=nudging_gcm                            # simulation type (nudging_gcm, sst_only, nudging_ccam, sst_6hour, generate_veg, postprocess, nudging_gcm_with_sst )
 
 midlon=0.                                    # central longitude of domain
 midlat=0.                                    # central latitude of domain
 gridres=-999.                                # required resolution (km) of domain (-999.=global)
-gridsize=96                                  # cubic grid size (e.g., 48, 72, 96, 144, 192, 288, 384, 576, 768, etc)
+gridsize=96                                  # cubic grid size (e.g., 48, 72, 96, 144, 192, 288, 384, 576, 768, 1152, 1536, etc)
 iys=2000                                     # start year
 ims=1                                        # start month
 ids=1                                        # start day
 iye=2000                                     # end year
 ime=12                                       # end month
 ide=31                                       # end day
-leap=leap                                    # use leap days (noleap, leap, 360)
+leap=auto                                    # calendar (auto, noleap, leap, 360)
 ncountmax=12                                 # number of months before resubmit
 
 name=ccam_${gridres}km                       # run name
@@ -44,16 +46,20 @@ if [[ $gridres = "-999." ]]; then
   name=`echo $name | sed "s/$gridres/$gridtxt"/g`
 fi
 
-# Note that turning off output should be done with ktc, ktc_surf and ktc_high
-# Otherwise output will be saved but not post-processed
-ncout=off                                    # standard output (off, all, ctm, basic, tracer)
-ncsurf=cordex                                # CORDEX output (off, cordex)
-nchigh=latlon                                # high-frequency output (off, latlon)
-nctar=off                                    # TAR output files in OUTPUT directory (off, tar, delete)
+# Output frequency.  Note ktc, ktc_surf and ktc_high only saves output.
+# Post-processing requires ncout, ncsurf and nchigh to be enabled.
 ktc=360                                      # standard output period (mins)
 ktc_surf=60                                  # CORDEX file output period (mins) (0=off)
 ktc_high=10                                  # high-frequency output period (mins) (0=off)
+nctar=off                                    # TAR output files in OUTPUT directory (off, tar, delete)
 
+# Post-processing.  Needed for data to be converted from the raw cubic grid to
+# lat/lon.
+ncout=off                                    # standard output (off, all, ctm, basic, tracer)
+ncsurf=cordex                                # CORDEX output (off, cordex)
+nchigh=latlon                                # high-frequency output (off, latlon)
+
+# Output domain
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
 maxlat=-999.                                 # output max latitude (degrees) (-999.=automatic)
 minlon=-999.                                 # output min longitude (degrees) (-999.=automatic)
@@ -65,16 +71,17 @@ mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m)
 tlevs="280, 300, 320, 340, 360, 380, 400"    # output theta levels (K)
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
 
+# DRS data.  default will source metadata from CCAM output.
 drsmode=off                                  # DRS output (off, on)
 drshost=default                              # Host GCM for DRS otput (e.g., ACCESS1-0)
 drsensemble=default                          # Host GCM ensemble number for DRS output (e.g., r1i1p1f1)
 drsdomain=generic                            # DRS domain (e.g., AUS-50)
 drsproject=CORDEX                            # DRS project name (e.g., CORDEX)
-model_id="CSIRO-CCAM-2401"                   # CCAM version name
+model_id="CSIRO-CCAM-2506"                   # CCAM version name
 contact="ccam@csiro.au"                      # contact email details
 rcm_version_id="v1"                          # CCAM version number
 
-dmode=nudging_gcm                            # simulation type (nudging_gcm, sst_only, nudging_ccam, sst_6hour, generate_veg, postprocess, nudging_gcm_with_sst )
+# Simulation configuration options
 cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
 rcp=ssp245                                   # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=54                                      # number of model levels (27, 35, 54, 72, 108 or 144)
@@ -84,14 +91,14 @@ conv=2017                                    # convection (2014, 2015a, 2015b, 2
 cldfrac=smith                                # cloud fraction (smith, mcgregor, tiedtke)
 cloud=lin                                    # cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel, lin)
 rad=SE4                                      # radiation (SE3, SE4, SE4lin)
-rad_year=0                                   # radiation year (0=off)
+rad_year=0                                   # special option for overriding radiation year (0=off)
 bmix=tke_eps                                 # boundary layer (ri, tke_eps, hbg)
-tke_timeave_length=0                         # time averaging of TKE source terms (seconds with 0=off)
+tke_timeave_length=0                         # special option for time averaging of TKE source terms (seconds) 0=off
 mlo=dynamical                                # ocean (prescribed, dynamical)
 casa=off                                     # CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)
 tracer=off                                   # Tracer emission directory (off=disabled)
 
-# User defined parameters.  Delete $hdir/vegdata to update.
+# User defined input datasets (e.g., for vegetation and urban)
 uclemparm=default                            # urban parameter file (default for standard values)
 cableparm=default                            # CABLE vegetation parameter file (default for standard values)
 soilparm=default                             # soil parameter file (default for standard values)
@@ -131,28 +138,44 @@ pcc2hist=$insdir/src/bin/pcc2hist
 
 ###############################################################
 
-python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode --midlon " $midlon" --midlat " $midlat" --gridres " $gridres" \
-                   --gridsize $gridsize --mlev $mlev --iys $iys --ims $ims --ids $ids --iye $iye --ime $ime --ide $ide --leap $leap \
-                   --ncountmax $ncountmax --ktc $ktc --minlat " $minlat" --maxlat " $maxlat" --minlon " $minlon" \
-                   --maxlon " $maxlon" --reqres " $reqres" --outlevmode $outlevmode --plevs ${plevs// /} \
-		   --mlevs ${mlevs// /} --tlevs ${tlevs// /} --dlevs ${dlevs// /} --dmode $dmode \
-                   --sib $sib --aero $aero --conv $conv --cloud $cloud --rad $rad --bmix $bmix --mlo $mlo \
-                   --casa $casa --cldfrac $cldfrac \
-		   --ncout $ncout --nctar $nctar --ncsurf $ncsurf --ktc_surf $ktc_surf  \
-		   --nchigh $nchigh --ktc_high $ktc_high \
-                   --machinetype $machinetype --bcdom $bcdom --bcsoil $bcsoil \
-                   --bcsoilfile $bcsoilfile \
-                   --sstfile $sstfile --sstinit $sstinit --cmip $cmip --rcp $rcp --insdir $insdir --hdir $hdir \
-                   --wdir $wdir --bcdir $bcdir --sstdir $sstdir --stdat $stdat \
-                   --aeroemiss $aeroemiss --model $model --pcc2hist $pcc2hist --terread $terread --igbpveg $igbpveg \
-                   --ocnbath $ocnbath --casafield $casafield \
-		   --uclemparm $uclemparm --cableparm $cableparm --soilparm $soilparm --vegindex $vegindex \
-		   --uservegfile $uservegfile --userlaifile $userlaifile \
-		   --drsmode $drsmode --drshost $drshost --drsdomain $drsdomain \
-		   --drsensemble $drsensemble --model_id "$model_id" --contact "$contact" \
-		   --rcm_version_id "$rcm_version_id" --drsproject "$drsproject" \
-		   --tke_timeave_length $tke_timeave_length --tracer "$tracer" --rad_year $rad_year
+# Call python for simulation
+python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode \
+                   --midlon " $midlon" --midlat " $midlat" \
+                   --gridres " $gridres" --gridsize $gridsize \
+                   --mlev $mlev --iys $iys --ims $ims --ids $ids \
+                   --iye $iye --ime $ime --ide $ide --leap $leap \
+                   --ncountmax $ncountmax --dmode $dmode \
+                   --ktc $ktc --ktc_surf $ktc_surf --ktc_high $ktc_high \
+                   --sib $sib --aero $aero --conv $conv --cloud $cloud \
+                   --rad $rad --bmix $bmix --mlo $mlo --casa $casa \
+                   --cldfrac $cldfrac --tracer "$tracer" \
+                   --tke_timeave_length $tke_timeave_length \
+                   --rad_year $rad_year --machinetype $machinetype \
+                   --bcdom $bcdom --bcsoil $bcsoil --bcsoilfile $bcsoilfile \
+                   --sstfile $sstfile --sstinit $sstinit \
+                   --cmip $cmip --rcp $rcp \
+                   --insdir $insdir --hdir $hdir --wdir $wdir --bcdir $bcdir \
+                   --sstdir $sstdir --stdat $stdat \
+                   --aeroemiss $aeroemiss --model $model --terread $terread \
+                   --igbpveg $igbpveg --ocnbath $ocnbath \
+                   --casafield $casafield --pcc2hist $pcc2hist \
+                   --uclemparm $uclemparm --cableparm $cableparm \
+                   --soilparm $soilparm --vegindex $vegindex \
+                   --uservegfile $uservegfile --userlaifile $userlaifile \
+                   --minlat " $minlat" --maxlat " $maxlat" \
+                   --minlon " $minlon" --maxlon " $maxlon" \
+                   --reqres " $reqres" \
+                   --outlevmode $outlevmode --plevs ${plevs// /} \
+                   --mlevs ${mlevs// /} --tlevs ${tlevs// /} \
+                   --dlevs ${dlevs// /} \
+                   --ncout $ncout --nctar $nctar --ncsurf $ncsurf \
+                   --nchigh $nchigh \
+		   --drsmode $drsmode --drsdomain $drsdomain \
+		   --drsensemble $drsensemble --model_id "$model_id" \
+		   --contact "$contact" --rcm_version_id "$rcm_version_id" \
+                   --drsproject "$drsproject" --drshost $drshost
 
+# Process instructions from python
 
 if [ $dmode == "postprocess" ]; then
   restname=restart5.qm
