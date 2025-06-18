@@ -286,6 +286,10 @@ def create_directories():
     os.chdir(dirname)
 
     if d['preprocess_test'] is True:
+        dirname = dict2str('{wdir}')
+        if not os.path.isdir(dirname):
+            print("-> Creating ",dirname)
+            os.mkdir(dirname)
         dirname = "vegdata"
         if not os.path.isdir(dirname):
             print("-> Creating ",dirname)
@@ -335,9 +339,6 @@ def create_directories():
     else:
         run_cmdline('rm -f {hdir}/restart.qm')    
         dirname = dict2str('{wdir}')
-        if not os.path.isdir(dirname):
-            print("-> Creating ",dirname)
-            os.mkdir(dirname)
 
     # change to working or OUTPUT directory, depending on dmode
     os.chdir(dirname)
@@ -527,7 +528,7 @@ def check_surface_files():
     if d['aero'] == "off":
         d['sulffile'] = 'none'
     if d['aero'] == "prognostic":
-        d['sulffile'] = dict2str('aero.{iyr}.{imth_2digit}')
+        d['sulffile'] = dict2str('aero{domain}.{iyr}.{imth_2digit}')
 
     # Check custom option
     cfname = dict2str('{vegin}/custom.qm')
