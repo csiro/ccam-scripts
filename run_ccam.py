@@ -2303,19 +2303,19 @@ def check_calendar_in_file(cname, calendar_found):
     new_calendar = False
     if check_attribute_in_file(cname, "time", "calendar", "noleap") is True:
         calendar_found = "noleap"
-	new_calendar = True
+        new_calendar = True
     if check_attribute_in_file(cname, "time", "calendar", "360_day") is True:
         calendar_found = "360"
-	new_calendar = True	
+        new_calendar = True	
     if check_attribute_in_file(cname, "time", "calendar", "gregorian") is True:
         calendar_found = "leap"
-	new_calendar = True	
+        new_calendar = True	
 
     # CCAM special case
     ccam_host = check_var_in_file(cname, ":version")
     if (ccam_host is True) and (new_calendar is False):
         calendar_found = "leap"
-	new_calendar = True	
+        new_calendar = True	
 
     return calendar_found    
 
