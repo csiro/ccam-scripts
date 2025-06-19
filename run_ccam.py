@@ -2309,7 +2309,7 @@ def check_calendar_in_file(cname, calendar_found):
         calendar_found = "leap"
 
     # CCAM special case
-    ccam_host = check_var_in_file(fname, ":version")
+    ccam_host = check_var_in_file(cname, ":version")
     if (ccam_host is True) and (calendar_found == "missing"):
         calendar_found = "leap"
 
