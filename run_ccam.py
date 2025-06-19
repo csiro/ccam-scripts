@@ -2300,18 +2300,22 @@ def check_timestep_in_file(fname):
 def check_calendar_in_file(cname, calendar_found):
     "Checks what calendar is used for input file"
 
-    calendar_found="missing"
+    new_calendar = False
     if check_attribute_in_file(cname, "time", "calendar", "noleap") is True:
         calendar_found = "noleap"
+	new_calendar = True
     if check_attribute_in_file(cname, "time", "calendar", "360_day") is True:
         calendar_found = "360"
+	new_calendar = True	
     if check_attribute_in_file(cname, "time", "calendar", "gregorian") is True:
         calendar_found = "leap"
+	new_calendar = True	
 
     # CCAM special case
     ccam_host = check_var_in_file(cname, ":version")
-    if (ccam_host is True) and (calendar_found == "missing"):
+    if (ccam_host is True) and (new_calendar is False):
         calendar_found = "leap"
+	new_calendar = True	
 
     return calendar_found    
 
