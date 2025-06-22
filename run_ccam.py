@@ -2817,7 +2817,7 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=1
+     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=1
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
      ocnsmag=2. zomode=3 ocneps=0.1 ocnepr=1. omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
