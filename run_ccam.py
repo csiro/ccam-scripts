@@ -404,6 +404,7 @@ def get_datetime():
     else:
         d['imthlst'] = imth-1
         d['iyrlst'] = iyr
+    d['rest_iyrlst'] = iyr-1
 
     # two-digit versions of previous and current month
     d['imthlst_2digit'] = mon_2digit(d['imthlst'])
@@ -932,9 +933,6 @@ def prep_iofiles():
 
     # This function is called if simulation_test=T
 
-    # Define restart file:
-    d['ifile'] = dict2str('Rest{name}.{iyrlst}{imthlst_2digit}')
-
     # Define host model fields:
     d['mesonest'] = dict2str('{bcdom}{iyr}{imth_2digit}.nc')
     fpath = dict2str('{bcdir}/{mesonest}')
@@ -1101,14 +1099,52 @@ def set_mlev_params():
 def config_initconds():
     "Configure initial condition file"
 
+    # Default warm start
+    d['ifile'] = dict2str('Rest{name}.{iyrlst}{imthlst_2digit}')
     d['nrungcm'] = 0
 
+    fname = dict2str('{wdir}/{ifile}.000000')
+    if not os.path.exists(fname):
+        fpath = dict2str('{hdir}/RESTART/{ifile}.tar')
+        if os.path.exists(fpath):
+            print("Missing restart in wdir, but found restart in RESTART directory")
+            run_cmdline('tar xvf '+fpath)
+
+    # Check for cold start
     if d['iyr'] == d['iys']:
         if d['imth'] == d['ims']:
+
+            # check for accidental cold start
+            fname = dict2str('{wdir}/{ifile}.000000')
+            if os.path.exists(fname):
+                print("ERROR: Restart file found with cold start")
+                print("       "+fname)
+                print("       Remove restart files in wdir and RESTART,")
+                print("       or change iys in run_ccam.sh")
+                sys.exit(1)
+
+            rest_ifile = dict2str('{hdir}/RESTART/Rest{name}.{rest_iyrlst}12.tar')
+            if os.path.exists(rest_ifile):
+                print("ERROR: Suspected warm start due to detection of")
+                print("       "+rest_ifile)
+                print("       Remove restart file for cold start, or change")
+                print("       iys in run_ccam.sh")
+                sys.exit(1)
+
+            # Configure cold start
             if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
                 d.update({'ifile': d['mesonest']})
             elif d['dmode'] == "sst_only":
                 d.update({'ifile': d['sstinit']})
+                fpath = dict2str('{sstinit}')
+                if os.path.exists(fpath):
+                    run_cmdline('ln -s '+fpath+' .')
+                elif os.path.exists(fpath+'.000000'):
+                    run_cmdline('ln -s '+fpath+'.?????? .')
+                elif os.path.exists(fpath+'.tar'):
+                    run_cmdline('tar xvf '+fpath+'.tar')
+                else:
+                    raise ValueError(dict2str('ERROR: Cannot locate file {sstinit}'))
             else:
                 d.update({'ifile': "error"})
             if d['bcsoil'] == "constant":
@@ -1123,7 +1159,7 @@ def config_initconds():
                 d['nrungcm'] = -4
                 check_file_exists(d['bcsoilfile']+'.000000')
 
-    # prepare ifile
+    # prepare mesonest file
     if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
         fpath = dict2str('{bcdir}/{mesonest}')
         newpath = dict2str('{wdir}/{mesonest}')
@@ -1147,18 +1183,7 @@ def config_initconds():
                 raise ValueError("ERROR: Cannot assign calendar for leap=auto")
             print(dict2str('Assign calendar {leap}'))
 
-    if (d['dmode']=="sst_only") and (d['iyr']==d['iys']) and (d['imth']==d['ims']):
-        fpath = dict2str('{sstinit}')
-        if os.path.exists(fpath):
-            run_cmdline('ln -s '+fpath+' .')
-        elif os.path.exists(fpath+'.000000'):
-            run_cmdline('ln -s '+fpath+'.?????? .')
-        elif os.path.exists(fpath+'.tar'):
-            run_cmdline('tar xvf '+fpath+'.tar')
-        else:
-            raise ValueError(dict2str('ERROR: Cannot locate file {sstinit}'))
-
-    # Check ifile
+    # prepare ifile
     fname = d['ifile']
     if not fname=="error":
         if not os.path.exists(fname):
@@ -3135,12 +3160,13 @@ if __name__ == '__main__':
 
     parser.add_argument("--terread", type=str, help=" path of terread executable")
     parser.add_argument("--igbpveg", type=str, help=" path of igbpveg executable")
-    parser.add_argument("--sibveg", type=str, help="depreciated")
     parser.add_argument("--ocnbath", type=str, help=" path of ocnbath executable")
     parser.add_argument("--casafield", type=str, help=" path of casafield executable")
     parser.add_argument("--aeroemiss", type=str, help=" path of aeroemiss executable")
     parser.add_argument("--model", type=str, help=" path of globpea executable")
     parser.add_argument("--pcc2hist", type=str, help=" path of pcc2hist executable")
+
+    parser.add_argument("--sibveg", type=str, help="depreciated")
 
     args = parser.parse_args()
 
