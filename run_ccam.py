@@ -1011,7 +1011,7 @@ def prep_iofiles():
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
     else:
         print("ERROR: Unknown cmip option")
-        sys.exit(1)        
+        sys.exit(1)
     # Check ozone file exisits
     check_file_exists(d['ozone'])
 
@@ -1176,12 +1176,21 @@ def config_initconds():
             cname = newpath+".000000"
         if not os.path.exists(cname):
             raise ValueError(dict2str('Cannot locate file {bcdir}/{mesonest}'))
+	# update calendar    
         if d['leap'] == "auto":
             d['leap'] = check_calendar_in_file(cname, d['leap'])
             if d['leap'] == "auto":
                 print('Check calendar in ',cname)
                 raise ValueError("ERROR: Cannot assign calendar for leap=auto")
             print(dict2str('Assign calendar {leap}'))
+        # check match with emission scenario
+        gendata = check_attributevalue_in_file(cname, 'driving_experiment_name')
+        if gendata != "":
+            if gendata != d['rcp']:
+                print("ERROR: Mismatch between host dataset and specified emission scenario")
+                print("mesonest "+gendata)
+                print("script   "+d['rcp'])
+                sys.exit(1)		
 
     # prepare ifile
     fname = d['ifile']
@@ -2318,7 +2327,9 @@ def check_attribute_in_file(fname, vname, aname, vdata):
 def check_timestep_in_file(fname):
     "Checks the time-step in output file"
     
-    timestep = subprocess.getoutput('ncdump -c '+fname+' | grep time | tail -1 | cut -d= -f2 | cut -d, -f2')
+    timestep = subprocess.getoutput('ncdump -c '+fname+' | grep time | tail -1 | cut -d= -f2 | cut -d, -f1')
+    if timestep == 0:
+        timestep = subprocess.getoutput('ncdump -c '+fname+' | grep time | tail -1 | cut -d= -f2 | cut -d, -f2')
     return timestep
 
 
@@ -2368,21 +2379,29 @@ def calc_drs_host(fname):
     d['drs_host_name'] = "error"
     d['drs_host_institution'] = "error"
 
-    driving_model_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_model_id | cut -d\" -f2')
+    driving_model_id_test = check_attributevalue_in_file(fname,'driving_model_id')
     if driving_model_id_test != "":
         d['drs_host_name'] = driving_model_id_test
 
-    driving_model_ensemble_number_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_model_ensemble_number | cut -d\" -f2')
+    driving_model_ensemble_number_test = check_attributevalue_in_file(fname,'driving_model_ensemble_number')
     if driving_model_ensemble_number_test != "":
         d['drs_host_ensemble'] = driving_model_ensemble_number_test
 
-    driving_experiment_name_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_experiment_name | cut -d\" -f2')
+    driving_experiment_name_test = check_attributevalue_in_file(fname,'driving_experiment_name')
     if driving_experiment_name_test != "":
         d['drs_host_scenario'] = driving_experiment_name_test
 
-    driving_institution_id_test = subprocess.getoutput('ncdump -c '+fname+' | grep driving_institution_id | cut -d\" -f2')
+    driving_institution_id_test = check_attributevalue_in_file(fname,'driving_institution_id')
     if driving_institution_id_test != "":
         d['drs_host_institution'] = driving_institution_id_test
+
+
+def check_attributevalue_in_file(fname, attname):
+    "Return value of attribute"
+
+    attdata = subprocess.getoutput('ncdump -c '+fname+' | grep '+attname+' | cut -d\\" -f2')
+    print(attdata)
+    return attdata
 
 
 #===============================================================================
@@ -2669,7 +2688,7 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-5 qfg_max=1.e-5
     &end
     """
 
@@ -2695,7 +2714,7 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=1.e-5 qfg_max=1.e-5     
     &end
     """
 
@@ -2721,7 +2740,7 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=1.e-5 qfg_max=1.e-5
     &end
     """
 
@@ -2741,7 +2760,7 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=1.e-5 qfg_max=1.e-5
     &end
     """
 
@@ -2762,7 +2781,7 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3     
+     qlg_max=1.e-5 qfg_max=1.e-5
     &end
     """
 
@@ -2788,7 +2807,7 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-5 qfg_max=1.e-5
     &end
     """
 
@@ -2802,7 +2821,7 @@ def input_template_grell():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-5 qfg_max=1.e-5
     &end
     """
 
