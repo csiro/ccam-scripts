@@ -393,7 +393,10 @@ def get_datetime():
     sdate = d['iyr']*10000 + d['imth']*100 + d['iday']
     edate = d['iye']*10000 + d['ime']*100 + d['ide']
     if (sdate>edate) and (d['simulation_test'] is True):
-        raise ValueError("CCAM simulation already completed. Delete year.qm to restart.")
+        print("CCAM simulation already completed. Delete year.qm to restart.")
+        write2file(d['hdir']+'/restart.qm', "Complete", mode='w+')
+        sys.exit(0)
+
 
     # Calculate date of previous month
     iyr = d['iyr']
@@ -415,6 +418,18 @@ def get_datetime():
         if d['leap'] == "auto":
             d['leap'] = "leap"
         d['eday'] = monthrange(iyr, imth)[1]
+
+    # update radiation year and decade for aerosols	
+    if d['rad_year_input'] == 0:
+        d['use_rad_year'] = '.false.'
+        d['rad_year'] = d['iyr']
+    else:
+        d['use_rad_year'] = '.true.'
+        d['rad_year'] = d['rad_year_input']
+
+    # Decade start and end:
+    d['ddyear'] = int(int(d['rad_year']/10)*10)
+    d['deyear'] = int(d['ddyear'] + 9)
 
 
 def update_monthyear():
@@ -500,17 +515,6 @@ def set_preprocess_options():
     # store input rad_year as rad_year_input
     d['rad_year_input'] = d['rad_year']
 
-    if d['rad_year_input'] == 0:
-        d['use_rad_year'] = '.false.'
-        d['rad_year'] = d['iyr']
-    else:
-        d['use_rad_year'] = '.true.'
-        d['rad_year'] = d['rad_year_input']
-
-    # Decade start and end:
-    d['ddyear'] = int(int(d['rad_year']/10)*10)
-    d['deyear'] = int(d['ddyear'] + 9)
-
 
 def check_surface_files():
     "Ensure surface datasets exist"
@@ -591,7 +595,7 @@ def check_surface_files():
         if not os.path.exists(fname):
             testfail = True
         if check_correct_landuse(fname):
-            print("WARN: Invalid CABLE version in ",fname)
+            #print("WARN: Cannot find valid CABLE data for ",fname)
             testfail = True
     if testfail is True:
         print("Update land-surface data")
@@ -1185,12 +1189,18 @@ def config_initconds():
             print(dict2str('Assign calendar {leap}'))
         # check match with emission scenario
         gendata = check_attributevalue_in_file(cname, 'driving_experiment_name')
-        if gendata != "":
-            if gendata != d['rcp']:
-                print("ERROR: Mismatch between host dataset and specified emission scenario")
-                print("mesonest "+gendata)
-                print("script   "+d['rcp'])
-                sys.exit(1)		
+        if (gendata!="") and (gendata!="historical"):
+            if gendata == "evaluation":
+                if (d['cmip']=="cmip6") and (d['rcp']!="ssp370"):
+                    print("ERROR: Mismatch between host dataset and specified emission scenario")
+                    print("mesonest=evaluation requires rcp=ssp370")
+                    sys.exit(1)		
+            else:
+                if gendata != d['rcp']:
+                    print("ERROR: Mismatch between host dataset and specified emission scenario")
+                    print("mesonest "+gendata)
+                    print("script   "+d['rcp'])
+                    sys.exit(1)		
 
     # prepare ifile
     fname = d['ifile']
