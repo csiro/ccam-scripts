@@ -196,6 +196,10 @@ def convert_old_settings():
         if d['outlevmode']==2:
             d['outlevmode']="pressure_height"
 
+        # fix for historical
+        if d['rcp']=='historical':
+            d['rcp']='historic'
+
 
 def find_mode(nt, nt_dict, nt_name):
     "Correct and test arguments"
@@ -2350,6 +2354,9 @@ def check_calendar_in_file(cname, calendar_found):
     if check_attribute_in_file(cname, "time", "calendar", "noleap") is True:
         calendar_found = "noleap"
         new_calendar = True
+    if check_attribute_in_file(cname, "time", "calendar", "365_day") is True:
+        calendar_found = "noleap"
+        new_calendar = True	
     if check_attribute_in_file(cname, "time", "calendar", "360_day") is True:
         calendar_found = "360"
         new_calendar = True	
@@ -3118,7 +3125,7 @@ if __name__ == '__main__':
     parser.add_argument("--ncountmax", type=int, help=" Number of months before resubmit")
 
     parser.add_argument("--cmip", type=str, choices=['cmip5', 'cmip6'], help=" CMIP scenario")
-    parser.add_argument("--rcp", type=str, choices=['historic', 'RCP26', 'RCP45', 'RCP85', 'ssp126', 'ssp245', 'ssp370', 'ssp460', 'ssp585'], help=" RCP/SSP scenario")
+    parser.add_argument("--rcp", type=str, choices=['historic', 'historical', 'RCP26', 'RCP45', 'RCP85', 'ssp126', 'ssp245', 'ssp370', 'ssp460', 'ssp585'], help=" RCP/SSP scenario")
 
     parser.add_argument("--minlat", type=float, help=" output min latitude (degrees)")
     parser.add_argument("--maxlat", type=float, help=" output max latitude (degrees)")
