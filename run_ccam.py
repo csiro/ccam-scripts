@@ -2921,7 +2921,7 @@ def cc_template_all():
     &histnl
      htype="inst"
      hnames="all"  hfreq=1
-     chunk_grid=24
+     chunk_grid=32
     &end
     """
 
@@ -2956,7 +2956,7 @@ def cc_template_ctm():
      htype="inst"
      hnames={hnames}
      hfreq=1
-     chunk_grid=24
+     chunk_grid=32
     &end 
     """
 
@@ -2980,7 +2980,7 @@ def cc_template_latlon():
      htype="inst"
      hnames= "uas","vas","tas","hurs","ps","pr"
      hfreq = 1
-     chunk_grid=24
+     chunk_grid=32
     &end
     """
 
@@ -3012,7 +3012,7 @@ def cc_template_cordex():
      htype="inst"
      hnames={hnames}
      hfreq = 1
-     chunk_grid=24
+     chunk_grid=32
     &end
     """
 
@@ -3052,7 +3052,7 @@ def cc_template_basic():
      htype="inst"
      hnames={hnames}
      hfreq = 1
-     chunk_grid=24
+     chunk_grid=32
     &end 
     """
 
@@ -3079,7 +3079,7 @@ def cc_template_tracer():
     &histnl
      htype="inst"
      hnames= "tracer"  hfreq = 1
-     chunk_grid=24
+     chunk_grid=32
     &end
     """
 
