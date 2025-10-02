@@ -179,7 +179,7 @@ def convert_old_settings():
         ncsurf_dict = { 0:"off", 3:"cordex", 4:"cordex_s" }
         d['ncsurf'] = find_mode(d['ncsurf'],ncsurf_dict,"ncsurf")
 
-        nchigh_dict = { 0:"off", 1:"latlon", 2:"latlon_s" }
+        nchigh_dict = { 0:"off", 1:"latlon", 2:"latlon_s", 3:"shep", 4:"shep_s" }
         d['nchigh'] = find_mode(d['nchigh'],nchigh_dict,"nchigh")
 
         nctar_dict = { 0:"off", 1:"tar", 2:"delete" }
@@ -1790,6 +1790,10 @@ def post_process_output():
             singlefile = d['nchigh']=="latlon_s"
             ftest, newhighfreq = write_output_highfreq("latlon", singlefile, ftest, newhighfreq)
 
+        if (d['nchigh']=="shep") or (d['nchigh']=="shep_s"):
+            singlefile = d['nchigh']=="shep_s"
+            ftest, newhighfreq = write_output_highfreq("shep", singlefile, ftest, newhighfreq)
+
         # store output
         fname = dict2str('freq.{histfile}')
         ftest = store_output(ftest, fname)
@@ -2098,6 +2102,8 @@ def write_output_highfreq(outmode, singlefile, ftest, newhighfreq):
 
             if outmode == "latlon":
                 write2file('cc.nml', cc_template_latlon(), mode='w+')
+            if outmode == "shep":
+                write2file('cc.nml', cc_template_shep(), mode='w+')
             else:
                 print("ERROR Unknown outmode for write_output_latlon outmode=",outmode)
                 sys.exit(1)		
@@ -2660,6 +2666,7 @@ def input_template_1():
      phenfile=   '{stdat}/modis_phenology_csiro.nc'
      surf_00    ='{bcsoilfile}'
      surf_cordex=11 surf_windfarm=1
+     shep_cordex=1
      diaglevel_cloud={diaglevel_cloud}
      """
 
@@ -2978,7 +2985,7 @@ def cc_template_latlon():
     &end
     &histnl
      htype="inst"
-     hnames= "uas","vas","tas","hurs","ps","pr"
+     hnames= "uas","vas","tas","huss","ps","pr"
      hfreq = 1
      chunk_grid=32
     &end
@@ -2986,6 +2993,29 @@ def cc_template_latlon():
 
     return template
 
+
+def cc_template_shep():
+    "pcc2hist namelist for high-frequency output"
+
+    d['ktc_local'] = check_timestep_in_file(dict2str('freq.{histfile}.000000'))
+
+    template = """\
+    &input
+     ifile="freq.{histfile}"
+     ofile="freq.{histfile}.nc"
+     hres={res}
+     kta={ktc_local}   ktb=2999999  ktc=-1
+     minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
+    &end
+    &histnl
+     htype="inst"
+     hnames= "tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","tlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua1000","va1000","ta1000","hus1000","zg1000","wa1000","ua925","va925","ta925","hus925","zg925","wa925","ua850","va850","ta850","hus850","zg850","wa850","ua700","va700","ta700","hus700","zg700","wa700","ua600","va600","ta600","hus600","zg600","wa600","ua500","va500","ta500","hus500","zg500","wa500","ua400","va400","ta400","hus400","zg400","wa400","ua300","va300","ta300","hus300","zg300","wa300","ua250","va250","ta205","hus250","zg250","wa250","ua200","va200","ta200","hus200","zg200","wa200"
+     hfreq = 1
+     chunk_grid=32
+    &end
+    """
+
+    return template
 
 def cc_template_cordex():
     "pcc2hist namelist for cordex output"
@@ -3154,7 +3184,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--ncout", type=str, help=" standard output format (off, all, ctm, basic, all_s, basic_s)")
     parser.add_argument("--ncsurf", type=str, help=" CORDEX output (off, cordex), cordex_s")
-    parser.add_argument("--nchigh", type=str, help=" High-freq output (off, latlon, latlon_s)")
+    parser.add_argument("--nchigh", type=str, help=" High-freq output (off, latlon, latlon_s, shep, shep_s)")
     parser.add_argument("--nctar", type=str, help=" TAR output files in OUTPUT directory (off, tar, delete)")
     parser.add_argument("--ktc", type=int, help=" standard output period (mins)")
     parser.add_argument("--ktc_surf", type=int, help=" CORDEX file output period (mins) (0=off)")
