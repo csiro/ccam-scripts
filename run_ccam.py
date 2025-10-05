@@ -2624,7 +2624,7 @@ def input_template_1():
 
      COMMENT='file'
      synchist=.false. compression=1 io_in={io_in}
-     tbave={tbave} tbave10={tbave10} procmode=16 fnproc_bcast_max=24
+     tbave={tbave} tbave10={tbave10} procmode=16 chunk_time=72
     &end
     &skyin
      mins_rad=-1 qgmin=1.E-20

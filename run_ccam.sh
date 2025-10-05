@@ -50,14 +50,14 @@ fi
 # Post-processing requires ncout, ncsurf and nchigh to be enabled.
 ktc=360                                      # standard output period (mins)
 ktc_surf=60                                  # CORDEX file output period (mins) (0=off)
-ktc_high=10                                  # high-frequency output period (mins) (0=off)
+ktc_high=5                                   # high-frequency output period (mins) (0=off)
 nctar=off                                    # TAR output files in OUTPUT directory (off, tar, delete)
 
 # Post-processing.  Needed for data to be converted from the raw cubic grid to
 # lat/lon.
 ncout=off                                    # standard output (off, all, ctm, basic, tracer)
 ncsurf=cordex                                # CORDEX output (off, cordex)
-nchigh=latlon                                # high-frequency output (off, latlon)
+nchigh=shep                                  # high-frequency output (off, latlon, shep)
 
 # Output domain
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
@@ -85,7 +85,7 @@ rcm_version_id="v1"                          # CCAM version number
 cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
 rcp=ssp245                                   # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=54                                      # number of model levels (27, 35, 54, 72, 108 or 144)
-sib=cable_modis2020                      # land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, ccam_era5_evaluation_aus-4i_4km)
+sib=cable_modis2020                          # land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, ccam_era5_evaluation_aus-4i_4km)
 aero=prognostic                              # aerosols (off, prognostic)
 conv=2017                                    # convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021, grell)
 cldfrac=smith                                # cloud fraction (smith, mcgregor, tiedtke)
