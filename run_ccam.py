@@ -3009,7 +3009,7 @@ def cc_template_shep():
     &end
     &histnl
      htype="inst"
-     hnames= "tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","tlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua1000","va1000","ta1000","hus1000","zg1000","wa1000","ua925","va925","ta925","hus925","zg925","wa925","ua850","va850","ta850","hus850","zg850","wa850","ua700","va700","ta700","hus700","zg700","wa700","ua600","va600","ta600","hus600","zg600","wa600","ua500","va500","ta500","hus500","zg500","wa500","ua400","va400","ta400","hus400","zg400","wa400","ua300","va300","ta300","hus300","zg300","wa300","ua250","va250","ta205","hus250","zg250","wa250","ua200","va200","ta200","hus200","zg200","wa200"
+     hnames= "tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","rlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua1000","va1000","ta1000","hus1000","zg1000","wa1000","ua925","va925","ta925","hus925","zg925","wa925","ua850","va850","ta850","hus850","zg850","wa850","ua700","va700","ta700","hus700","zg700","wa700","ua600","va600","ta600","hus600","zg600","wa600","ua500","va500","ta500","hus500","zg500","wa500","ua400","va400","ta400","hus400","zg400","wa400","ua300","va300","ta300","hus300","zg300","wa300","ua250","va250","ta250","hus250","zg250","wa250","ua200","va200","ta200","hus200","zg200","wa200"
      hfreq = 1
      chunk_grid=32
     &end
