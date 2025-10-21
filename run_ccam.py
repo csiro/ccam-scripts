@@ -2712,7 +2712,7 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-5 qfg_max=1.e-5
+     qlg_max=1.e-1 qfg_max=1.e-1
     &end
     """
 
@@ -2738,7 +2738,7 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-5 qfg_max=1.e-5     
+     qlg_max=1.e-1 qfg_max=1.e-1
     &end
     """
 
@@ -2764,7 +2764,7 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-5 qfg_max=1.e-5
+     qlg_max=1.e-1 qfg_max=1.e-1
     &end
     """
 
@@ -2784,7 +2784,7 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-5 qfg_max=1.e-5
+     qlg_max=1.e-1 qfg_max=1.e-1
     &end
     """
 
@@ -2805,7 +2805,7 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-5 qfg_max=1.e-5
+     qlg_max=1.e-1 qfg_max=1.e-1
     &end
     """
 
@@ -2831,7 +2831,7 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-5 qfg_max=1.e-5
+     qlg_max=1.e-1 qfg_max=1.e-1
     &end
     """
 
@@ -2845,7 +2845,7 @@ def input_template_grell():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-5 qfg_max=1.e-5
+     qlg_max=1.e-1 qfg_max=1.e-1
     &end
     """
 
@@ -2924,11 +2924,12 @@ def cc_template_all():
      mlevs = {mlevs}
      tlevs = {tlevs}
      dlevs = {dlevs}
+     safe_max=6
     &end
     &histnl
      htype="inst"
      hnames="all"  hfreq=1
-     chunk_grid=32
+     chunk_grid=48
     &end
     """
 
@@ -2958,12 +2959,13 @@ def cc_template_ctm():
      use_meters=F
      use_theta=F
      use_depth=F
+     safe_max=6
     &end
     &histnl
      htype="inst"
      hnames={hnames}
      hfreq=1
-     chunk_grid=32
+     chunk_grid=48
     &end 
     """
 
@@ -2982,12 +2984,13 @@ def cc_template_latlon():
      hres={res}
      kta={ktc_local}   ktb=2999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
+     safe_max=6
     &end
     &histnl
      htype="inst"
      hnames= "uas","vas","tas","huss","ps","pr"
      hfreq = 1
-     chunk_grid=32
+     chunk_grid=48
     &end
     """
 
@@ -3006,12 +3009,13 @@ def cc_template_shep():
      hres={res}
      kta={ktc_local}   ktb=2999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
+     safe_max=6
     &end
     &histnl
      htype="inst"
      hnames= "tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","rlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua1000","va1000","ta1000","hus1000","zg1000","wa1000","ua925","va925","ta925","hus925","zg925","wa925","ua850","va850","ta850","hus850","zg850","wa850","ua700","va700","ta700","hus700","zg700","wa700","ua600","va600","ta600","hus600","zg600","wa600","ua500","va500","ta500","hus500","zg500","wa500","ua400","va400","ta400","hus400","zg400","wa400","ua300","va300","ta300","hus300","zg300","wa300","ua250","va250","ta250","hus250","zg250","wa250","ua200","va200","ta200","hus200","zg200","wa200"
      hfreq = 1
-     chunk_grid=32
+     chunk_grid=48
     &end
     """
 
@@ -3037,12 +3041,13 @@ def cc_template_cordex():
      hres={res}
      kta={ktc_local}  ktb=2999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
+     safe_max=6
     &end
     &histnl
      htype="inst"
      hnames={hnames}
      hfreq = 1
-     chunk_grid=32
+     chunk_grid=48
     &end
     """
 
@@ -3077,12 +3082,13 @@ def cc_template_basic():
      mlevs={mlevs}
      tlevs={tlevs}
      dlevs={dlevs}
+     safe_max=6
     &end
     &histnl
      htype="inst"
      hnames={hnames}
      hfreq = 1
-     chunk_grid=32
+     chunk_grid=48
     &end 
     """
 
@@ -3105,11 +3111,12 @@ def cc_template_tracer():
      use_meters=F
      use_theta=F
      use_depth=F
+     safe_max=6
     &end
     &histnl
      htype="inst"
      hnames= "tracer"  hfreq = 1
-     chunk_grid=32
+     chunk_grid=48
     &end
     """
 
