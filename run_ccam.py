@@ -2369,6 +2369,9 @@ def check_calendar_in_file(cname, calendar_found):
     if check_attribute_in_file(cname, "time", "calendar", "gregorian") is True:
         calendar_found = "leap"
         new_calendar = True	
+    if check_attribute_in_file(cname, "time", "calendar", "standard") is True:
+        calendar_found = "leap"
+        new_calendar = True
 
     # CCAM special case
     ccam_host = check_var_in_file(cname, ":version")
@@ -2585,7 +2588,7 @@ def input_template_1():
      dt={dt} nwt={nwt} ntau={ntau}
      nmaxpr=999999 newtop=1 nrungcm={nrungcm}
      namip={namip} rescrn=1 zo_clearing=1.
-     qg_fix=1 nhstest={nhstest}
+     qg_fix=1 nhstest={nhstest} estab_bug_fix=1
 
      COMMENT='dynamical core'
      epsp=0.1 epsu=0.1 epsh=1.
@@ -2712,7 +2715,7 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-1
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2738,7 +2741,7 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-1
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2764,7 +2767,7 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-1
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2784,7 +2787,7 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-1
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2805,7 +2808,7 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-1
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2831,7 +2834,7 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-1
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2845,7 +2848,7 @@ def input_template_grell():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-1
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
