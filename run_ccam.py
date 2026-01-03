@@ -2544,7 +2544,7 @@ def ocnbath_template():
     &ocnnml
      topofile="topout{domain}"
      bathout="bath{domain}"
-     bathdatafile="{insdir}/vegin/etopo1_ice_c.flt"
+     bathdatafile="{insdir}/vegin/GEBCO_2025_sub_ice.nc"
      riverdatapath="{insdir}/vegin"
      fastocn=t
      bathfilt=t
