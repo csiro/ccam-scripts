@@ -57,7 +57,7 @@ nctar=off                                    # TAR output files in OUTPUT direct
 # lat/lon.
 ncout=off                                    # standard output (off, all, ctm, basic, tracer)
 ncsurf=cordex                                # CORDEX output (off, cordex)
-nchigh=shep                                  # high-frequency output (off, latlon, shep)
+nchigh=off                                   # high-frequency output (off, latlon, shep)
 
 # Output domain
 minlat=-999.                                 # output min latitude (degrees) (-9999.=automatic)
@@ -85,17 +85,17 @@ rcm_version_id="v1"                          # CCAM version number
 cmip=cmip6                                   # CMIP scenario (cmip5 or cmip6)
 rcp=ssp245                                   # RCP scenario (historic, RCP45 or RCP85,ssp126,ssp245,ssp370,ssp460,ssp585)
 mlev=54                                      # number of model levels (27, 35, 54, 72, 108 or 144)
-sib=cable_modis2020                          # land surface (cable_vary, modis, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, ccam_era5_evaluation_aus-4i_4km)
+sib=cable_modis2020                          # land surface (cable_vary, cable_const, cable_modis2020, cable_modis2020_const)
 aero=prognostic                              # aerosols (off, prognostic)
 conv=2017                                    # convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021, grell)
-cldfrac=smith                                # cloud fraction (smith, mcgregor, tiedtke)
+cldfrac=tiedtke                              # cloud fraction (smith, mcgregor, tiedtke)
 cloud=lin                                    # cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel, lin)
 rad=SE4                                      # radiation (SE3, SE4, SE4lin)
 rad_year=0                                   # special option for overriding radiation year (0=off)
 bmix=tke_eps                                 # boundary layer (ri, tke_eps, hbg)
 tke_timeave_length=0                         # special option for time averaging of TKE source terms (seconds) 0=off
 mlo=dynamical                                # ocean (prescribed, dynamical)
-casa=off                                     # CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)
+casa=casa_cnp                                # CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)
 tracer=off                                   # Tracer emission directory (off=disabled)
 
 # User defined input datasets (e.g., for vegetation and urban)

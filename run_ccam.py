@@ -1401,18 +1401,18 @@ def set_land_carbon_aerosol():
     if d['sib'] == "cable_vary":
         d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
                   'cable_litter': 0, 'gs_switch': 1})
-    if d['sib'] == "cable_sli":
-        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3,
-                  'cable_litter': 1, 'gs_switch': 1})
+    #if d['sib'] == "cable_sli":
+    #    d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3,
+    #              'cable_litter': 1, 'gs_switch': 1})
     if d['sib'] == "cable_const":
         d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
                   'cable_litter': 0, 'gs_switch': 1})
     if d['sib'] == "cable_modis2020":
         d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
                   'cable_litter': 0, 'gs_switch': 1})
-    if d['sib'] == "cable_sli_modis2020":
-        d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3,
-                  'cable_litter': 1, 'gs_switch': 1})
+    #if d['sib'] == "cable_sli_modis2020":
+    #    d.update({'nsib': 7, 'soil_struc': 1, 'fwsoil_switch': 3,
+    #              'cable_litter': 1, 'gs_switch': 1})
     if d['sib'] == "cable_modis2020_const":
         d.update({'nsib': 7, 'soil_struc': 0, 'fwsoil_switch': 3,
                   'cable_litter': 0, 'gs_switch': 1})
@@ -1423,7 +1423,7 @@ def set_land_carbon_aerosol():
     if d['casa'] == "casa_cnp":
         d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 0})
     if d['casa'] == "casa_cnp_pop":
-        d.update({'ccycle': 2, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1})
+        d.update({'ccycle': 3, 'proglai': 1, 'progvcmax': 1, 'cable_pop': 1})
 
     # Configure aerosols
     if d['aero'] == "off":
@@ -2715,7 +2715,7 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2741,7 +2741,7 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2767,7 +2767,7 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2787,7 +2787,7 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2808,7 +2808,7 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2834,7 +2834,7 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2848,7 +2848,7 @@ def input_template_grell():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-3 qfg_max=1.e-3
+     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2887,11 +2887,11 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=1
+     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=2. zomode=3 ocneps=0.1 ocnepr=1. omaxl=1000.
-     mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
-     mlo_bs=3 minwater=2. mlo_step=1
+     ocnsmag=2. zomode=3 ocneps=0.1 ocnepr=0.1 omaxl=1000.
+     mlodiff_numits=6 mlo_adjeta=1 mstagf=0 mlodps=0
+     mlo_bs=3 minwater=2. mlo_step=1 mprecond=0
      mloiceadv=1 minsal=28. maxsal=42.
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
@@ -3179,7 +3179,7 @@ if __name__ == '__main__':
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
     parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, sst_only, nuding_ccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst, squaplanet1, .., aquaplanent8)")
-    parser.add_argument("--sib", type=str, help=" land surface (cable_vary, cable_sli, cable_const, cable_modis2020, cable_sli_modis2020, cable_modis2020_const)")
+    parser.add_argument("--sib", type=str, help=" land surface (cable_vary, cable_const, cable_modis2020, cable_modis2020_const)")
     parser.add_argument("--aero", type=str, help=" aerosols (off, prognostic)")
     parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021, grell)")
     parser.add_argument("--cldfrac", type=str, help=" cloud fraction (smith, mcgregor, tiedtke")
