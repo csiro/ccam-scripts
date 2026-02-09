@@ -1917,14 +1917,14 @@ def write_output_std(outmode, singlefile, ftest, newoutput, newoutput_h, newoutp
 
             if singlefile is True:
                 if d['machinetype'] == "srun":
-                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --interp=linear > pcc2hist.log')
                 else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > pcc2hist.log')
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --interp=linear > pcc2hist.log')
             else:
                 if d['machinetype'] == "srun":
-                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput --interp=linear > pcc2hist.log')
                 else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > pcc2hist.log')
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput --interp=linear > pcc2hist.log')
             check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")
     
             # move fles from working directory to archive directory
@@ -2001,9 +2001,9 @@ def write_output_ctm(ftest, newoutput, newoutput_h, newoutput_t, hy, hm):
                 d['outctmfile'] = dict2str("ccam_{histyear}{histmonth}{cday}.nc")
                 write2file('cc.nml', cc_template_ctm(), mode='w+')
                 if d['machinetype'] == "srun":
-                    run_cmdline('srun -n {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                    run_cmdline('srun -n {nproc} {pcc2hist} --interp=linear > pcc2hist_ctm.log')
                 else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} > pcc2hist_ctm.log')
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --interp=linear > pcc2hist_ctm.log')
                 check_msg_in_log("pcc2hist","pcc2hist.log","pcc2hist completed successfully")    
 		
             run_cmdline('mv ccam_{histyear}{histmonth}??.nc {hdir}/daily')
@@ -2050,14 +2050,14 @@ def write_output_cordex(outmode, singlefile, ftest, newcordex):
 	    
             if singlefile is True:
                 if d['machinetype'] == "srun":
-                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --interp=linear > surf.pcc2hist.log')
                 else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > surf.pcc2hist.log')
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --interp=linear > surf.pcc2hist.log')
             else:
                 if d['machinetype'] == "srun":
-                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput --interp=linear > surf.pcc2hist.log')
                 else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > surf.pcc2hist.log')
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput --interp=linear > surf.pcc2hist.log')
             check_msg_in_log("pcc2hist","surf.pcc2hist.log","pcc2hist completed successfully")
 	    
             if singlefile is True:
@@ -2110,14 +2110,14 @@ def write_output_highfreq(outmode, singlefile, ftest, newhighfreq):
 		
             if singlefile is True:
                 if d['machinetype'] == "srun":
-                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --interp=linear > freq.pcc2hist.log')
                 else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex > freq.pcc2hist.log')
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --interp=linear > freq.pcc2hist.log')
             else:
                 if d['machinetype'] == "srun":
-                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
+                    run_cmdline('srun -n {nproc} {pcc2hist} --cordex --multioutput --interp=linear > freq.pcc2hist.log')
                 else:
-                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput > freq.pcc2hist.log')
+                    run_cmdline('mpirun -np {nproc} {pcc2hist} --cordex --multioutput --interp=linear > freq.pcc2hist.log')
             check_msg_in_log("pcc2hist","freq.pcc2hist.log","pcc2hist completed successfully")
 	    
             if singlefile is True:
