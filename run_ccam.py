@@ -228,8 +228,8 @@ def check_inargs():
 
     # cmip and rcp to be moved to args2preprocess when possible
 
-    args2common = ['name', 'nproc', 'ncountmax', 'dmode', 'iys', 'ims', 'ids', 'iye', 'ime',
-                   'ide', 'machinetype', 'cmip', 'rcp', 'insdir', 'hdir']
+    args2common = ['name', 'nproc', 'ncountmax', 'dmode', 'iys', 'ims', 'ids', 'ihs',
+                   'iye', 'ime', 'ide', 'machinetype', 'cmip', 'rcp', 'insdir', 'hdir']
 
     args2preprocess = ['midlon', 'midlat', 'gridres', 'gridsize', 'wdir', 'terread',
                        'igbpveg', 'ocnbath', 'casafield', 'uclemparm', 'cableparm',
@@ -1244,12 +1244,11 @@ def config_initconds():
     d['ndays'] = d['eday'] - d['iday'] + 1
 
     # calculate the starting hour
-    d['ihs'] = 0
-    if not fname=="error":
-        testtime = check_starttime_in_file(fname)
-        #if testtime == 12:
-        #    testtime = 24 - testtime
-        d['ihs'] = testtime
+    if d['ihs'] == -1:
+        d['ihs'] = 0
+        if not fname=="error":
+            testtime = check_starttime_in_file(fname)
+            d['ihs'] = testtime
 
 
 def set_nudging():
@@ -2887,9 +2886,9 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
+     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
-     ocnsmag=2. zomode=3 ocneps=0.1 ocnepr=0.1 omaxl=1000.
+     ocnsmag=1. zomode=3 ocneps=0.1 ocnepr=0.1 omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=1 mstagf=0 mlodps=0
      mlo_bs=3 minwater=2. mlo_step=1 mprecond=0
      mloiceadv=1 minsal=28. maxsal=42.
@@ -3135,8 +3134,9 @@ if __name__ == '__main__':
     Author:
         Mitchell Black
     Modifications:
-        Marcus Thatcher, marcus.thatcher@csiro.au
-        Sonny Truong, sonny.truong@csiro.au	
+        Marcus Thatcher
+        Sonny Truong
+	Benjamin Ng
     """
     description = 'Run the CCAM model'
     parser = argparse.ArgumentParser(description=description,
@@ -3158,6 +3158,7 @@ if __name__ == '__main__':
     parser.add_argument("--iys", type=int, help=" start year [YYYY]")
     parser.add_argument("--ims", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" start month [MM]")
     parser.add_argument("--ids", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" start day [DD]")    
+    parser.add_argument("--ihs", type=int, choices=[-1, 0. 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], help=" start time [HH]")
     parser.add_argument("--iye", type=int, help=" end year [YYYY]")
     parser.add_argument("--ime", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], help=" end month [MM]")
     parser.add_argument("--ide", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], help=" end day [DD]")    
