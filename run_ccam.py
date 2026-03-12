@@ -1698,15 +1698,15 @@ def run_model():
             run_cmdline('rm {hdir}/highfreq/*_freq.{ofile}.nc')
 
     # Remove incomplete simulations (treat as spinup)
-    if d['ihour'] > 0:
-        print("Incomplete month detected - Removing spin-up output")
-        run_cmdline('rm {ofile}.??????')
-        fname = dict2str('surf.{ofile}.000000')
-        if os.path.exists(fname):
-            run_cmdline('rm surf.{ofile}.??????')
-        fname = dict2str('freq.{ofile}.000000')
-        if os.path.exists(fname):
-            run_cmdline('rm freq.{ofile}.??????')
+    #if d['ihour'] > 0:
+    #    print("Incomplete month detected - Removing spin-up output")
+    #    run_cmdline('rm {ofile}.??????')
+    #    fname = dict2str('surf.{ofile}.000000')
+    #    if os.path.exists(fname):
+    #        run_cmdline('rm surf.{ofile}.??????')
+    #    fname = dict2str('freq.{ofile}.000000')
+    #    if os.path.exists(fname):
+    #        run_cmdline('rm freq.{ofile}.??????')
 
 
 #===============================================================================
@@ -2886,7 +2886,7 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
+     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
      ocnsmag=1. zomode=3 ocneps=0.1 ocnepr=0.1 omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=1 mstagf=0 mlodps=0
