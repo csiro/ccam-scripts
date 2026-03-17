@@ -67,7 +67,7 @@ minlon=-999.                                 # output min longitude (degrees) (-
 maxlon=-999.                                 # output max longitude (degrees) (-999.=automatic)
 reqres=-999.                                 # required output resolution (degrees) (-999.=automatic)
 outlevmode=pressure                          # output mode for levels (pressure, height, theta, combinations seperated by _ like pressure_meters)
-plevs="1000, 850, 700, 500, 300"             # output pressure levels (hPa)
+plevs="1000, 925, 850, 700, 600, 500, 400, 300, 250, 200"  # output pressure levels (hPa)
 mlevs="10, 20, 40, 80, 140, 200"             # output height levels (m)
 tlevs="280, 300, 320, 340, 360, 380, 400"    # output theta levels (K)
 dlevs="5, 10, 50, 100, 500, 1000, 5000"      # ocean depth levels (m)
