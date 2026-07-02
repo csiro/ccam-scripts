@@ -548,7 +548,7 @@ def check_surface_files():
 
     testfail = False    
     if not os.path.exists(cfname):
-        print("WARN: Cannot locate custom.qm - Need to rebuild vegetation")
+        print("Cannot locate custom.qm - Need to create surface data")
         testfail = True
     else:
         filename = open(cfname, 'r')
@@ -768,7 +768,7 @@ def create_aeroemiss_file():
         print("-> Create aerosol emissions")
 
         if d['cmip'] == "cmip5":
-            if d['rcp'] == "historic" or d['iyr'] < 2010:
+            if d['rcp'] == "historic" or d['rad_year'] < 2010:
                 aero = {'so2_anth': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_anthropogenic_{ddyear}*.nc'),
                         'so2_ship': get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_SO2_ships_{ddyear}*.nc'),
                         'so2_biom': get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_SO2_decadalmonthlymean{ddyear}*.nc'),
@@ -778,7 +778,7 @@ def create_aeroemiss_file():
                         'oc_anth':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_anthropogenic_{ddyear}*.nc'),
                         'oc_ship':  get_fpath('{stdat}/{cmip}/historic/IPCC_emissions_OC_ships_{ddyear}*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/historic/IPCC_GriddedBiomassBurningEmissions_OC_decadalmonthlymean{ddyear}*.nc')}
-            elif d['iyr'] < 2100:
+            elif d['rad_year'] < 2100:
                 aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_anthropogenic_{ddyear}*.nc'),
                         'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_ships_{ddyear}*.nc'),
                         'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_SO2_biomassburning_{ddyear}*.nc'),
@@ -799,16 +799,16 @@ def create_aeroemiss_file():
                         'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_2090*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_2090*.nc')}
         elif d['cmip'] == "cmip6":
-            if d['rcp'] == "historic" or d['iyr'] < 2015:
-                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'so2_ship': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'so2_biom': get_fpath('{stdat}/{cmip}/cmip/SO2-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'bc_anth':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'bc_ship':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'bc_biom':  get_fpath('{stdat}/{cmip}/cmip/BC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'oc_anth':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'oc_ship':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc'),
-                        'oc_biom':  get_fpath('{stdat}/{cmip}/cmip/OC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{iyr}*.nc')}
+            if d['rcp'] == "historic" or d['rad_year'] < 2015:
+                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'so2_ship': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'so2_biom': get_fpath('{stdat}/{cmip}/cmip/SO2-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'bc_anth':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'bc_ship':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'bc_biom':  get_fpath('{stdat}/{cmip}/cmip/BC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'oc_anth':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'oc_ship':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
+                        'oc_biom':  get_fpath('{stdat}/{cmip}/cmip/OC-em-openburning-share_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc')}
             else:
                 if d['rcp'] == "ssp126":
                     d['rcplabel'] = "IMAGE"
@@ -823,7 +823,7 @@ def create_aeroemiss_file():
                 else:
                     raise ValueError(dict2str("Invalid choice for rcp"))
 
-                if d['iyr'] < 2020:
+                if d['rad_year'] < 2020:
                     aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
@@ -833,7 +833,7 @@ def create_aeroemiss_file():
                             'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc'),
                             'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2015*.nc')}
-                elif d['iyr'] < 2100:
+                elif d['rad_year'] < 2100:
                     aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
                             'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_{ddyear}*.nc'),
@@ -997,23 +997,23 @@ def prep_iofiles():
         d['amipo3'] = ".true."    
         d['ozone'] = dict2str('{stdat}/APE-Ozone.T42-Lat-Alt')
     elif d['cmip'] == "cmip5":
-        if (d['rcp']=="historic") or (d['iyr']<2005):
+        if (d['rcp']=="historic") or (d['rad_year']<2005):
             d['ozone'] = dict2str('{stdat}/{cmip}/historic/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_historic_T3M_O3.nc')
         else:
-            if d['iyr'] > 2099:
+            if d['rad_year'] > 2099:
                 d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_2090-2099_{rcp}_T3M_O3.nc')
             else:		
                 d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
     elif d['cmip'] == "cmip6":
-        if d['iyr'] < 1900:
+        if d['rad_year'] < 1900:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
-        elif d['iyr'] < 1950:
+        elif d['rad_year'] < 1950:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_190001-194912.nc')
-        elif d['iyr'] < 2000:
+        elif d['rad_year'] < 2000:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_195001-199912.nc')
-        elif d['iyr'] < 2015:
+        elif d['rad_year'] < 2015:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_200001-201412.nc')
-        elif d['iyr'] < 2050:
+        elif d['rad_year'] < 2050:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
         else:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
@@ -1038,7 +1038,7 @@ def prep_iofiles():
 
     elif d['cmip'] == "cmip6":
         # check for historical or future GHG concentrations
-        if d['iyr'] < 2015:
+        if d['rad_year'] < 2015:
             d['co2file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
             d['ch4file'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
             d['n2ofile'] = dict2str('{stdat}/{cmip}/cmip/mole-fraction-of-nitrous-oxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gr1-GMNHSH_000001-201412.nc')
@@ -1256,11 +1256,11 @@ def set_nudging():
 
     if d['dmode'] == "nudging_gcm":
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                  'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+                  'kbotdav': -850, 'ktopdav': -5, 'sigramplow': 0.05})
 
     elif d['dmode'] == "sst_only":
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
-                  'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+                  'kbotdav': -850, 'ktopdav': -5, 'sigramplow': 0.05})
 
     elif d['dmode'] == "nudging_ccam":
         d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
@@ -1717,7 +1717,7 @@ def post_process_output():
     "Post-process the CCAM model output"
     
     hy = d['iys']
-    hm = 1
+    hm = d['ims']
     ftest = True
     newoutput = False
     newoutput_h = False
@@ -1808,7 +1808,7 @@ def post_process_output():
             hm = 1
             hy = hy + 1
     
-        if hy>d['iye']:
+        if ( hy>d['iye'] or (hy==d['iye'] and hm>d['ime']) ):
             ftest = False
             if d['dmode'] == "postprocess":
                 # allow simulation to exit
@@ -2627,9 +2627,6 @@ def input_template_1():
      COMMENT='file'
      synchist=.false. compression=1 io_in={io_in}
      tbave={tbave} tbave10={tbave10} procmode=16 chunk_time=72
-
-     COMMENT='optimisation'
-     nagg=8 maxtilesize=96
     &end
     &skyin
      mins_rad=-1 qgmin=1.E-20
@@ -2644,6 +2641,7 @@ def input_template_1():
      rad_year={rad_year}
      liqradmethod={liqradmethod}
      iceradmethod={iceradmethod}
+     o3_vert_interpolate=1 tradmax=425.
     &end
     &datafile
      ifile=      '{ifile}'
@@ -2673,6 +2671,7 @@ def input_template_1():
      surf_cordex=11 surf_windfarm=1
      shep_cordex=1
      diaglevel_cloud={diaglevel_cloud}
+     ml_cordex=.false. ml_freq=.true.
      """
 
     template2 = """
@@ -2717,7 +2716,6 @@ def input_template_c2014():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2743,7 +2741,6 @@ def input_template_c2015a():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2769,7 +2766,6 @@ def input_template_c2015m():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2789,7 +2785,6 @@ def input_template_c2015b():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2810,7 +2805,6 @@ def input_template_c2017():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2836,7 +2830,6 @@ def input_template_c2021():
      nevapls=-4 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2850,7 +2843,6 @@ def input_template_grell():
      nevapls=0 ncloud={ncloud} tiedtke_form=1 acon={acon} bcon={bcon}
      rcrit_l={rcrit_l} rcrit_s={rcrit_s}
      lin_aerosolmode={lin_aerosolmode} lin_adv=1
-     qlg_max=1.e-1 qfg_max=1.e-3
     &end
     """
 
@@ -2889,7 +2881,7 @@ def input_template_4():
      ateb_zoroof=0.05 ateb_zocanyon=0.05
     &end
     &mlonml
-     mlodiff=0 otaumode=1 mlojacobi=7 mlomfix=2
+     mlodiff=1 otaumode=1 mlojacobi=7 mlomfix=2
      usetide=0 mlosigma=6 nodrift=1 oclosure=1
      ocnsmag=1. zomode=3 ocneps=0.1 ocnepr=0.1 omaxl=1000.
      mlodiff_numits=6 mlo_adjeta=0 mstagf=0 mlodps=0
@@ -2897,7 +2889,7 @@ def input_template_4():
      mloiceadv=1 minsal=28. maxsal=42.
      alphavis_seaice=0.95 alphanir_seaice=0.7
      alphavis_seasnw=0.95 alphanir_seasnw=0.7
-     rivermd=1
+     rivermd=0 wt_transport=1
     &end
     &tin &end
     &soilin &end
@@ -3014,14 +3006,16 @@ def cc_template_shep():
      hres={res}
      kta={ktc_local}   ktb=2999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
+     use_plevs = T
+     plevs = {plevs}
      safe_max=6
     &end
     &histnl
      htype="inst"
-     hnames= "tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","rlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua1000","va1000","ta1000","hus1000","zg1000","wa1000","ua925","va925","ta925","hus925","zg925","wa925","ua850","va850","ta850","hus850","zg850","wa850","ua700","va700","ta700","hus700","zg700","wa700","ua600","va600","ta600","hus600","zg600","wa600","ua500","va500","ta500","hus500","zg500","wa500","ua400","va400","ta400","hus400","zg400","wa400","ua300","va300","ta300","hus300","zg300","wa300","ua250","va250","ta250","hus250","zg250","wa250","ua200","va200","ta200","hus200","zg200","wa200"
+     hnames= "tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","rlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua","va","ta","hus","zg","wa","helicity"
      hfreq = 1
      chunk_grid=48
-    &end    
+    &end
     """
 
     return template
@@ -3029,13 +3023,15 @@ def cc_template_shep():
 def cc_template_cordex():
     "pcc2hist namelist for cordex output"
 
-    d['hnames'] = '"tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","ua200m","va200m","ua250m","va250m","ua300m","va300m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrsfl","CAPE","CIN","LI","mrfsos","mrsos"'
+    d['hnames'] = '"tas","tasmax","tasmin","pr","ps","psl","huss","hurs","sfcWind","sfcWindmax","clt","sund","rsds","rsdsdir","rlds","hfls","hfss","rsus","rlus","evspsbl","evspsblpot","mrfso","mrros","mrro","mrso","snw","snm","prhmax","prc","rlut","rsdt","rsut","uas","vas","tauu","tauv","ts","zmla","prw","clwvi","clivi","ua1000","va1000","ta1000","zg1000","hus1000","wa1000","ua925","va925","ta925","zg925","hus925","wa925","ua850","va850","ta850","zg850","hus850","wa850","ua700","va700","ta700","zg700","hus700","wa700","ua600","va600","ta600","zg600","hus600","wa600","ua500","va500","ta500","zg500","hus500","wa500","ua400","va400","ta400","zg400","hus400","wa400","ua300","va300","ta300","zg300","hus300","wa300","ua250","va250","ta250","zg250","hus250","wa250","ua200","va200","ta200","zg200","hus200","wa200","clh","clm","cll","snc","snd","siconca","prsn","orog","sftlf","ua50m","va50m","ta50m","hus50m","ua100m","va100m","ua150m","va150m","sftlaf","sfturf","z0","wsgsmax","tsl","mrsol","mrsfl","CAPE","CIN","LI","mrfsos","mrsos"'
 
     fname = dict2str('surf.{histfile}.000000')
     if check_var_in_file(fname,"od550aer") is True:
         d['hnames'] = dict2str('{hnames},"od550aer"')
-    if check_var_in_file(fname,"anthroheat") is True:
+    if check_var_in_file(fname,"anth_ave") is True:
         d['hnames'] = dict2str('{hnames},"tsroof","tsgree","tspav","mrsofc","anthroheat"')
+    if check_var_in_file(fname,"helicitymax") is True:
+        d['hnames'] = dict2str('{hnames},"helicitymax","helicitymin"')
 
     d['ktc_local'] = check_timestep_in_file(dict2str('surf.{histfile}.000000'))
 
@@ -3046,6 +3042,8 @@ def cc_template_cordex():
      hres={res}
      kta={ktc_local}  ktb=2999999  ktc=-1
      minlat={minlat} maxlat={maxlat} minlon={minlon} maxlon={maxlon}
+     use_plevs = T
+     plevs = {plevs}
      safe_max=6
     &end
     &histnl
