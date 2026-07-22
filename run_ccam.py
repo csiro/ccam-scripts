@@ -3012,7 +3012,7 @@ def cc_template_shep():
     &end
     &histnl
      htype="inst"
-     hnames= "tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","rlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua","va","ta","hus","zg","wa","helicity"
+     hnames= "vegt","soilt","tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","rlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua","va","ta","hus","zg","wa","helicity"
      hfreq = 1
      chunk_grid=48
     &end
