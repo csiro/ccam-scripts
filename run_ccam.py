@@ -3000,6 +3000,8 @@ def cc_template_shep():
     d['ktc_local'] = check_timestep_in_file(dict2str('freq.{histfile}.000000'))
 
     d['hnames'] = "vegt","soilt","tas","pr","evspsbl","huss","ps","psl","uas","vas","rsds","rlds","ts","prsn","mrros","mrro","snm","rsus","rlus","hfls","hfss","zmla","CAPE","CIN","LI","orog","sftlf","ua","va","ta","hus","zg","wa","helicity"
+    if check_var_in_file(fname,"sint_ave") is True:
+        d['hnames'] = dict2str('{hnames},"rsdt"')
     if check_var_in_file(fname,"hailradave") is True:
         d['hnames'] = dict2str('{hnames},"hailradave","hailradmax"')
 
