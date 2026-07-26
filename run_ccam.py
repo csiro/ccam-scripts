@@ -3032,6 +3032,8 @@ def cc_template_cordex():
         d['hnames'] = dict2str('{hnames},"tsroof","tsgree","tspav","mrsofc","anthroheat"')
     if check_var_in_file(fname,"helicitymax") is True:
         d['hnames'] = dict2str('{hnames},"helicitymax","helicitymin"')
+    if check_var_in_file(fname,"hailradave") is True:
+        d['hnames'] = dict2str('{hnames},"hailradave","hailradmax"')
 
     d['ktc_local'] = check_timestep_in_file(dict2str('surf.{histfile}.000000'))
 

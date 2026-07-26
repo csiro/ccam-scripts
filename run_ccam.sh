@@ -89,7 +89,7 @@ mlev=54                                      # number of model levels (27, 35, 5
 sib=cable_modis2020                          # land surface (cable_vary, cable_const, cable_modis2020, cable_modis2020_const)
 aero=prognostic                              # aerosols (off, prognostic)
 conv=2017                                    # convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021, grell)
-cldfrac=tiedtke                              # cloud fraction (smith, mcgregor, tiedtke)
+cldfrac=smith                                # cloud fraction (smith, mcgregor, tiedtke)
 cloud=lin                                    # cloud microphysics (liq_ice, liq_ice_rain, liq_ice_rain_snow_graupel, lin)
 rad=SE4                                      # radiation (SE3, SE4, SE4lin)
 rad_year=0                                   # special option for overriding radiation year (0=off)
