@@ -1622,7 +1622,7 @@ def check_correct_host():
 
 #    # should this stretching be limited because nud_q=0?
     if d['dmode'] == "nudging_gcm":
-        if d['lowres'] > 200.:
+        if d['lowres'] > 220.:
             raise ValueError('CCAM coarse grid is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
 
     if d['dmode'] in ["sst_only", "aquaplanet1", "aquaplanet2", "aquaplanet3",

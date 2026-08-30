@@ -111,8 +111,8 @@ userlaifile=none                             # User specified LAI map (none for 
 # Host atmosphere for dmode=nudging_gcm, nudging_ccam, sst_6hour
 # and soil data options
 
-bcdom=ccam_eraint_                           # host file prefix for dmode=nudging_gcm, nudging_ccam or sst_6hour
-bcdir=$HOME/ccaminstall/erai                 # host atmospheric data (dmode=nudging_gcm, nudging_ccam, sst_6hour)
+bcdom=cc_arr_ERA5_nudged_                    # host file prefix for dmode=nudging_gcm, nudging_ccam or sst_6hour
+bcdir=$HOME/ccaminstall/era5                 # host atmospheric data (dmode=nudging_gcm, nudging_ccam, sst_6hour)
 bcsoil=climatology                           # use climatology for initial soil moisture (constant, climatology, recycle)
 bcsoilfile=none                              # soil data for recycling with bcsoil=recycle
 
