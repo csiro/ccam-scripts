@@ -169,7 +169,10 @@ def convert_old_settings():
     
         bcsoil_dict = { 0:"constant", 1:"climatology", 2:"recycle" }
         d['bcsoil'] = find_mode(d['bcsoil'],bcsoil_dict,"bcsoil")
-   
+	
+    multitime_cordex_dict = { 0:"off", 1:"compress"}
+    d['multitime_cordex'] = find_mode(d['multitime_cordex'],multitime_cordex_dict,"multitime_cordex")
+
 
     if d['postprocess_test'] is True:
 
@@ -238,7 +241,7 @@ def check_inargs():
 
     args2simulation = ['bcdom', 'bcsoil', 'sstfile', 'sstinit', 'bcdir', 'sstdir', 'stdat',
                        'aeroemiss', 'model', 'tracer', 'rad',  'ktc', 'ktc_surf', 'ktc_high',
-		       'tke_timeave_length', 'mlev', 'cloud', 'cldfrac', 'conv', 'bmix' ]
+		       'mlev', 'cloud', 'cldfrac', 'conv', 'bmix', 'multitime_cordex' ]
 
     args2postprocess = ['minlat', 'maxlat', 'minlon', 'maxlon', 'reqres', 'outlevmode',
                         'plevs', 'mlevs', 'tlevs', 'dlevs', 'drsmode', 'drsdomain', 'model_id',
@@ -526,7 +529,7 @@ def check_surface_files():
     d['vegin'] = dict2str('{hdir}/vegdata')
 
      # Define vegetation file
-    if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=="cable_modis2020_const"):
+    if (d['cmip']=="cmip5") or (d['cmip']=="cmip7") or (d['sib']=="cable_const") or (d['sib']=="cable_modis2020_const"):
         # Fixed land-use
         d['vegfile'] = dict2str('veg{domain}.{imth_2digit}')
     else:
@@ -592,7 +595,7 @@ def check_surface_files():
 
     testfail = False
     for mon in range(1, 13):
-        if (d['cmip']=="cmip5") or (d['sib']=="cable_const") or (d['sib']=='cable_modis2020_const'):
+        if (d['cmip']=="cmip5") or (d['cmip']=="cmip7") or (d['sib']=="cable_const") or (d['sib']=='cable_modis2020_const'):
             fname = dict2str('{vegin}/veg{domain}.'+mon_2digit(mon))
         else:
             fname = dict2str('{vegin}/veg{domain}.{iyr}.'+mon_2digit(mon))
@@ -711,7 +714,7 @@ def run_land():
 
     # use MODIS2020 dataset
     if (d['sib']=="cable_modis2020") or (d['sib']=="cable_sli_modis2020") or (d['sib']=="cable_modis2020_const"):
-        write2file('igbpveg.nml', igbpveg_template2(), mode='w+')
+        write2file('igbpveg.nml', igbpveg_template_modis(), mode='w+')
     else:
         write2file('igbpveg.nml', igbpveg_template(), mode='w+')
         
@@ -798,6 +801,7 @@ def create_aeroemiss_file():
                         'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_anthropogenic_2090*.nc'),
                         'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_ships_2090*.nc'),
                         'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/IPCC_emissions_{rcp}_OC_biomassburning_2090*.nc')}
+
         elif d['cmip'] == "cmip6":
             if d['rcp'] == "historic" or d['rad_year'] < 2015:
                 aero = {'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2017-05-18_gn_{rad_year}*.nc'),
@@ -853,6 +857,53 @@ def create_aeroemiss_file():
                             'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
                             'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc'),
                             'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning-share_input4MIPs_emissions_ScenarioMIP_IAMC-{rcplabel}-{rcp}-1-1_gn_2090*.nc')}
+
+        elif d['cmip'] == "cmip7":
+            if d['rcp'] == "historic" or d['rad_year'] < 2021:
+                if d['rad_year'] < 2000:
+		    # 1 year intervals
+                    aero = {'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_195001-199912.nc'),
+                            'so2_ship': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_195001-199912.nc'),
+                            'so2_biom': get_fpath('{stdat}/{cmip}/cmip/SO2-em-openburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP7-2-0_gn_190001-202312.nc'),
+                            'bc_anth':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_195001-199912.nc'),
+                            'bc_ship':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_195001-199912.nc'),
+                            'bc_biom':  get_fpath('{stdat}/{cmip}/cmip/BC-em-openburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP7-2-0_gn_190001-202312.nc'),
+                            'oc_anth':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_195001-199912.nc'),
+                            'oc_ship':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_195001-199912.nc'),
+                            'oc_biom':  get_fpath('{stdat}/{cmip}/cmip/OC-em-openburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP7-2-0_gn_190001-202312.nc')}
+                else:
+		    # 1 year intervals
+                    aero = {'so2_anth': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_200001-202312.nc'),
+                            'so2_ship': get_fpath('{stdat}/{cmip}/cmip/SO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_200001-202312.nc'),
+                            'so2_biom': get_fpath('{stdat}/{cmip}/cmip/SO2-em-openburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP7-2-0_gn_190001-202312.nc'),
+                            'bc_anth':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_200001-202312.nc'),
+                            'bc_ship':  get_fpath('{stdat}/{cmip}/cmip/BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_200001-202312.nc'),
+                            'bc_biom':  get_fpath('{stdat}/{cmip}/cmip/BC-em-openburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP7-2-0_gn_190001-202312.nc'),
+                            'oc_anth':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_200001-202312.nc'),
+                            'oc_ship':  get_fpath('{stdat}/{cmip}/cmip/OC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_200001-202312.nc'),
+                            'oc_biom':  get_fpath('{stdat}/{cmip}/cmip/OC-em-openburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP7-2-0_gn_190001-202312.nc')}
+            elif d['rad_year'] < 2100:
+	        # 5 year intervals
+                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-openburning_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc'),
+                        'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_202201-210012.nc')}
+            else:
+		# 5 year intervals   
+                aero = {'so2_anth': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'so2_ship': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'so2_biom': get_fpath('{stdat}/{cmip}/{rcp}/SO2-em-openburning_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'bc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'bc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'bc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/BC-em-openburning_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'oc_anth':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'oc_ship':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc'),
+                        'oc_biom':  get_fpath('{stdat}/{cmip}/{rcp}/OC-em-openburning_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-{rcp}-1-1-1_gn_210501-250012.nc')}
         else:
             raise ValueError(dict2str("Invalid choice for cmip"))
 
@@ -985,6 +1036,10 @@ def prep_iofiles():
         if d['rcp'] == "historic":
             if d['iyr'] >= 2015:
                 raise ValueError("Historical period finished at 2014.  Consider selecting a future SSP.")
+    elif d['cmip'] == "cmip7":
+        if d['rcp'] == "historic":
+            if d['iyr'] >= 2022:
+                raise ValueError("Historical period finished at 2022.  Consider selecting a future SSP.")
     else:
         print("ERROR: Unknown cmip option cmip = ",d['cmip'])
         sys.exit(1)
@@ -996,6 +1051,7 @@ def prep_iofiles():
                       "aquaplanet7", "aquaplanet8"]:
         d['amipo3'] = ".true."    
         d['ozone'] = dict2str('{stdat}/APE-Ozone.T42-Lat-Alt')
+
     elif d['cmip'] == "cmip5":
         if (d['rcp']=="historic") or (d['rad_year']<2005):
             d['ozone'] = dict2str('{stdat}/{cmip}/historic/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_historic_T3M_O3.nc')
@@ -1004,6 +1060,7 @@ def prep_iofiles():
                 d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_2090-2099_{rcp}_T3M_O3.nc')
             else:		
                 d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/pp.Ozone_CMIP5_ACC_SPARC_{ddyear}-{deyear}_{rcp}_T3M_O3.nc')
+
     elif d['cmip'] == "cmip6":
         if d['rad_year'] < 1900:
             d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc')
@@ -1017,6 +1074,19 @@ def prep_iofiles():
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_201501-204912.nc')
         else:
             d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-{rcp}-1-0_gn_205001-209912.nc')
+
+    elif d['cmip'] == "cmip7":
+        if d['rad_year'] < 2000:
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_FZJ-CMIP-ozone-2-0_gn_195001-199912.nc')
+        elif d['rad_year'] < 2022:
+            d['ozone'] = dict2str('{stdat}/{cmip}/cmip/vmro3_input4MIPs_ozone_CMIP_FZJ-CMIP-ozone-2-0_gn_200001-202212.nc')
+        elif d['rad_year'] < 2060:
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_FZJ-CMIP-ozone-{rcp}-1-0_gn_202201-205912.nc')
+        elif d['rad_year'] < 2101:
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMUP_FZJ-CMIP-ozone-{rcp}-1-0_gn_206001-210012.nc')
+        else:
+            d['ozone'] = dict2str('{stdat}/{cmip}/{rcp}/vmro3_input4MIPs_ozone_ScenarioMIP_FZJ-CMIP-ozone-{rcp}-1-0_gn_210101-215012.nc')
+
     else:
         print("ERROR: Unknown cmip option")
         sys.exit(1)
@@ -1070,6 +1140,44 @@ def prep_iofiles():
 
         # use time varying solar constant
         d['solarfile'] = dict2str('{stdat}/{cmip}/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-3-2_gn_185001-229912.nc')
+        
+        # verify iofiles exist
+        for fname in [d['co2file'], d['ch4file'], d['n2ofile'], d['cfc11file'],
+                      d['cfc12file'], d['cfc113file'], d['hcfc22file'], d['solarfile']]:
+            check_file_exists(fname)
+ 
+    elif d['cmip'] == "cmip7":
+        # check for historical or future GHG concentrations
+        if d['rad_year'] < 2022:
+            d['co2file'] = dict2str('{stdat}/{cmip}/cmip/co2_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_175001-202212.nc')
+            d['ch4file'] = dict2str('{stdat}/{cmip}/cmip/ch4_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_175001-202212.nc')
+            d['n2ofile'] = dict2str('{stdat}/{cmip}/cmip/n2o_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_175001-202212.nc')
+            d['cfc11file'] = dict2str('{stdat}/{cmip}/cmip/cfc11_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_175001-202212.nc')
+            d['cfc12file'] = dict2str('{stdat}/{cmip}/cmip/cfc12_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_175001-202212.nc')
+            d['cfc113file'] = dict2str('{stdat}/{cmip}/cmip/cfc113_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_175001-202212.nc')
+            d['hcfc22file'] = dict2str('{stdat}/{cmip}/cmip/hcfc22_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_175001-202212.nc')
+        elif d['rad_year'] < 2101:
+            d['co2file'] = dict2str('{stdat}/{cmip}/{rcp}/co2_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_202201-210012.nc')
+            d['ch4file'] = dict2str('{stdat}/{cmip}/{rcp}/ch4_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_202201-210012.nc')
+            d['n2ofile'] = dict2str('{stdat}/{cmip}/{rcp}/n2o_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_202201-210012.nc')
+            d['cfc11file'] = dict2str('{stdat}/{cmip}/{rcp}/cfc11_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_202201-210012.nc')
+            d['cfc12file'] = dict2str('{stdat}/{cmip}/{rcp}/cfc12_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_202201-210012.nc')
+            d['cfc113file'] = dict2str('{stdat}/{cmip}/{rcp}/cfc113_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_202201-210012.nc')
+            d['hcfc22file'] = dict2str('{stdat}/{cmip}/{rcp}/hcfc22_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_202201-210012.nc')
+        else:
+            d['co2file'] = dict2str('{stdat}/{cmip}/{rcp}/co2_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_210101-220012.nc')
+            d['ch4file'] = dict2str('{stdat}/{cmip}/{rcp}/ch4_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_210101-220012.nc')
+            d['n2ofile'] = dict2str('{stdat}/{cmip}/{rcp}/n2o_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_210101-220012.nc')
+            d['cfc11file'] = dict2str('{stdat}/{cmip}/{rcp}/cfc11_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_210101-220012.nc')
+            d['cfc12file'] = dict2str('{stdat}/{cmip}/{rcp}/cfc12_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_210101-220012.nc')
+            d['cfc113file'] = dict2str('{stdat}/{cmip}/{rcp}/cfc113_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_210101-220012.nc')
+            d['hcfc22file'] = dict2str('{stdat}/{cmip}/{rcp}/hcfc22_input4MIPs_GHGConcentrations_ScenarioMIP_CR-{rcp}-1-0-0_gm_210101-220012.nc')
+
+        # use time varying solar constant
+        if d['rad_year'] < 2022:
+             d['solarfile'] = dict2str('{stdat}/{cmip}/multiple_input4MIPs_solar_CMIP_SOLARIS-HEPPA-CMIP-4-6_gn_185001-202312.nc')
+        else:	     
+             d['solarfile'] = dict2str('{stdat}/{cmip}/multiple_input4MIPs_solar_ScenarioMIP_SOLARIS-HEPPA-ScenarioMIP-4-6_gn_202201-229912.nc')
         
         # verify iofiles exist
         for fname in [d['co2file'], d['ch4file'], d['n2ofile'], d['cfc11file'],
@@ -1198,6 +1306,10 @@ def config_initconds():
                 if (d['cmip']=="cmip6") and (d['rcp']!="ssp370"):
                     print("ERROR: Mismatch between host dataset and specified emission scenario")
                     print("mesonest=evaluation requires rcp=ssp370")
+                    sys.exit(1)
+                if (d['cmip']=="cmip7") and (d['rcp']!="h"):
+                    print("ERROR: Mismatch between host dataset and specified emission scenario")
+                    print("mesonest=evaluation requires rcp=h")
                     sys.exit(1)		
             else:
                 if gendata != d['rcp']:
@@ -1517,6 +1629,11 @@ def set_surf_output():
         d.update({'tbave': int(d['ktc_surf']*60/d['dt'])})
     else:
         d.update({'tbave': 0})	
+	
+    if d['multitime_cordex'] == "compress":
+        d['ml_cordex'] = '.false.'
+    else:
+        d['ml_cordex'] = '.true.'
 
     if d['ktc_high'] > 0:
         d.update({'tbave10': int(d['ktc_high']*60/d['dt'])})
@@ -2238,6 +2355,13 @@ def create_drs(newoutput, newoutput_h, newoutput_t, newcordex, newhighfreq):
                             cmip_scenario = "historical"
                         else:
                             cmip_scenario = d['rcp']
+                    elif d['cmip'] == 'cmip7':
+                        if d['histyear'] <= 2021:
+                            cmip_scenario = "historical"
+                        elif d['histyear'] <= 2101:
+                            cmip_scenario = d['rcp']			    
+                        else:
+                            cmip_scenario = dict2str('{rcp}-ext')
                     if (d['drshost']=='ECMWF-ERA5') or (d['drshost']=='ERA5'):
                         cmip_scenario="evaluation"
 
@@ -2450,7 +2574,7 @@ def top_template():
     &end
     """
 
-def igbpveg_template2():
+def igbpveg_template_modis():
     "Template for writing igbpveg.nml namelist file"
 
     return """\
@@ -2558,7 +2682,8 @@ def aeroemiss_template():
 
     return """\
     &aero
-     month={imth_2digit}
+     month={imth}
+     year={iyr}
      topofile='{vegin}/topout{domain}'
      so2_anth='{so2_anth}'
      so2_ship='{so2_ship}'
@@ -2671,7 +2796,7 @@ def input_template_1():
      surf_cordex=11 surf_windfarm=1
      shep_cordex=1
      diaglevel_cloud={diaglevel_cloud}
-     ml_cordex=.false. ml_freq=.true.
+     ml_cordex={ml_cordex} ml_freq=.true.
      """
 
     template2 = """
@@ -2866,7 +2991,6 @@ def input_template_4():
      qcmf=1.e-4 ezmin=10.
      ent0=0.5 ent1=0. ent_min=0.001
      be=1. b1=2. b2=0.3333 m0=0.1
-     tke_timeave_length={tke_timeave_length}
      wg_tau={wg_tau} wg_prob={wg_prob}
      dvmodmin=0.01 amxlsq={amxlsq}
      ngwd={ngwd} helim={helim} fc2={fc2}
@@ -3174,8 +3298,8 @@ if __name__ == '__main__':
     parser.add_argument("--leap", type=str, help=" Define calendar (noleap, leap, 360, auto)")
     parser.add_argument("--ncountmax", type=int, help=" Number of months before resubmit")
 
-    parser.add_argument("--cmip", type=str, choices=['cmip5', 'cmip6'], help=" CMIP scenario")
-    parser.add_argument("--rcp", type=str, choices=['historic', 'historical', 'RCP26', 'RCP45', 'RCP85', 'ssp126', 'ssp245', 'ssp370', 'ssp460', 'ssp585'], help=" RCP/SSP scenario")
+    parser.add_argument("--cmip", type=str, choices=['cmip5', 'cmip6', 'cmip7'], help=" CMIP scenario")
+    parser.add_argument("--rcp", type=str, choices=['historic', 'historical', 'RCP26', 'RCP45', 'RCP85', 'ssp126', 'ssp245', 'ssp370', 'ssp460', 'ssp585', 'h',  'vl', 'm', 'hl'], help=" RCP/SSP scenario")
 
     parser.add_argument("--minlat", type=float, help=" output min latitude (degrees)")
     parser.add_argument("--maxlat", type=float, help=" output max latitude (degrees)")
@@ -3197,7 +3321,7 @@ if __name__ == '__main__':
     parser.add_argument("--rad", type=str, help=" radiation (SE3, SE4)")
     parser.add_argument("--rad_year", type=int, help=" radiation year (0=off)")
     parser.add_argument("--bmix", type=str, help=" boundary layer (ri, tke_eps, hbg)")
-    parser.add_argument("--tke_timeave_length", type=float, help=" Averaging time period for TKE")
+    #parser.add_argument("--tke_timeave_length", type=float, help=" Averaging time period for TKE")
     parser.add_argument("--mlo", type=str, help=" ocean (prescribed, dynamical)")
     parser.add_argument("--casa", type=str, help=" CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)")
     parser.add_argument("--tracer", type=str, help=" Tracer emission directory (off=disabled)")
@@ -3209,6 +3333,7 @@ if __name__ == '__main__':
     parser.add_argument("--ktc", type=int, help=" standard output period (mins)")
     parser.add_argument("--ktc_surf", type=int, help=" CORDEX file output period (mins) (0=off)")
     parser.add_argument("--ktc_high", type=int, help=" High-freq file output period (mins) (0=off)")
+    parser.add_argument("--multitime_cordex", type=str, help=" Compress CORDEX output with multiple time frequency (off, compress)")
     
     parser.add_argument("--uclemparm", type=str, help=" User defined UCLEMS parameter file (default for standard values)")
     parser.add_argument("--cableparm", type=str, help=" User defined CABLE vegetation parameter file (default for standard values)")

@@ -58,6 +58,7 @@ nctar=off                                    # TAR output files in OUTPUT direct
 # lat/lon.
 ncout=off                                    # standard output (off, all, ctm, basic, tracer)
 ncsurf=cordex                                # CORDEX output (off, cordex)
+multitime_cordex=off                         # Compress CORDEX data using multiple frequency (off, compress)
 nchigh=off                                   # high-frequency output (off, latlon, shep)
 
 # Output domain
@@ -170,7 +171,7 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode \
                    --mlevs ${mlevs// /} --tlevs ${tlevs// /} \
                    --dlevs ${dlevs// /} \
                    --ncout $ncout --nctar $nctar --ncsurf $ncsurf \
-                   --nchigh $nchigh \
+                   --nchigh $nchigh --multitime_cordex $multitime_cordex \
 		   --drsmode $drsmode --drsdomain $drsdomain \
 		   --drsensemble $drsensemble --model_id "$model_id" \
 		   --contact "$contact" --rcm_version_id "$rcm_version_id" \
