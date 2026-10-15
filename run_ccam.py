@@ -3321,7 +3321,6 @@ if __name__ == '__main__':
     parser.add_argument("--rad", type=str, help=" radiation (SE3, SE4)")
     parser.add_argument("--rad_year", type=int, help=" radiation year (0=off)")
     parser.add_argument("--bmix", type=str, help=" boundary layer (ri, tke_eps, hbg)")
-    #parser.add_argument("--tke_timeave_length", type=float, help=" Averaging time period for TKE")
     parser.add_argument("--mlo", type=str, help=" ocean (prescribed, dynamical)")
     parser.add_argument("--casa", type=str, help=" CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)")
     parser.add_argument("--tracer", type=str, help=" Tracer emission directory (off=disabled)")

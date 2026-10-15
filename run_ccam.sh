@@ -95,7 +95,6 @@ cloud=lin                                    # cloud microphysics (liq_ice, liq_
 rad=SE4                                      # radiation (SE3, SE4, SE4lin)
 rad_year=0                                   # special option for overriding radiation year (0=off)
 bmix=tke_eps                                 # boundary layer (ri, tke_eps, hbg)
-tke_timeave_length=0                         # special option for time averaging of TKE source terms (seconds) 0=off
 mlo=dynamical                                # ocean (prescribed, dynamical)
 casa=casa_cnp                                # CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)
 tracer=off                                   # Tracer emission directory (off=disabled)
@@ -151,7 +150,6 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud \
                    --rad $rad --bmix $bmix --mlo $mlo --casa $casa \
                    --cldfrac $cldfrac --tracer "$tracer" \
-                   --tke_timeave_length $tke_timeave_length \
                    --rad_year $rad_year --machinetype $machinetype \
                    --bcdom $bcdom --bcsoil $bcsoil --bcsoilfile $bcsoilfile \
                    --sstfile $sstfile --sstinit $sstinit \
