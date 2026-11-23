@@ -105,7 +105,8 @@ def convert_old_settings():
                    4:"generate_veg", 5:"postprocess", 6:"nudging_gcm_with_sst",
                    7:"aquaplanet1", 8:"aquaplanet2", 9:"aquaplanet3",
                    10:"aquaplanet4", 11:"aquaplanet5", 12:"aquaplanet6",
-                   13:"aquaplanet7", 14:"aquaplanet8" }
+                   13:"aquaplanet7", 14:"aquaplanet8", 15:"nudging_aogcm",
+		   16:"nudging_aoccam" }
     d['dmode'] = find_mode(d['dmode'],dmode_dict,"dmode")
 
 
@@ -1248,7 +1249,7 @@ def config_initconds():
                 sys.exit(1)
 
             # Configure cold start
-            if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
+            if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst", "nudging_aogcm", "nudging_aoccam"]:
                 d.update({'ifile': d['mesonest']})
             elif d['dmode'] == "sst_only":
                 d.update({'ifile': d['sstinit']})
@@ -1276,7 +1277,7 @@ def config_initconds():
                 check_file_exists(d['bcsoilfile']+'.000000')
 
     # prepare mesonest file
-    if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
+    if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst", "nudging_aogcm", "nudging_aoccam"]:
         fpath = dict2str('{bcdir}/{mesonest}')
         newpath = dict2str('{wdir}/{mesonest}')
         cname = "error"
@@ -1367,27 +1368,36 @@ def set_nudging():
     "Set nudging strength parameters"
 
     if d['dmode'] == "nudging_gcm":
-        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999,
+                  'kbotdav': -850, 'ktopdav': -5, 'sigramplow': 0.05})
+
+    if d['dmode'] == "nudging_aogcm":
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999,
                   'kbotdav': -850, 'ktopdav': -5, 'sigramplow': 0.05})
 
     elif d['dmode'] == "sst_only":
-        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999,
                   'kbotdav': -850, 'ktopdav': -5, 'sigramplow': 0.05})
 
     elif d['dmode'] == "nudging_ccam":
-        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999,
+                  'kbotdav': 1, 'ktopdav': 0, 'sigramplow': 0.05})
+
+    elif d['dmode'] == "nudging_aoccam":
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999,
                   'kbotdav': 1, 'ktopdav': 0, 'sigramplow': 0.05})
 
     elif d['dmode'] == "sst_6hour":
-        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999,
                   'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
 
     elif d['dmode'] == "nudging_gcm_with_sst":
-        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+        d.update({'mbd_base': 20, 'mbd_maxgrid': 999999,
                   'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
     else:
-        d.update({'mbd_base': 0, 'mbd_maxgrid': 999999, 'mbd_maxscale': 3000,
+        d.update({'mbd_base': 0, 'mbd_maxgrid': 999999,
                   'kbotdav': -850, 'ktopdav': -10, 'sigramplow': 0.05})
+		  
 
 
 def set_downscaling():
@@ -1398,12 +1408,22 @@ def set_downscaling():
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
                   'mh_bs':3})
+    elif d['dmode'] == "nudging_aogcm":
+        d.update({'nud_p': 1, 'nud_q': 0, 'nud_t': 1,
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 0,
+                  'mh_bs':3})
     elif d['dmode'] == "sst_only":
         d.update({'nud_p': 0, 'nud_q': 0, 'nud_t': 0,
                   'nud_uv': 0, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': 0, 'nud_aero': 0,
                   'mh_bs':3})
     elif d['dmode'] == "nudging_ccam":
+        d.update({'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
+                  'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
+                  'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 1,
+                  'mh_bs':3})
+    elif d['dmode'] == "nudging_aoccam":
         d.update({'nud_p': 1, 'nud_q': 1, 'nud_t': 1,
                   'nud_uv': 1, 'mfix': 3, 'mfix_qg': 3, 'mfix_aero': 3,
                   'nbd': 0, 'mbd': d['mbd_base'], 'nud_aero': 1,
@@ -1552,7 +1572,7 @@ def set_ocean():
         #Interpolated SSTs
         d.update({'nmlo': 0, 'mbd_mlo': 0, 'nud_sst': 0,
                   'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                  'kbotmlo': -40})
+                  'ktopmlo': 1, 'kbotmlo': -40})
 
     else:
         #Dynanical Ocean
@@ -1560,17 +1580,24 @@ def set_ocean():
             # Downscaling mode - GCM or SST-only:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 0, 'nud_ouv': 0, 'nud_sfh': 0,
-                      'kbotmlo': -40})
+                      'ktopmlo': 1, 'kbotmlo': -40})
+        elif d['dmode'] == "nudging_aogcm":
+            # Downscaling mode - GCM with ocean
+            d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
+                      'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 0,
+                      'ktopmlo': -40, 'kbotmlo': -1000})
         elif d['dmode'] == "nudging_ccam":
             # Downscaling CCAM:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
-                      'kbotmlo': -40})
-        else:
-            raise ValueError(dict2str('ERROR: mlo not supported for dmode {dmode}'))
+                      'ktopmlo': 1, 'kbotmlo': -40})
+        elif d['dmode'] == "nudging_aoccam":
+            # Downscaling CCAM:
             d.update({'nmlo': -3, 'mbd_mlo': 60, 'nud_sst': 1,
                       'nud_sss': 1, 'nud_ouv': 1, 'nud_sfh': 1,
-                      'kbotmlo': -40})
+                      'ktopmlo': -40, 'kbotmlo': -1000})
+        else:
+            raise ValueError(dict2str('ERROR: mlo not supported for dmode {dmode}'))
 
 
 def set_pblmix():
@@ -1692,7 +1719,7 @@ def prepare_ccam_infiles():
             raise ValueError(dict2str('Cannot locate {ifile} or {ifile}.000000. ')+
                              'If this is the start of a new run, please check that year.qm has been deleted')
 
-    if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst"]:
+    if d['dmode'] in ["nudging_gcm", "nudging_ccam", "sst_6hour", "nudging_gcm_with_sst", "nudging_aogcm", "nudging_aoccam"]:
         if not os.path.exists(d['mesonest']) and not os.path.exists(d['mesonest']+'.000000'):
             raise ValueError(dict2str('Cannot locate {mesonest} or {mesonest}.000000'))
 
@@ -1725,15 +1752,19 @@ def prepare_ccam_infiles():
 def check_correct_host():
     "Check if host is CCAM"
 
-    if d['dmode'] in ["nudging_gcm", "nudging_ccam", "nudging_gcm_with_sst"]:
+    if d['dmode'] in ["nudging_gcm", "nudging_ccam", "nudging_gcm_with_sst", "nudging_aogcm"]:
         for fname in [d['mesonest'], d['mesonest']+'.000000']:
             if os.path.exists(fname):
                 ccam_host = check_var_in_file(fname, ":version")
                 break
         if ccam_host is True and (d['dmode']=="nudging_gcm"):
             raise ValueError('CCAM is the host model. Use dmode=nudging_ccam')
+        if ccam_host is True and (d['dmode']=="nudging_aogcm"):
+            raise ValueError('CCAM is the host model. Use dmode=nudging_aoccam')
         if ccam_host is False and (d['dmode']=="nudging_ccam"):
             raise ValueError('CCAM is not the host model. Use dmode=nudging_gcm')
+        if ccam_host is False and (d['dmode']=="nudging_aoccam"):
+            raise ValueError('CCAM is not the host model. Use dmode=nudging_aogcm')
         if ccam_host is True and (d['dmode']=="nudging_gcm_with_sst"):
             raise ValueError('CCAM is the host model. Use dmode=nudging_ccam')
 
@@ -1742,13 +1773,17 @@ def check_correct_host():
         if d['lowres'] > 220.:
             raise ValueError('CCAM coarse grid is too high for dmode=nudging_gcm.  Try reducing grid resolution or increasing grid size')
 
+    if d['dmode'] == "nudging_aogcm":
+        if d['lowres'] > 220.:
+            raise ValueError('CCAM coarse grid is too high for dmode=nudging_aogcm.  Try reducing grid resolution or increasing grid size')
+
     if d['dmode'] in ["sst_only", "aquaplanet1", "aquaplanet2", "aquaplanet3",
                       "aquaplanet4", "aquaplanet5", "aquaplanet6",
                       "aquaplanet7", "aquaplanet8"]:
         if d['lowres'] > 200.:
             raise ValueError('CCAM coarse is too high for dmode=sst_only.  Try reducing grid resolution or increasing grid size')
 
-    if (d['dmode'] == "nudging_ccam") or (d['dmode'] == "nudging_gcm"):
+    if (d['dmode'] == "nudging_ccam") or (d['dmode'] == "nudging_aoccam") or (d['dmode'] == "nudging_gcm") or (d['dmode'] == "nudging_aogcm"):
         fname = d['mesonest']+'.000000'
         if os.path.exists(fname):
             host_inv_schmidt, host_gridsize = get_grid_properties_in_file(fname)
@@ -2718,21 +2753,21 @@ def input_template_1():
      epsp=0.1 epsu=0.1 epsh=1.
      precon=-10000 restol=2.e-7 nh=5 knh=9 maxcolour=3
      nstagu=1 khor=0 nhorps=-1 nhorjlm=0 nhor=-151
-     mh_bs={mh_bs} ntvd=3
+     mh_bs={mh_bs} ntvd=3 nagg=4
 
      COMMENT='mass fixer'
      mfix_qg={mfix_qg} mfix={mfix} mfix_aero={mfix_aero}
      mfix_tr={mfix_tr}
 
      COMMENT='nudging'
-     nbd={nbd} mbd={mbd} mbd_maxscale={mbd_maxscale} mbd_maxgrid={mbd_maxgrid}
+     nbd={nbd} mbd={mbd} mbd_maxscale={maxscale} mbd_maxgrid={mbd_maxgrid}
      nud_p={nud_p} nud_q={nud_q} nud_t={nud_t} nud_uv={nud_uv}
      nud_aero={nud_aero} nud_hrs=1
      nud_period=0
      kbotdav={kbotdav} ktopdav={ktopdav} sigramplow={sigramplow}
-     mbd_maxscale_mlo=1000 mbd_mlo={mbd_mlo}
+     mbd_maxscale_mlo={maxscale_mlo} mbd_mlo={mbd_mlo}
      nud_sst={nud_sst} nud_sss={nud_sss} nud_ouv={nud_ouv} nud_sfh={nud_sfh}
-     ktopmlo=1 kbotmlo={kbotmlo} mloalpha=12
+     ktopmlo={ktopmlo} kbotmlo={kbotmlo} mloalpha=12
 
      COMMENT='ocean, lakes and rivers'
      nmlo={nmlo} ol={mlolvl} tss_sh=0.3 nriver=-1 charnock=-2.
@@ -3312,7 +3347,7 @@ if __name__ == '__main__':
     parser.add_argument("--tlevs", type=str, help=" output theta levels (K)")
     parser.add_argument("--dlevs", type=str, help=" output ocean depth (m)")
 
-    parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, sst_only, nuding_ccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst, squaplanet1, .., aquaplanent8)")
+    parser.add_argument("--dmode", type=str, help=" downscaling (nudging_gcm, nudging_aogcm, sst_only, nudging_ccam, nudging_aoccam, sst_6hr, generate_veg, postprocess, nudging_gcm_with_sst, squaplanet1, .., aquaplanent8)")
     parser.add_argument("--sib", type=str, help=" land surface (cable_vary, cable_const, cable_modis2020, cable_modis2020_const)")
     parser.add_argument("--aero", type=str, help=" aerosols (off, prognostic)")
     parser.add_argument("--conv", type=str, help=" convection (2014, 2015a, 2015b, 2017, Mod2015a, 2021, grell)")
@@ -3324,6 +3359,8 @@ if __name__ == '__main__':
     parser.add_argument("--mlo", type=str, help=" ocean (prescribed, dynamical)")
     parser.add_argument("--casa", type=str, help=" CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)")
     parser.add_argument("--tracer", type=str, help=" Tracer emission directory (off=disabled)")
+    parser.add_argument("--maxscale", type=float, help=" Maximum spectral nudging length scale for atmosphere (km)")
+    parser.add_argument("--maxscale_mlo", type=float, help=" Maximum spectral nudging length scale for ocean (km)")
 
     parser.add_argument("--ncout", type=str, help=" standard output format (off, all, ctm, basic, all_s, basic_s)")
     parser.add_argument("--ncsurf", type=str, help=" CORDEX output (off, cordex), cordex_s")

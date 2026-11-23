@@ -25,7 +25,7 @@ machinetype=mpirun                           # machine type (mpirun, srun)
 nproc=$SLURM_NTASKS                          # total number of processors
 nnode=$SLURM_NTASKS_PER_NODE                 # number of processors per node
 
-dmode=nudging_gcm                            # simulation type (nudging_gcm, sst_only, nudging_ccam, sst_6hour, generate_veg, postprocess, nudging_gcm_with_sst )
+dmode=nudging_gcm                            # simulation type (nudging_gcm, nudging_aogcm, sst_only, nudging_ccam, nudging_aoccam, sst_6hour, generate_veg, postprocess, nudging_gcm_with_sst )
 
 midlon=0.                                    # central longitude of domain
 midlat=0.                                    # central latitude of domain
@@ -98,6 +98,8 @@ bmix=tke_eps                                 # boundary layer (ri, tke_eps, hbg)
 mlo=dynamical                                # ocean (prescribed, dynamical)
 casa=casa_cnp                                # CASA-CNP carbon cycle with prognostic LAI (off, casa_cnp, casa_cnp_pop)
 tracer=off                                   # Tracer emission directory (off=disabled)
+maxscale=3000.                               # Maximum length scale for spectral nuging of atmosphere (km)
+maxscale_mlo=1000.                           # Maximum length scale for spectral nudging of ocean (km)
 
 # User defined input datasets (e.g., for vegetation and urban)
 uclemparm=default                            # urban parameter file (default for standard values)
@@ -111,7 +113,7 @@ userlaifile=none                             # User specified LAI map (none for 
 # Host atmosphere for dmode=nudging_gcm, nudging_ccam, sst_6hour
 # and soil data options
 
-bcdom=cc_arr_ERA5_nudged_                    # host file prefix for dmode=nudging_gcm, nudging_ccam or sst_6hour
+bcdom=ccam_ERA5_                             # host file prefix for dmode=nudging_gcm, nudging_ccam or sst_6hour
 bcdir=$HOME/ccaminstall/era5                 # host atmospheric data (dmode=nudging_gcm, nudging_ccam, sst_6hour)
 bcsoil=climatology                           # use climatology for initial soil moisture (constant, climatology, recycle)
 bcsoilfile=none                              # soil data for recycling with bcsoil=recycle
@@ -150,7 +152,8 @@ python $excdir/run_ccam.py --name $name --nproc $nproc --nnode $nnode \
                    --sib $sib --aero $aero --conv $conv --cloud $cloud \
                    --rad $rad --bmix $bmix --mlo $mlo --casa $casa \
                    --cldfrac $cldfrac --tracer "$tracer" \
-                   --rad_year $rad_year --machinetype $machinetype \
+                   --rad_year $rad_year --maxscale " $maxscale" \
+                   --maxscale_mlo " $maxscale_mlo" --machinetype $machinetype \
                    --bcdom $bcdom --bcsoil $bcsoil --bcsoilfile $bcsoilfile \
                    --sstfile $sstfile --sstinit $sstinit \
                    --cmip $cmip --rcp $rcp \
